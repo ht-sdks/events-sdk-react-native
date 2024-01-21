@@ -1,8 +1,8 @@
-import { SegmentClient } from '@segment/analytics-react-native';
+import { HightouchClient } from '@ht-sdks/analytics-react-native';
 import {
   getMockLogger,
-  MockSegmentStore,
-} from '@segment/analytics-react-native/src/test-helpers';
+  MockHightouchStore,
+} from '@ht-sdks/analytics-react-native/src/test-helpers';
 import { Platform } from 'react-native';
 
 import { DeviceTokenPlugin } from '../../DeviceTokenPlugin';
@@ -23,7 +23,7 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => ({
 }));
 
 describe('DeviceTokenPlugin', () => {
-  const store = new MockSegmentStore();
+  const store = new MockHightouchStore();
   const clientArgs = {
     logger: getMockLogger(),
     config: {
@@ -42,7 +42,7 @@ describe('DeviceTokenPlugin', () => {
   });
 
   it('requests authorization when configure is called', async () => {
-    const analytics = new SegmentClient(clientArgs);
+    const analytics = new HightouchClient(clientArgs);
 
     await plugin.configure(analytics);
 
@@ -51,7 +51,7 @@ describe('DeviceTokenPlugin', () => {
 
   it('retrieves the APNS value if authorized and OS is iOS', async () => {
     Platform.OS = 'ios';
-    const analytics = new SegmentClient(clientArgs);
+    const analytics = new HightouchClient(clientArgs);
     await plugin.configure(analytics);
 
     expect(mockRequestPermission).toHaveReturnedWith(1);
@@ -60,7 +60,7 @@ describe('DeviceTokenPlugin', () => {
 
   it('retrieves the device token for Android builds', async () => {
     Platform.OS = 'android';
-    const analytics = new SegmentClient(clientArgs);
+    const analytics = new HightouchClient(clientArgs);
 
     await plugin.configure(analytics);
 
@@ -76,7 +76,7 @@ describe('DeviceTokenPlugin', () => {
   });
 
   it('sets the device token in context for iOS', async () => {
-    const analytics = new SegmentClient(clientArgs);
+    const analytics = new HightouchClient(clientArgs);
     await plugin.configure(analytics);
 
     const token = await store.context.get(true);
@@ -85,7 +85,7 @@ describe('DeviceTokenPlugin', () => {
 
   it('sets the device token in context for Android', async () => {
     Platform.OS = 'android';
-    const analytics = new SegmentClient(clientArgs);
+    const analytics = new HightouchClient(clientArgs);
     await plugin.configure(analytics);
 
     const token = await store.context.get(true);

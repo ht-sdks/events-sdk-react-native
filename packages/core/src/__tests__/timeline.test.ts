@@ -1,8 +1,8 @@
-import { SegmentClient } from '../analytics';
+import { HightouchClient } from '../analytics';
 import { Plugin } from '../plugin';
-import { getMockLogger, MockSegmentStore } from '../test-helpers';
+import { getMockLogger, MockHightouchStore } from '../test-helpers';
 import { Timeline } from '../timeline';
-import { EventType, PluginType, SegmentEvent, TrackEventType } from '../types';
+import { EventType, PluginType, HightouchEvent, TrackEventType } from '../types';
 
 jest.mock('uuid');
 
@@ -20,7 +20,7 @@ describe('timeline', () => {
     anonymousId: 'very-anonymous',
   };
 
-  const store = new MockSegmentStore({
+  const store = new MockHightouchStore({
     userInfo: initialUserInfo,
     settings: {
       '1': true,
@@ -37,13 +37,13 @@ describe('timeline', () => {
     store: store,
   };
 
-  const client = new SegmentClient(clientArgs);
+  const client = new HightouchClient(clientArgs);
 
   class MockPlugin extends Plugin {
     constructor(
       private readonly executeFunc: (
-        event: SegmentEvent
-      ) => SegmentEvent | undefined,
+        event: HightouchEvent
+      ) => HightouchEvent | undefined,
       type: PluginType
     ) {
       super();
@@ -51,7 +51,7 @@ describe('timeline', () => {
       this.analytics = client;
     }
 
-    execute(event: SegmentEvent) {
+    execute(event: HightouchEvent) {
       return this.executeFunc(event);
     }
   }
@@ -59,7 +59,7 @@ describe('timeline', () => {
   it('processes each destination independently', async () => {
     const timeline = new Timeline();
 
-    const goodPlugin = jest.fn().mockImplementation((e: SegmentEvent) => e);
+    const goodPlugin = jest.fn().mockImplementation((e: HightouchEvent) => e);
     const badPlugin = jest.fn().mockImplementation(() => undefined);
     timeline.add(new MockPlugin(badPlugin, PluginType.destination));
     timeline.add(new MockPlugin(goodPlugin, PluginType.destination));
@@ -82,7 +82,7 @@ describe('timeline', () => {
   it('handles errors from plugins execution', async () => {
     const timeline = new Timeline();
 
-    const goodPlugin = jest.fn().mockImplementation((e: SegmentEvent) => e);
+    const goodPlugin = jest.fn().mockImplementation((e: HightouchEvent) => e);
     const badPlugin = jest.fn().mockImplementation(() => {
       throw 'ERROR';
     });
@@ -107,7 +107,7 @@ describe('timeline', () => {
   it('shortcircuits plugin execution if a plugin return undefined', async () => {
     const timeline = new Timeline();
 
-    const goodPlugin = jest.fn().mockImplementation((e: SegmentEvent) => e);
+    const goodPlugin = jest.fn().mockImplementation((e: HightouchEvent) => e);
     const badPlugin = jest.fn().mockImplementation(() => undefined);
     timeline.add(new MockPlugin(badPlugin, PluginType.before));
     timeline.add(new MockPlugin(goodPlugin, PluginType.before));

@@ -1,19 +1,19 @@
 import { createTestClient } from '../../../test-helpers';
 import { ConsentPlugin } from '../../ConsentPlugin';
-import consentNotEnabledAtSegment from './mockSettings/ConsentNotEnabledAtSegment.json';
+import consentNotEnabledAtHightouch from './mockSettings/ConsentNotEnabledAtHightouch.json';
 import {
   createConsentProvider,
-  createSegmentWatcher,
+  createHightouchWatcher,
   setupTestDestinations,
 } from './utils';
 
-describe('Consent not enabled at Segment', () => {
+describe('Consent not enabled at Hightouch', () => {
   const createClient = () =>
     createTestClient(
       {
-        settings: consentNotEnabledAtSegment.integrations,
+        settings: consentNotEnabledAtHightouch.integrations,
       },
-      { autoAddSegmentDestination: true }
+      { autoAddHightouchDestination: true }
     );
 
   test('no to all', async () => {
@@ -36,11 +36,11 @@ describe('Consent not enabled at Segment', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).toHaveBeenCalled();
     expect(testDestinations.dest2.track).toHaveBeenCalled();
     expect(testDestinations.dest3.track).toHaveBeenCalled();
@@ -68,11 +68,11 @@ describe('Consent not enabled at Segment', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).toHaveBeenCalled();
     expect(testDestinations.dest2.track).toHaveBeenCalled();
     expect(testDestinations.dest3.track).toHaveBeenCalled();
@@ -100,11 +100,11 @@ describe('Consent not enabled at Segment', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).toHaveBeenCalled();
     expect(testDestinations.dest2.track).toHaveBeenCalled();
     expect(testDestinations.dest3.track).toHaveBeenCalled();

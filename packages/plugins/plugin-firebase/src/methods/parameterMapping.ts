@@ -1,4 +1,4 @@
-import { isString } from '@segment/analytics-react-native';
+import { isString } from '@ht-sdks/analytics-react-native';
 
 const mapEventNames: { [key: string]: string } = {
   'Product Clicked': 'select_content',

@@ -1,11 +1,11 @@
 import type { Mixpanel } from 'mixpanel-react-native';
-import type { JsonMap } from '@segment/analytics-react-native';
-import type { SegmentMixpanelSettings } from '../types';
+import type { JsonMap } from '@ht-sdks/analytics-react-native';
+import type { HightouchMixpanelSettings } from '../types';
 
 export default (
   eventName: string,
   properties: JsonMap,
-  settings: SegmentMixpanelSettings,
+  settings: HightouchMixpanelSettings,
   mixpanel: Mixpanel
 ) => {
   //track raw event

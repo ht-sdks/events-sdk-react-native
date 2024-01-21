@@ -1,8 +1,8 @@
-import type { SegmentAdjustSettings } from '@segment/analytics-react-native';
+import type { HightouchAdjustSettings } from '@ht-sdks/analytics-react-native';
 
 export const mappedCustomEventToken = (
   eventName: string,
-  settings: SegmentAdjustSettings
+  settings: HightouchAdjustSettings
 ) => {
   let result = null;
   const tokens = settings?.customEvents;

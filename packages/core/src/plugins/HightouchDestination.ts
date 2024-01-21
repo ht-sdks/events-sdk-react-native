@@ -1,15 +1,14 @@
 import { DestinationPlugin } from '../plugin';
 import {
   PluginType,
-  SegmentAPIIntegration,
-  SegmentAPISettings,
-  SegmentEvent,
+  HightouchAPIIntegration,
+  HightouchAPISettings,
+  HightouchEvent,
   UpdateType,
 } from '../types';
 import { chunk } from '../util';
 import { uploadEvents } from '../api';
-import type { SegmentClient } from '../analytics';
-import { DestinationMetadataEnrichment } from './DestinationMetadataEnrichment';
+import type { HightouchClient } from '../analytics';
 import { QueueFlushingPlugin } from './QueueFlushingPlugin';
 import { defaultApiHost } from '../constants';
 import { checkResponseForErrors, translateHTTPError } from '../errors';
@@ -17,17 +16,17 @@ import { defaultConfig } from '../constants';
 
 const MAX_EVENTS_PER_BATCH = 100;
 const MAX_PAYLOAD_SIZE_IN_KB = 500;
-export const SEGMENT_DESTINATION_KEY = 'Segment.io';
+export const HIGHTOUCH_DESTINATION_KEY = 'Hightouch.io';
 
-export class SegmentDestination extends DestinationPlugin {
+export class HightouchDestination extends DestinationPlugin {
   type = PluginType.destination;
-  key = SEGMENT_DESTINATION_KEY;
+  key = HIGHTOUCH_DESTINATION_KEY;
   private apiHost?: string;
   private isReady = false;
 
-  private sendEvents = async (events: SegmentEvent[]): Promise<void> => {
+  private sendEvents = async (events: HightouchEvent[]): Promise<void> => {
     if (!this.isReady) {
-      // We're not sending events until Segment has loaded all settings
+      // We're not sending events until Hightouch has loaded all settings
       return Promise.resolve();
     }
 
@@ -37,17 +36,17 @@ export class SegmentDestination extends DestinationPlugin {
 
     const config = this.analytics?.getConfig() ?? defaultConfig;
 
-    const chunkedEvents: SegmentEvent[][] = chunk(
+    const chunkedEvents: HightouchEvent[][] = chunk(
       events,
       config.maxBatchSize ?? MAX_EVENTS_PER_BATCH,
       MAX_PAYLOAD_SIZE_IN_KB
     );
 
-    let sentEvents: SegmentEvent[] = [];
+    let sentEvents: HightouchEvent[] = [];
     let numFailedEvents = 0;
 
     await Promise.all(
-      chunkedEvents.map(async (batch: SegmentEvent[]) => {
+      chunkedEvents.map(async (batch: HightouchEvent[]) => {
         try {
           const res = await uploadEvents({
             writeKey: config.writeKey,
@@ -86,29 +85,31 @@ export class SegmentDestination extends DestinationPlugin {
     return config?.proxy ?? this.apiHost ?? defaultApiHost;
   }
 
-  configure(analytics: SegmentClient): void {
+  configure(analytics: HightouchClient): void {
     super.configure(analytics);
 
+    // This does not apply to Hightouch.
     // Enrich events with the Destination metadata
-    this.add(new DestinationMetadataEnrichment(SEGMENT_DESTINATION_KEY));
+    // this.add(new DestinationMetadataEnrichment(HIGHTOUCH_DESTINATION_KEY));
+
     this.add(this.queuePlugin);
   }
 
-  // We block sending stuff to segment until we get the settings
-  update(settings: SegmentAPISettings, _type: UpdateType): void {
-    const segmentSettings = settings.integrations[
+  // We block sending stuff to Hightouch until we get the settings
+  update(settings: HightouchAPISettings, _type: UpdateType): void {
+    const hightouchSettings = settings.integrations[
       this.key
-    ] as SegmentAPIIntegration;
+    ] as HightouchAPIIntegration;
     if (
-      segmentSettings?.apiHost !== undefined &&
-      segmentSettings?.apiHost !== null
+      hightouchSettings?.apiHost !== undefined &&
+      hightouchSettings?.apiHost !== null
     ) {
-      this.apiHost = `https://${segmentSettings.apiHost}/b`;
+      this.apiHost = `https://${hightouchSettings.apiHost}/b`;
     }
     this.isReady = true;
   }
 
-  execute(event: SegmentEvent): Promise<SegmentEvent | undefined> {
+  execute(event: HightouchEvent): Promise<HightouchEvent | undefined> {
     // Execute the internal timeline here, the queue plugin will pick up the event and add it to the queue automatically
     const enrichedEvent = super.execute(event);
     return enrichedEvent;

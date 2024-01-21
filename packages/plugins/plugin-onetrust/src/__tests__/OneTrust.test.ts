@@ -2,9 +2,9 @@ import {
   DestinationPlugin,
   Plugin,
   PluginType,
-  SegmentClient,
-} from '@segment/analytics-react-native';
-import { createTestClient } from '@segment/analytics-react-native/src/test-helpers';
+  HightouchClient,
+} from '@ht-sdks/analytics-react-native';
+import { createTestClient } from '@ht-sdks/analytics-react-native/src/test-helpers';
 import onChange from 'on-change';
 
 import { OneTrustPlugin } from '../OneTrust';
@@ -62,7 +62,7 @@ class MockOneTrustSDK implements OTPublishersNativeSDK {
 }
 
 describe('OneTrustPlugin', () => {
-  let client: SegmentClient;
+  let client: HightouchClient;
   let mockOneTrust: MockOneTrustSDK;
   const mockBraze = new MockDestination('Braze');
   const mockAmplitude = new MockDestination('Amplitude');
@@ -71,7 +71,7 @@ describe('OneTrustPlugin', () => {
     const testClient = createTestClient();
     testClient.store.reset();
     jest.clearAllMocks();
-    client = testClient.client as unknown as SegmentClient;
+    client = testClient.client as unknown as HightouchClient;
     mockOneTrust = new MockOneTrustSDK();
     client.add({
       plugin: new OneTrustPlugin(
@@ -163,7 +163,7 @@ describe('OneTrustPlugin', () => {
     expect(mockBraze.track).toHaveBeenCalledTimes(1);
   });
 
-  it('relays consent change within onetrust to Segment', async () => {
+  it('relays consent change within onetrust to Hightouch', async () => {
     const spy = jest.spyOn(client, 'track');
 
     await client.track('Test event');
@@ -176,7 +176,7 @@ describe('OneTrustPlugin', () => {
     // this is to make sure there are no unneccessary Consent Preference track calls
     expect(spy).toHaveBeenCalledTimes(2);
 
-    expect(spy).toHaveBeenLastCalledWith('Segment Consent Preference', {
+    expect(spy).toHaveBeenLastCalledWith('Hightouch Consent Preference', {
       consent: {
         categoryPreferences: {
           C001: true,

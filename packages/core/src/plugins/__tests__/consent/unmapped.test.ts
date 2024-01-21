@@ -3,7 +3,7 @@ import { ConsentPlugin } from '../../ConsentPlugin';
 import unmappedDestinations from './mockSettings/UnmappedDestinations.json';
 import {
   createConsentProvider,
-  createSegmentWatcher,
+  createHightouchWatcher,
   setupTestDestinations,
 } from './utils';
 
@@ -14,7 +14,7 @@ describe('Unmapped destinations', () => {
         settings: unmappedDestinations.integrations,
         consentSettings: unmappedDestinations.consentSettings,
       },
-      { autoAddSegmentDestination: true }
+      { autoAddHightouchDestination: true }
     );
 
   test('no to all', async () => {
@@ -37,11 +37,11 @@ describe('Unmapped destinations', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).not.toHaveBeenCalled();
     expect(testDestinations.dest2.track).not.toHaveBeenCalled();
     expect(testDestinations.dest3.track).not.toHaveBeenCalled();
@@ -69,11 +69,11 @@ describe('Unmapped destinations', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).not.toHaveBeenCalled();
     expect(testDestinations.dest2.track).not.toHaveBeenCalled();
     expect(testDestinations.dest3.track).not.toHaveBeenCalled();
@@ -101,11 +101,11 @@ describe('Unmapped destinations', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).not.toHaveBeenCalled();
     expect(testDestinations.dest2.track).not.toHaveBeenCalled();
     expect(testDestinations.dest3.track).not.toHaveBeenCalled();
@@ -133,11 +133,11 @@ describe('Unmapped destinations', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).not.toHaveBeenCalled();
     expect(testDestinations.dest2.track).toHaveBeenCalled();
     expect(testDestinations.dest3.track).not.toHaveBeenCalled();
@@ -165,11 +165,11 @@ describe('Unmapped destinations', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).not.toHaveBeenCalled();
     expect(testDestinations.dest2.track).not.toHaveBeenCalled();
     expect(testDestinations.dest3.track).toHaveBeenCalled();
@@ -197,11 +197,11 @@ describe('Unmapped destinations', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).toHaveBeenCalled();
     expect(testDestinations.dest2.track).not.toHaveBeenCalled();
     expect(testDestinations.dest3.track).not.toHaveBeenCalled();
@@ -229,11 +229,11 @@ describe('Unmapped destinations', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).toHaveBeenCalled();
     expect(testDestinations.dest2.track).toHaveBeenCalled();
     expect(testDestinations.dest3.track).toHaveBeenCalled();

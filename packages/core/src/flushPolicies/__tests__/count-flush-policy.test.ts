@@ -1,4 +1,4 @@
-import type { SegmentEvent } from '../../types';
+import type { HightouchEvent } from '../../types';
 import { CountFlushPolicy } from '../count-flush-policy';
 
 describe('CountFlushPolicy', () => {
@@ -9,20 +9,20 @@ describe('CountFlushPolicy', () => {
 
     policy.shouldFlush.onChange(observer);
 
-    policy.onEvent({} as SegmentEvent);
-    policy.onEvent({} as SegmentEvent);
-    policy.onEvent({} as SegmentEvent);
+    policy.onEvent({} as HightouchEvent);
+    policy.onEvent({} as HightouchEvent);
+    policy.onEvent({} as HightouchEvent);
 
     expect(observer).toHaveBeenCalledWith(true);
 
     // Keeps triggering until handled / reset
-    policy.onEvent({} as SegmentEvent);
+    policy.onEvent({} as HightouchEvent);
     expect(observer).toHaveBeenCalledTimes(2);
 
     policy.reset();
-    policy.onEvent({} as SegmentEvent);
-    policy.onEvent({} as SegmentEvent);
-    policy.onEvent({} as SegmentEvent);
+    policy.onEvent({} as HightouchEvent);
+    policy.onEvent({} as HightouchEvent);
+    policy.onEvent({} as HightouchEvent);
     expect(observer).toHaveBeenCalledTimes(4);
   });
 });

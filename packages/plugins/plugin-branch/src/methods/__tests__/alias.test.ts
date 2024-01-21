@@ -1,4 +1,4 @@
-import type { AliasEventType } from '@segment/analytics-react-native';
+import type { AliasEventType } from '@ht-sdks/analytics-react-native';
 import branch from '../__mocks__/react-native-branch';
 import alias from '../alias';
 

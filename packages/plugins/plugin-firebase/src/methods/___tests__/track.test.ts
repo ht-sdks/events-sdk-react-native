@@ -1,4 +1,4 @@
-import { EventType, TrackEventType } from '@segment/analytics-react-native';
+import { EventType, TrackEventType } from '@ht-sdks/analytics-react-native';
 import track from '../track';
 
 jest.mock('uuid');

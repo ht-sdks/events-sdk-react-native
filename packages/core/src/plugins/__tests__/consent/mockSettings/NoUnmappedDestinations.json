@@ -50,7 +50,7 @@
         ]
       }
     },
-    "Segment.io": {
+    "Hightouch.io": {
       "apiKey": "test",
       "unbundledIntegrations": [],
       "addBundledMetadata": true,
@@ -61,7 +61,7 @@
           "browser"
         ]
       },
-      "apiHost": "api.segment.io/v1"
+      "apiHost": "api.hightouch.io/v1"
     }
   },
   "plan": {
@@ -88,7 +88,7 @@
   "enabledMiddleware": {},
   "metrics": {
     "sampleRate": 0.1,
-    "host": "api.segment.io/v1"
+    "host": "api.hightouch.io/v1"
   },
   "legacyVideoPluginsEnabled": false,
   "remotePlugins": [],

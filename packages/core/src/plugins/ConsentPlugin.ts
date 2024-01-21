@@ -1,17 +1,17 @@
 import {
   Plugin,
-  type SegmentClient,
+  type HightouchClient,
   type DestinationPlugin,
   IntegrationSettings,
   PluginType,
-  SegmentAPIIntegration,
-  SegmentEvent,
+  HightouchAPIIntegration,
+  HightouchEvent,
   TrackEventType,
 } from '..';
 
-import { SEGMENT_DESTINATION_KEY } from './SegmentDestination';
+import { HIGHTOUCH_DESTINATION_KEY } from './HightouchDestination';
 
-const CONSENT_PREF_UPDATE_EVENT = 'Segment Consent Preference';
+const CONSENT_PREF_UPDATE_EVENT = 'Hightouch Consent Preference';
 
 export interface CategoryConsentStatusProvider {
   setApplicableCategories(categories: string[]): void;
@@ -26,7 +26,7 @@ export interface CategoryConsentStatusProvider {
  * - stamps all events with the consent metadata.
  * - augments all destinations with a consent filter plugin that prevents events from reaching them if
  * they are not compliant current consent setup
- * - listens for consent change from the provider and notifies Segment
+ * - listens for consent change from the provider and notifies Hightouch
  */
 export class ConsentPlugin extends Plugin {
   type = PluginType.before;
@@ -42,7 +42,7 @@ export class ConsentPlugin extends Plugin {
     this.categories = categories;
   }
 
-  configure(analytics: SegmentClient): void {
+  configure(analytics: HightouchClient): void {
     super.configure(analytics);
     analytics.getPlugins().forEach(this.injectConsentFilterIfApplicable);
     analytics.onPluginLoaded(this.injectConsentFilterIfApplicable);
@@ -60,7 +60,7 @@ export class ConsentPlugin extends Plugin {
     });
   }
 
-  async execute(event: SegmentEvent): Promise<SegmentEvent> {
+  async execute(event: HightouchEvent): Promise<HightouchEvent> {
     if (this.isConsentUpdateEvent(event)) {
       return event;
     }
@@ -89,7 +89,7 @@ export class ConsentPlugin extends Plugin {
           const settings = this.analytics?.settings.get() || {};
           const preferences = event.context?.consent?.categoryPreferences || {};
 
-          if (plugin.key === SEGMENT_DESTINATION_KEY) {
+          if (plugin.key === HIGHTOUCH_DESTINATION_KEY) {
             const noneConsented = allCategories.every(
               (category) => !preferences[category]
             );
@@ -123,14 +123,14 @@ export class ConsentPlugin extends Plugin {
 
   private containsConsentSettings = (
     settings: IntegrationSettings | undefined
-  ): settings is Required<Pick<SegmentAPIIntegration, 'consentSettings'>> => {
+  ): settings is Required<Pick<HightouchAPIIntegration, 'consentSettings'>> => {
     return (
-      typeof (settings as SegmentAPIIntegration)?.consentSettings
+      typeof (settings as HightouchAPIIntegration)?.consentSettings
         ?.categories === 'object'
     );
   };
 
-  private isConsentUpdateEvent(event: SegmentEvent): boolean {
+  private isConsentUpdateEvent(event: HightouchEvent): boolean {
     return (event as TrackEventType).event === CONSENT_PREF_UPDATE_EVENT;
   }
 
@@ -151,14 +151,14 @@ export class ConsentPlugin extends Plugin {
  */
 class ConsentFilterPlugin extends Plugin {
   type = PluginType.before;
-  private shouldAllowEvent: (event: SegmentEvent) => boolean;
+  private shouldAllowEvent: (event: HightouchEvent) => boolean;
 
-  constructor(shouldAllowEvent: (event: SegmentEvent) => boolean) {
+  constructor(shouldAllowEvent: (event: HightouchEvent) => boolean) {
     super();
     this.shouldAllowEvent = shouldAllowEvent;
   }
 
-  execute(event: SegmentEvent): SegmentEvent | undefined {
+  execute(event: HightouchEvent): HightouchEvent | undefined {
     return this.shouldAllowEvent(event) ? event : undefined;
   }
 }

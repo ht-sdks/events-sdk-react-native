@@ -3,7 +3,7 @@ import {
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import type { SegmentEvent } from '../types';
+import type { HightouchEvent } from '../types';
 import { FlushPolicyBase } from './types';
 
 /**
@@ -28,7 +28,7 @@ export class BackgroundFlushPolicy extends FlushPolicyBase {
     );
   }
 
-  onEvent(_event: SegmentEvent): void {
+  onEvent(_event: HightouchEvent): void {
     // Nothing to do
   }
 

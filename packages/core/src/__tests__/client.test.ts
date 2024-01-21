@@ -1,4 +1,4 @@
-import type { SegmentClient } from '../analytics';
+import type { HightouchClient } from '../analytics';
 import { createClient } from '../client';
 import { getMockLogger } from '../test-helpers';
 
@@ -6,11 +6,11 @@ jest.mock('uuid');
 
 describe('#createClient', () => {
   const config = {
-    writeKey: 'SEGMENT_KEY',
+    writeKey: 'HIGHTOUCH_KEY',
     logger: getMockLogger(),
   };
 
-  let client: SegmentClient;
+  let client: HightouchClient;
 
   beforeEach(() => {
     jest.clearAllMocks();

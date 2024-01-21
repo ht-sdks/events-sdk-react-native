@@ -1,13 +1,13 @@
 import {
   Plugin,
   PluginType,
-  SegmentEvent,
-} from '@segment/analytics-react-native';
+  HightouchEvent,
+} from '@ht-sdks/analytics-react-native';
 
 export class Logger extends Plugin {
   type = PluginType.before;
 
-  execute(event: SegmentEvent) {
+  execute(event: HightouchEvent) {
     if (__DEV__) {
       console.log(event);
     }

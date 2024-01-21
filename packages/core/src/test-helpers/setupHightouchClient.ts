@@ -1,8 +1,8 @@
-import { SegmentClient } from '../analytics';
+import { HightouchClient } from '../analytics';
 import { UtilityPlugin } from '../plugin';
-import { Config, PluginType, SegmentEvent } from '../types';
+import { Config, PluginType, HightouchEvent } from '../types';
 import { getMockLogger } from './mockLogger';
-import { MockSegmentStore, StoreData } from './mockSegmentStore';
+import { MockHightouchStore, StoreData } from './mockHightouchStore';
 
 jest
   .spyOn(Date.prototype, 'toISOString')
@@ -12,7 +12,7 @@ export const createTestClient = (
   storeData?: Partial<StoreData>,
   config?: Partial<Config>
 ) => {
-  const store = new MockSegmentStore({
+  const store = new MockHightouchStore({
     isReady: true,
     ...storeData,
   });
@@ -20,7 +20,7 @@ export const createTestClient = (
   const clientArgs = {
     config: {
       writeKey: 'mock-write-key',
-      autoAddSegmentDestination: false,
+      autoAddHightouchDestination: false,
       flushInterval: 0,
       ...config,
     },
@@ -28,13 +28,13 @@ export const createTestClient = (
     store: store,
   };
 
-  const client = new SegmentClient(clientArgs);
+  const client = new HightouchClient(clientArgs);
   class ObservablePlugin extends UtilityPlugin {
     type = PluginType.after;
 
     execute = async (
-      event: SegmentEvent
-    ): Promise<SegmentEvent | undefined> => {
+      event: HightouchEvent
+    ): Promise<HightouchEvent | undefined> => {
       await super.execute(event);
       return event;
     };
@@ -49,7 +49,7 @@ export const createTestClient = (
     client,
     store,
     plugin: mockPlugin as UtilityPlugin,
-    expectEvent: (event: Partial<SegmentEvent>) => {
+    expectEvent: (event: Partial<HightouchEvent>) => {
       return expect(mockPlugin.execute).toHaveBeenCalledWith(
         expect.objectContaining(event)
       );

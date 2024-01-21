@@ -1,6 +1,6 @@
-import type { Persistor } from '@segment/sovran-react-native';
+import type { Persistor } from '@ht-sdks/sovran-react-native';
 import type { Rule } from '@segment/tsub/dist/store';
-import type { SegmentError } from './errors';
+import type { HightouchError } from './errors';
 import type { FlushPolicy } from './flushPolicies';
 import type { NativeModule } from 'react-native';
 
@@ -18,7 +18,7 @@ export interface JsonMap {
 }
 export type JsonList = Array<JsonValue>;
 
-export type SegmentEvent =
+export type HightouchEvent =
   | TrackEventType
   | ScreenEventType
   | IdentifyEventType
@@ -32,7 +32,7 @@ interface BaseEventType {
   timestamp?: string;
 
   context?: PartialContext;
-  integrations?: SegmentAPIIntegrations;
+  integrations?: HightouchAPIIntegrations;
   _metadata?: DestinationMetadata;
 }
 
@@ -141,14 +141,16 @@ export type Config = {
   trackAppLifecycleEvents?: boolean;
   maxBatchSize?: number;
   trackDeepLinks?: boolean;
-  defaultSettings?: SegmentAPISettings;
-  autoAddSegmentDestination?: boolean;
+  defaultSettings?: HightouchAPISettings;
+  autoAddHightouchDestination?: boolean;
   collectDeviceId?: boolean;
   storePersistor?: Persistor;
   storePersistorSaveDelay?: number;
   proxy?: string;
-  cdnProxy?: string;
-  errorHandler?: (error: SegmentError) => void;
+  errorHandler?: (error: HightouchError) => void;
+
+  // These settings are available in the Segment SDK but don't apply to Hightouch.
+  //cdnProxy?: string;
 };
 
 export type ClientMethods = {
@@ -251,7 +253,7 @@ export type NativeContextInfo = {
   advertisingId?: string; // ios only
 };
 
-export type SegmentAPIIntegration<T = object> = {
+export type HightouchAPIIntegration<T = object> = {
   apiKey: string;
   apiHost: string;
   consentSettings?: {
@@ -259,11 +261,11 @@ export type SegmentAPIIntegration<T = object> = {
   };
 } & T;
 
-type SegmentAmplitudeIntegration = {
+type HightouchAmplitudeIntegration = {
   session_id: number;
 };
 
-export type SegmentAdjustSettings = {
+export type HightouchAdjustSettings = {
   appToken: string;
   setEnvironmentProduction?: boolean;
   setEventBufferingEnabled?: boolean;
@@ -273,24 +275,24 @@ export type SegmentAdjustSettings = {
   delayTime?: number;
 };
 
-export type SegmentBrazeSettings = {
+export type HightouchBrazeSettings = {
   logPurchaseWhenRevenuePresent: boolean;
 };
 
 export type IntegrationSettings =
   // Strongly typed known integration settings
-  | SegmentAPIIntegration<SegmentAmplitudeIntegration>
-  | SegmentAPIIntegration<SegmentAdjustSettings>
+  | HightouchAPIIntegration<HightouchAmplitudeIntegration>
+  | HightouchAPIIntegration<HightouchAdjustSettings>
   // Support any kind of configuration in the future
   | Record<string, unknown>
   // enable/disable the integration at cloud level
   | boolean;
 
-export type SegmentAPIIntegrations = {
+export type HightouchAPIIntegrations = {
   [key: string]: IntegrationSettings;
 };
 
-export type SegmentAPIConsentSettings = {
+export type HightouchAPIConsentSettings = {
   allCategories: string[];
   hasUnmappedDestinations: boolean;
 };
@@ -308,13 +310,13 @@ export interface DestinationFilters {
   [key: string]: RoutingRule;
 }
 
-export type SegmentAPISettings = {
-  integrations: SegmentAPIIntegrations;
+export type HightouchAPISettings = {
+  integrations: HightouchAPIIntegrations;
   middlewareSettings?: {
     routingRules: RoutingRule[];
   };
   metrics?: MetricsOptions;
-  consentSettings?: SegmentAPIConsentSettings;
+  consentSettings?: HightouchAPIConsentSettings;
 };
 
 export type DestinationMetadata = {

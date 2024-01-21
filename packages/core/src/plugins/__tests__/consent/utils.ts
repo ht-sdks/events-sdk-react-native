@@ -1,14 +1,14 @@
-import { SegmentClient } from '../../..';
+import { HightouchClient } from '../../..';
 import { UtilityPlugin, DestinationPlugin } from '../../../plugin';
 import { PluginType } from '../../../types';
 import { CategoryConsentStatusProvider } from '../../ConsentPlugin';
-import { SegmentDestination } from '../../SegmentDestination';
+import { HightouchDestination } from '../../HightouchDestination';
 
 beforeEach(() => {
-  jest.spyOn(SegmentDestination.prototype, 'execute');
+  jest.spyOn(HightouchDestination.prototype, 'execute');
 });
 
-class SegmentWatcherPlugin extends UtilityPlugin {
+class HightouchWatcherPlugin extends UtilityPlugin {
   type = PluginType.after;
   execute = jest.fn();
 }
@@ -21,7 +21,7 @@ class MockDestination extends DestinationPlugin {
   }
 }
 
-export const setupTestDestinations = (client: SegmentClient) => {
+export const setupTestDestinations = (client: HightouchClient) => {
   const dest1 = new MockDestination('DummyDest1');
   const dest2 = new MockDestination('DummyDest2');
   const dest3 = new MockDestination('DummyDest3');
@@ -43,17 +43,17 @@ export const setupTestDestinations = (client: SegmentClient) => {
   };
 };
 
-export const createSegmentWatcher = (client: SegmentClient) => {
-  const segmentDestination = client
+export const createHightouchWatcher = (client: HightouchClient) => {
+  const hightouchDestination = client
     .getPlugins()
     .find(
-      (p) => (p as DestinationPlugin).key === 'Segment.io'
-    ) as SegmentDestination;
+      (p) => (p as DestinationPlugin).key === 'Hightouch.io'
+    ) as HightouchDestination;
 
-  const segmentWatcher = new SegmentWatcherPlugin();
-  segmentDestination.add(segmentWatcher);
+  const hightouchWatcher = new HightouchWatcherPlugin();
+  hightouchDestination.add(hightouchWatcher);
 
-  return segmentWatcher.execute;
+  return hightouchWatcher.execute;
 };
 
 export const createConsentProvider = (

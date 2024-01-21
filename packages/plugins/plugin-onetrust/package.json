@@ -1,7 +1,7 @@
 {
-  "name": "@segment/analytics-react-native-plugin-onetrust",
+  "name": "@ht-sdks/analytics-react-native-plugin-onetrust",
   "version": "1.0.0",
-  "description": "Add OneTrust to Segment analytics in your React-Native app.",
+  "description": "Add OneTrust to Hightouch analytics in your React-Native app.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
@@ -28,34 +28,34 @@
     "release": "semantic-release"
   },
   "keywords": [
-    "segment",
+    "hightouch",
     "react-native",
     "ios",
     "android"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-react-native.git",
+    "url": "https://github.com/ht-sdks/events-sdk-react-native.git",
     "directory": "packages/plugins/plugin-onetrust"
   },
-  "author": "Segment <hello@segment.com> (https://segment.com/)",
+  "author": "Hightouch <hello@hightouch.com> (https://hightouch.com/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/segmentio/analytics-react-native/issues"
+    "url": "https://github.com/ht-sdks/events-sdk-react-native/issues"
   },
-  "homepage": "https://github.com/segmentio/analytics-react-native/tree/master/packages/plugins/plugin-onetrust#readme",
+  "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/plugins/plugin-onetrust#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "peerDependencies": {
-    "@segment/analytics-react-native": "workspace:^",
-    "@segment/sovran-react-native": "*",
+    "@ht-sdks/analytics-react-native": "workspace:^",
+    "@ht-sdks/sovran-react-native": "*",
     "react-native-onetrust-cmp": "^202308.2.0"
   },
   "devDependencies": {
-    "@segment/analytics-react-native": "workspace:^",
-    "@segment/analytics-rn-shared": "workspace:^",
-    "@segment/sovran-react-native": "workspace:^",
+    "@ht-sdks/analytics-react-native": "workspace:^",
+    "@ht-sdks/analytics-rn-shared": "workspace:^",
+    "@ht-sdks/sovran-react-native": "workspace:^",
     "jest": "^29.7.0",
     "on-change": "^3.0.2",
     "react-native-builder-bob": "^0.23.1",

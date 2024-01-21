@@ -1,7 +1,7 @@
-import { PluginType, SegmentEvent, UpdateType } from './types';
+import { PluginType, HightouchEvent, UpdateType } from './types';
 import type { DestinationPlugin, Plugin } from './plugin';
 import { getAllPlugins } from './util';
-import { ErrorType, SegmentError } from './errors';
+import { ErrorType, HightouchError } from './errors';
 
 type TimelinePlugins = {
   [key in PluginType]?: Plugin[];
@@ -57,12 +57,12 @@ export class Timeline {
   }
 
   async process(
-    incomingEvent: SegmentEvent
-  ): Promise<SegmentEvent | undefined> {
-    let result: SegmentEvent | undefined = incomingEvent;
+    incomingEvent: HightouchEvent
+  ): Promise<HightouchEvent | undefined> {
+    let result: HightouchEvent | undefined = incomingEvent;
 
     for (const key of PLUGIN_ORDER) {
-      const pluginResult: SegmentEvent | undefined = await this.applyPlugins({
+      const pluginResult: HightouchEvent | undefined = await this.applyPlugins({
         type: key,
         event: result!,
       });
@@ -84,9 +84,9 @@ export class Timeline {
     event,
   }: {
     type: PluginType;
-    event: SegmentEvent;
-  }): Promise<SegmentEvent | undefined> {
-    let result: SegmentEvent | undefined = event;
+    event: HightouchEvent;
+  }): Promise<HightouchEvent | undefined> {
+    let result: HightouchEvent | undefined = event;
 
     const plugins = this.plugins[type];
     if (plugins) {
@@ -105,7 +105,7 @@ export class Timeline {
             }
           } catch (error) {
             plugin.analytics?.reportInternalError(
-              new SegmentError(
+              new HightouchError(
                 ErrorType.PluginError,
                 JSON.stringify(error),
                 error

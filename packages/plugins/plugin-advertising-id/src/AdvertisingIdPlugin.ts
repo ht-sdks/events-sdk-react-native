@@ -1,11 +1,11 @@
 import {
   Plugin,
   PluginType,
-  SegmentClient,
+  HightouchClient,
   getNativeModule,
   ErrorType,
-  SegmentError,
-} from '@segment/analytics-react-native';
+  HightouchError,
+} from '@ht-sdks/analytics-react-native';
 
 import { Platform, NativeModule } from 'react-native';
 
@@ -16,7 +16,7 @@ type AdvertisingIDNativeModule = NativeModule & {
 export class AdvertisingIdPlugin extends Plugin {
   type = PluginType.enrichment;
 
-  configure(analytics: SegmentClient): void {
+  configure(analytics: HightouchClient): void {
     if (Platform.OS !== 'android') {
       return;
     }
@@ -39,7 +39,7 @@ export class AdvertisingIdPlugin extends Plugin {
       })
       .catch((error) => {
         this.analytics?.reportInternalError(
-          new SegmentError(
+          new HightouchError(
             ErrorType.PluginError,
             'Error retrieving AdvertisingID',
             error
@@ -59,7 +59,7 @@ export class AdvertisingIdPlugin extends Plugin {
     } catch (error) {
       const message = 'AdvertisingID failed to set context';
       this.analytics?.reportInternalError(
-        new SegmentError(ErrorType.PluginError, message, error)
+        new HightouchError(ErrorType.PluginError, message, error)
       );
       this.analytics?.logger.warn(`${message}: ${JSON.stringify(error)}`);
     }

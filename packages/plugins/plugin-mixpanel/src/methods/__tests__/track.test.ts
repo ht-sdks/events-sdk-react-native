@@ -1,6 +1,6 @@
 import mixpanelTrack from '../track';
-import type { JsonMap } from '@segment/analytics-react-native';
-import type { SegmentMixpanelSettings } from '../../types';
+import type { JsonMap } from '@ht-sdks/analytics-react-native';
+import type { HightouchMixpanelSettings } from '../../types';
 import { sampleIntegrationSettings } from './__helpers__/constants';
 import { Mixpanel } from '../__mocks__/mixpanel-react-native';
 
@@ -12,7 +12,7 @@ describe('#mixpanelTrack', () => {
     foo: 'bar',
   } as JsonMap;
   const eventName = 'Test Event';
-  const settings: SegmentMixpanelSettings =
+  const settings: HightouchMixpanelSettings =
     sampleIntegrationSettings.integrations.Mixpanel;
 
   beforeEach(() => {

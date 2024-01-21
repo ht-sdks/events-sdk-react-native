@@ -1,4 +1,4 @@
-import type { SegmentEvent } from '../types';
+import type { HightouchEvent } from '../types';
 
 type Observer<T> = (value: T) => void;
 
@@ -55,7 +55,7 @@ export interface FlushPolicy {
    * Executed every time an event is tracked by the client
    * @param event triggered event
    */
-  onEvent(event: SegmentEvent): void;
+  onEvent(event: HightouchEvent): void;
 
   /**
    * Resets the values of this policy.
@@ -89,5 +89,5 @@ export abstract class FlushPolicyBase implements FlushPolicy {
 
   abstract start(): void;
 
-  abstract onEvent(event: SegmentEvent): void;
+  abstract onEvent(event: HightouchEvent): void;
 }

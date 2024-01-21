@@ -1,8 +1,8 @@
 import deepmerge from 'deepmerge';
 
-import { SegmentClient } from '../../analytics';
+import { HightouchClient } from '../../analytics';
 import * as context from '../../context';
-import { getMockLogger, MockSegmentStore } from '../../test-helpers';
+import { getMockLogger, MockHightouchStore } from '../../test-helpers';
 import { Context, EventType } from '../../types';
 
 jest.mock('uuid');
@@ -19,7 +19,7 @@ const currentContext = {
 } as Context;
 
 describe('internal #checkInstalledVersion', () => {
-  const store = new MockSegmentStore();
+  const store = new MockHightouchStore();
   const clientArgs = {
     config: {
       writeKey: 'mock-write-key',
@@ -28,7 +28,7 @@ describe('internal #checkInstalledVersion', () => {
     logger: getMockLogger(),
     store: store,
   };
-  let client: SegmentClient;
+  let client: HightouchClient;
 
   beforeEach(() => {
     store.reset();
@@ -40,14 +40,14 @@ describe('internal #checkInstalledVersion', () => {
   });
 
   it('updates the context with the new value', async () => {
-    client = new SegmentClient(clientArgs);
+    client = new HightouchClient(clientArgs);
     jest.spyOn(context, 'getContext').mockResolvedValueOnce(currentContext);
     await client.init();
     expect(store.context.get()).toEqual(currentContext);
   });
 
   it('does not send any events when trackAppLifecycleEvents is false', async () => {
-    client = new SegmentClient(clientArgs);
+    client = new HightouchClient(clientArgs);
 
     jest.spyOn(context, 'getContext').mockResolvedValueOnce(currentContext);
     const processSpy = jest.spyOn(client, 'process');
@@ -58,7 +58,7 @@ describe('internal #checkInstalledVersion', () => {
   });
 
   it('calls the application installed and opened events when there is no previous context', async () => {
-    client = new SegmentClient({
+    client = new HightouchClient({
       ...clientArgs,
       config: {
         ...clientArgs.config,
@@ -92,13 +92,13 @@ describe('internal #checkInstalledVersion', () => {
   });
 
   it('calls the application updated and opened events when the previous version is different from current', async () => {
-    client = new SegmentClient({
+    client = new HightouchClient({
       ...clientArgs,
       config: {
         ...clientArgs.config,
         trackAppLifecycleEvents: true,
       },
-      store: new MockSegmentStore({
+      store: new MockHightouchStore({
         context: {
           app: {
             version: '2.0',
@@ -137,13 +137,13 @@ describe('internal #checkInstalledVersion', () => {
   });
 
   it('only sends the app opened event when the versions match', async () => {
-    client = new SegmentClient({
+    client = new HightouchClient({
       ...clientArgs,
       config: {
         ...clientArgs.config,
         trackAppLifecycleEvents: true,
       },
-      store: new MockSegmentStore({
+      store: new MockHightouchStore({
         context: { ...currentContext },
       }),
     });
@@ -173,14 +173,14 @@ describe('internal #checkInstalledVersion', () => {
       },
     };
 
-    const store = new MockSegmentStore({
+    const store = new MockHightouchStore({
       context: {
         ...currentContext,
         ...injectedContextByPlugins,
       },
     });
 
-    client = new SegmentClient({
+    client = new HightouchClient({
       ...clientArgs,
       store,
     });
@@ -209,7 +209,7 @@ describe('internal #checkInstalledVersion', () => {
   });
 
   it('executes callback when client is ready', async () => {
-    client = new SegmentClient(clientArgs);
+    client = new HightouchClient(clientArgs);
     const callback = jest.fn().mockImplementation(() => {
       expect(store.context.get()).toEqual(currentContext);
     });

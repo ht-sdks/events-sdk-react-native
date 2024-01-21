@@ -2,7 +2,7 @@ import appsFlyer from 'react-native-appsflyer';
 import {
   IdentifyEventType,
   unknownToString,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 
 export default (event: IdentifyEventType) => {
   const userId = event.userId;

@@ -1,6 +1,6 @@
 import identify from '../identify';
-import type { IdentifyEventType } from '@segment/analytics-react-native';
-import type { SegmentMixpanelSettings } from '../../types';
+import type { IdentifyEventType } from '@ht-sdks/analytics-react-native';
+import type { HightouchMixpanelSettings } from '../../types';
 import { sampleIntegrationSettings } from './__helpers__/constants';
 import { Mixpanel } from '../__mocks__/mixpanel-react-native';
 
@@ -15,7 +15,7 @@ describe('#identify', () => {
     },
     userId: 'user',
   } as IdentifyEventType;
-  const settings: SegmentMixpanelSettings =
+  const settings: HightouchMixpanelSettings =
     sampleIntegrationSettings.integrations.Mixpanel;
 
   beforeEach(() => {

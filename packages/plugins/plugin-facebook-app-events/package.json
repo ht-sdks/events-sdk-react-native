@@ -1,7 +1,7 @@
 {
-  "name": "@segment/analytics-react-native-plugin-facebook-app-events",
+  "name": "@ht-sdks/analytics-react-native-plugin-facebook-app-events",
   "version": "0.5.4",
-  "description": "The hassle-free way to add Segment analytics to your React-Native app.",
+  "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
   "scripts": {
     "build": "bob build",
@@ -10,7 +10,7 @@
     "clean": "rimraf lib node_modules"
   },
   "keywords": [
-    "segment",
+    "hightouch",
     "react-native",
     "ios",
     "android"
@@ -25,7 +25,7 @@
     "android",
     "ios",
     "cpp",
-    "segment-analytics-react-native.podspec",
+    "hightouch-analytics-react-native.podspec",
     "package.json",
     "!src/**/*.e2e.mock.js",
     "!**/__tests__",
@@ -34,23 +34,23 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-react-native.git",
+    "url": "https://github.com/ht-sdks/events-sdk-react-native.git",
     "directory": "packages/core"
   },
-  "author": "Segment <hello@segment.com> (https://segment.com/)",
+  "author": "Hightouch <hello@hightouch.com> (https://hightouch.com/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/segmentio/analytics-react-native/issues"
+    "url": "https://github.com/ht-sdks/events-sdk-react-native/issues"
   },
-  "homepage": "https://github.com/segmentio/analytics-react-native/tree/master/packages/plugins/plugin-facebook-app-events#readme",
+  "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/plugins/plugin-facebook-app-events#readme",
   "peerDependencies": {
-    "@segment/analytics-react-native": "workspace:^",
+    "@ht-sdks/analytics-react-native": "workspace:^",
     "react-native-fbsdk-next": "^11"
   },
   "devDependencies": {
-    "@segment/analytics-react-native": "workspace:^",
-    "@segment/analytics-rn-shared": "workspace:^",
-    "@segment/sovran-react-native": "workspace:^",
+    "@ht-sdks/analytics-react-native": "workspace:^",
+    "@ht-sdks/analytics-rn-shared": "workspace:^",
+    "@ht-sdks/sovran-react-native": "workspace:^",
     "jest": "^29.7.0",
     "react-native-builder-bob": "^0.23.1",
     "react-native-fbsdk-next": "^11",

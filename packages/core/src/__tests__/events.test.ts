@@ -168,7 +168,7 @@ describe('#createGroupEvent', () => {
     const event = createGroupEvent({
       groupId: 'some-group',
       groupTraits: {
-        name: 'Segment',
+        name: 'Hightouch',
       },
     });
 
@@ -176,7 +176,7 @@ describe('#createGroupEvent', () => {
       type: 'group',
       groupId: 'some-group',
       traits: {
-        name: 'Segment',
+        name: 'Hightouch',
       },
     });
   });

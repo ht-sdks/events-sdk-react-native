@@ -1,7 +1,7 @@
 import {
   Context,
   EventType,
-  SegmentAPIIntegrations,
+  HightouchAPIIntegrations,
   TrackEventType,
   UserTraits,
 } from '../types';
@@ -39,10 +39,10 @@ describe('#sendEvents', () => {
       messageId: '1d1744bf-5beb-41ac-ad7a-943eac33babc',
     };
 
-    // Context and Integration exist on SegmentEvents but are transmitted separately to avoid duplication
+    // Context and Integration exist on HightouchEvents but are transmitted separately to avoid duplication
     const additionalEventProperties: {
       context: Context;
-      integrations: SegmentAPIIntegrations;
+      integrations: HightouchAPIIntegrations;
     } = {
       context: await context.getContext({ name: 'Hello' }),
       integrations: {
@@ -66,7 +66,7 @@ describe('#sendEvents', () => {
       body: JSON.stringify({
         batch: [event],
         sentAt: '2001-01-01T00:00:00.000Z',
-        writeKey: 'SEGMENT_KEY',
+        writeKey: 'HIGHTOUCH_KEY',
       }),
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
@@ -75,15 +75,15 @@ describe('#sendEvents', () => {
   }
 
   it('sends an event', async () => {
-    const toSegmentBatchApi = 'https://api.segment.io/v1.b';
-    const writeKey = 'SEGMENT_KEY';
+    const toHightouchBatchApi = 'https://api.hightouch.io/v1.b';
+    const writeKey = 'HIGHTOUCH_KEY';
 
-    await sendAnEventPer(writeKey, toSegmentBatchApi);
+    await sendAnEventPer(writeKey, toHightouchBatchApi);
   });
 
   it('sends an event to proxy', async () => {
     const toProxyUrl = 'https://myprox.io/b';
-    const writeKey = 'SEGMENT_KEY';
+    const writeKey = 'HIGHTOUCH_KEY';
 
     await sendAnEventPer(writeKey, toProxyUrl);
   });

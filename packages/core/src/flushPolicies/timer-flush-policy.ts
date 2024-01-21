@@ -1,4 +1,4 @@
-import type { SegmentEvent } from '../types';
+import type { HightouchEvent } from '../types';
 import { FlushPolicyBase } from './types';
 
 /**
@@ -33,7 +33,7 @@ export class TimerFlushPolicy extends FlushPolicyBase {
     clearTimeout(this.flushTimeout);
   }
 
-  onEvent(_event: SegmentEvent): void {
+  onEvent(_event: HightouchEvent): void {
     // Reset interval
     this.startTimer();
   }

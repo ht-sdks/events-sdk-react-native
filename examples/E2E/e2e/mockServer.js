@@ -29,7 +29,7 @@ export const startServer = async (mockServerListener) => {
       console.log(`➡️  Replying with Settings`);
       res.status(200).send({
         integrations: {
-          'Segment.io': {},
+          'Hightouch.io': {},
         },
       });
     });

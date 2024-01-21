@@ -19,16 +19,16 @@ export enum ErrorType {
 }
 
 /**
- * Segment Error object for ErrorHandler option
+ * Hightouch Error object for ErrorHandler option
  */
-export class SegmentError extends Error {
+export class HightouchError extends Error {
   type: ErrorType;
   message: string;
   innerError?: unknown;
 
   constructor(type: ErrorType, message: string, innerError?: unknown) {
     super(message);
-    Object.setPrototypeOf(this, SegmentError.prototype);
+    Object.setPrototypeOf(this, HightouchError.prototype);
     this.type = type;
     this.message = message;
     this.innerError = innerError;
@@ -36,9 +36,9 @@ export class SegmentError extends Error {
 }
 
 /**
- * Custom Error type for Segment HTTP Error responses
+ * Custom Error type for Hightouch HTTP Error responses
  */
-export class NetworkError extends SegmentError {
+export class NetworkError extends HightouchError {
   statusCode: number;
   type:
     | ErrorType.NetworkServerLimited
@@ -69,7 +69,7 @@ export class NetworkError extends SegmentError {
 /**
  * Error type for JSON Serialization errors
  */
-export class JSONError extends SegmentError {
+export class JSONError extends HightouchError {
   constructor(
     type: ErrorType.JsonUnableToDeserialize | ErrorType.JsonUnableToSerialize,
     message: string,
@@ -94,13 +94,13 @@ export const checkResponseForErrors = (response: Response) => {
 };
 
 /**
- * Converts a .fetch() error to a SegmentError object for reporting to the error handler
+ * Converts a .fetch() error to a HightouchError object for reporting to the error handler
  * @param error any JS error instance
- * @returns a SegmentError object
+ * @returns a HightouchError object
  */
-export const translateHTTPError = (error: unknown): SegmentError => {
-  // SegmentError already
-  if (error instanceof SegmentError) {
+export const translateHTTPError = (error: unknown): HightouchError => {
+  // HightouchError already
+  if (error instanceof HightouchError) {
     return error;
     // JSON Deserialization Errors
   } else if (error instanceof SyntaxError) {

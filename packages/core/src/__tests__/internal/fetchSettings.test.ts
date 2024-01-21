@@ -1,7 +1,7 @@
-import { SegmentClient } from '../../analytics';
+import { HightouchClient } from '../../analytics';
 import { settingsCDN } from '../../constants';
-import { SEGMENT_DESTINATION_KEY } from '../../plugins/SegmentDestination';
-import { getMockLogger, MockSegmentStore } from '../../test-helpers';
+import { HIGHTOUCH_DESTINATION_KEY } from '../../plugins/HightouchDestination';
+import { getMockLogger, MockHightouchStore } from '../../test-helpers';
 
 describe('internal #getSettings', () => {
   const defaultIntegrationSettings = {
@@ -10,10 +10,10 @@ describe('internal #getSettings', () => {
       // from the initial value in `store.settings` as set by the mock store.
       // Otherwise we can't actually test that default settings are set correctly
       // i.e. tests that should fail could misleadingly appear to succeed.
-      [SEGMENT_DESTINATION_KEY]: { apiKey: 'bar', apiHost: 'boo' },
+      [HIGHTOUCH_DESTINATION_KEY]: { apiKey: 'bar', apiHost: 'boo' },
     },
   };
-  const store = new MockSegmentStore();
+  const store = new MockHightouchStore();
 
   const clientArgs = {
     config: {
@@ -25,7 +25,7 @@ describe('internal #getSettings', () => {
     store: store,
   };
 
-  const client = new SegmentClient(clientArgs);
+  const client = new HightouchClient(clientArgs);
 
   const setSettingsSpy = jest.spyOn(store.settings, 'set');
 
@@ -84,7 +84,7 @@ describe('internal #getSettings', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     global.fetch = jest.fn(() => Promise.reject());
-    const anotherClient = new SegmentClient({
+    const anotherClient = new HightouchClient({
       ...clientArgs,
       config: { ...clientArgs.config, defaultSettings: undefined },
     });
@@ -105,7 +105,7 @@ describe('internal #getSettings', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     global.fetch = jest.fn(() => Promise.resolve(mockResponse));
-    const anotherClient = new SegmentClient({
+    const anotherClient = new HightouchClient({
       ...clientArgs,
       config: { ...clientArgs.config, defaultSettings: undefined },
     });

@@ -1,4 +1,4 @@
-export type SegmentAppsflyerSettings = {
+export type HightouchAppsflyerSettings = {
   appleAppID?: string;
   appsFlyerDevKey: string;
   httpFallback: boolean;

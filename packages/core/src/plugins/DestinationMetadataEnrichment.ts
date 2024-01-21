@@ -1,5 +1,5 @@
 import { DestinationPlugin, UtilityPlugin } from '../plugin';
-import { PluginType, SegmentEvent } from '../types';
+import { PluginType, HightouchEvent } from '../types';
 
 export class DestinationMetadataEnrichment extends UtilityPlugin {
   type = PluginType.enrichment;
@@ -11,7 +11,7 @@ export class DestinationMetadataEnrichment extends UtilityPlugin {
     this.destinationKey = destinationKey;
   }
 
-  execute(event: SegmentEvent): SegmentEvent {
+  execute(event: HightouchEvent): HightouchEvent {
     const pluginSettings = this.analytics?.settings.get();
     const plugins = this.analytics?.getPlugins(PluginType.destination);
 
@@ -35,10 +35,10 @@ export class DestinationMetadataEnrichment extends UtilityPlugin {
     }
 
     const unbundled = new Set<string>();
-    const segmentInfo =
+    const hightouchInfo =
       (pluginSettings[this.destinationKey] as Record<string, unknown>) ?? {};
     const unbundledIntegrations: string[] =
-      (segmentInfo.unbundledIntegrations as string[]) ?? [];
+      (hightouchInfo.unbundledIntegrations as string[]) ?? [];
 
     // All active integrations, not in `bundled` are put in `unbundled`
     // All unbundledIntegrations not in `bundled` are put in `unbundled`
@@ -54,7 +54,7 @@ export class DestinationMetadataEnrichment extends UtilityPlugin {
     }
 
     // User/event defined integrations override the cloud/device mode merge
-    const enrichedEvent: SegmentEvent = {
+    const enrichedEvent: HightouchEvent = {
       ...event,
       _metadata: {
         bundled: Array.from(bundled),

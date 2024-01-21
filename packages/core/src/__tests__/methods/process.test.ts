@@ -1,6 +1,6 @@
-import { SegmentClient } from '../../analytics';
-import { getMockLogger, MockSegmentStore } from '../../test-helpers';
-import { EventType, SegmentEvent } from '../../types';
+import { HightouchClient } from '../../analytics';
+import { getMockLogger, MockHightouchStore } from '../../test-helpers';
+import { EventType, HightouchEvent } from '../../types';
 
 jest.mock('uuid');
 
@@ -9,7 +9,7 @@ jest
   .mockReturnValue('2010-01-01T00:00:00.000Z');
 
 describe('process', () => {
-  const store = new MockSegmentStore({
+  const store = new MockHightouchStore({
     userInfo: {
       userId: 'current-user-id',
       anonymousId: 'very-anonymous',
@@ -36,7 +36,7 @@ describe('process', () => {
   });
 
   it('stamps basic data: timestamp and messageId for events when not ready', async () => {
-    const client = new SegmentClient(clientArgs);
+    const client = new HightouchClient(clientArgs);
     jest.spyOn(client.isReady, 'value', 'get').mockReturnValue(false);
     // @ts-ignore
     const timeline = client.timeline;
@@ -84,7 +84,7 @@ describe('process', () => {
   });
 
   it('stamps all context and userInfo data for events when ready', async () => {
-    const client = new SegmentClient(clientArgs);
+    const client = new HightouchClient(clientArgs);
     jest.spyOn(client.isReady, 'value', 'get').mockReturnValue(true);
 
     // @ts-ignore
@@ -102,7 +102,7 @@ describe('process', () => {
       context: { ...store.context.get() },
       userId: store.userInfo.get().userId,
       anonymousId: store.userInfo.get().anonymousId,
-    } as SegmentEvent;
+    } as HightouchEvent;
 
     // @ts-ignore
     const pendingEvents = client.pendingEvents;

@@ -1,8 +1,8 @@
-import { SegmentClient, UpdateType } from '@segment/analytics-react-native';
+import { HightouchClient, UpdateType } from '@ht-sdks/analytics-react-native';
 import {
   getMockLogger,
-  MockSegmentStore,
-} from '@segment/analytics-react-native/src/test-helpers';
+  MockHightouchStore,
+} from '@ht-sdks/analytics-react-native/src/test-helpers';
 
 import { EU_SERVER, MixpanelPlugin } from '../../MixpanelPlugin';
 import { initMock, setServerMock } from '../__mocks__/mixpanel-react-native';
@@ -11,7 +11,7 @@ import { sampleIntegrationSettings } from './__helpers__/constants';
 jest.mock('mixpanel-react-native');
 
 describe('MixpanelPlugin', () => {
-  const store = new MockSegmentStore();
+  const store = new MockHightouchStore();
   const clientArgs = {
     logger: getMockLogger(),
     config: {
@@ -29,7 +29,7 @@ describe('MixpanelPlugin', () => {
     store.reset();
     jest.clearAllMocks();
     plugin = new MixpanelPlugin();
-    plugin.analytics = new SegmentClient(clientArgs);
+    plugin.analytics = new HightouchClient(clientArgs);
   });
 
   it('calls update with settings', () => {

@@ -1,8 +1,8 @@
-import { createStore, Store } from '@segment/sovran-react-native';
-import type { SegmentClient } from '../analytics';
+import { createStore, Store } from '@ht-sdks/sovran-react-native';
+import type { HightouchClient } from '../analytics';
 import { defaultConfig } from '../constants';
 import { UtilityPlugin } from '../plugin';
-import { PluginType, SegmentEvent } from '../types';
+import { PluginType, HightouchEvent } from '../types';
 
 /**
  * This plugin manages a queue where all events get added to after timeline processing.
@@ -15,14 +15,14 @@ export class QueueFlushingPlugin extends UtilityPlugin {
 
   private storeKey: string;
   private isPendingUpload = false;
-  private queueStore: Store<{ events: SegmentEvent[] }> | undefined;
-  private onFlush: (events: SegmentEvent[]) => Promise<void>;
+  private queueStore: Store<{ events: HightouchEvent[] }> | undefined;
+  private onFlush: (events: HightouchEvent[]) => Promise<void>;
 
   /**
    * @param onFlush callback to execute when the queue is flushed (either by reaching the limit or manually) e.g. code to upload events to your destination
    */
   constructor(
-    onFlush: (events: SegmentEvent[]) => Promise<void>,
+    onFlush: (events: HightouchEvent[]) => Promise<void>,
     storeKey = 'events'
   ) {
     super();
@@ -30,17 +30,18 @@ export class QueueFlushingPlugin extends UtilityPlugin {
     this.storeKey = storeKey;
   }
 
-  configure(analytics: SegmentClient): void {
+  configure(analytics: HightouchClient): void {
     super.configure(analytics);
 
     const config = analytics?.getConfig() ?? defaultConfig;
 
-    // Create its own storage per SegmentDestination instance to support multiple instances
+    // Create its own storage per HightouchDestination instance to support multiple instances
     this.queueStore = createStore(
-      { events: [] as SegmentEvent[] },
+      { events: [] as HightouchEvent[] },
       {
         persist: {
           storeId: `${config.writeKey}-${this.storeKey}`,
+          // TODO: Does it persist in local storage to handle restarts?
           persistor: config.storePersistor,
           saveDelay: config.storePersistorSaveDelay ?? 0,
         },
@@ -48,7 +49,7 @@ export class QueueFlushingPlugin extends UtilityPlugin {
     );
   }
 
-  async execute(event: SegmentEvent): Promise<SegmentEvent | undefined> {
+  async execute(event: HightouchEvent): Promise<HightouchEvent | undefined> {
     await this.queueStore?.dispatch((state) => {
       const events = [...state.events, event];
       return { events };
@@ -75,7 +76,7 @@ export class QueueFlushingPlugin extends UtilityPlugin {
    * Removes one or multiple events from the queue
    * @param events events to remove
    */
-  async dequeue(events: SegmentEvent | SegmentEvent[]) {
+  async dequeue(events: HightouchEvent | HightouchEvent[]) {
     await this.queueStore?.dispatch((state) => {
       const eventsToRemove = Array.isArray(events) ? events : [events];
 

@@ -1,12 +1,12 @@
-import type { Unsubscribe, Persistor } from '@segment/sovran-react-native';
-import type { SegmentAPIConsentSettings } from '..';
+import type { Unsubscribe, Persistor } from '@ht-sdks/sovran-react-native';
+import type { HightouchAPIConsentSettings } from '..';
 import type {
   Context,
   DeepPartial,
   DestinationFilters,
   IntegrationSettings,
   RoutingRule,
-  SegmentAPIIntegrations,
+  HightouchAPIIntegrations,
   UserInfoState,
 } from '../types';
 
@@ -68,12 +68,12 @@ export interface Storage {
   readonly context: Watchable<DeepPartial<Context> | undefined> &
     Settable<DeepPartial<Context>>;
 
-  readonly settings: Watchable<SegmentAPIIntegrations | undefined> &
-    Settable<SegmentAPIIntegrations> &
-    Dictionary<string, IntegrationSettings, SegmentAPIIntegrations>;
+  readonly settings: Watchable<HightouchAPIIntegrations | undefined> &
+    Settable<HightouchAPIIntegrations> &
+    Dictionary<string, IntegrationSettings, HightouchAPIIntegrations>;
 
-  readonly consentSettings: Watchable<SegmentAPIConsentSettings | undefined> &
-    Settable<SegmentAPIConsentSettings | undefined>;
+  readonly consentSettings: Watchable<HightouchAPIConsentSettings | undefined> &
+    Settable<HightouchAPIConsentSettings | undefined>;
 
   readonly filters: Watchable<DestinationFilters | undefined> &
     Settable<DestinationFilters> &

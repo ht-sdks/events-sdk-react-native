@@ -1,4 +1,4 @@
-import type { ScreenEventType } from '@segment/analytics-react-native';
+import type { ScreenEventType } from '@ht-sdks/analytics-react-native';
 import { AppEventsLogger } from 'react-native-fbsdk-next';
 import screen from '../screen';
 

@@ -2,14 +2,14 @@ import type { Mixpanel } from 'mixpanel-react-native';
 import {
   AliasEventType,
   ErrorType,
-  SegmentClient,
-  SegmentError,
-} from '@segment/analytics-react-native';
+  HightouchClient,
+  HightouchError,
+} from '@ht-sdks/analytics-react-native';
 
 export default async (
   event: AliasEventType,
   mixpanel: Mixpanel,
-  analytics: SegmentClient
+  analytics: HightouchClient
 ) => {
   let distinctId = '';
   const newId = event.userId as string;
@@ -18,7 +18,7 @@ export default async (
     distinctId = await mixpanel.getDistinctId();
   } catch (e) {
     analytics.reportInternalError(
-      new SegmentError(ErrorType.PluginError, JSON.stringify(e), e)
+      new HightouchError(ErrorType.PluginError, JSON.stringify(e), e)
     );
     analytics.logger.warn(e);
   }

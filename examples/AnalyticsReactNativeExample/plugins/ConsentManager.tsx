@@ -1,10 +1,10 @@
 import {
   Plugin,
   PluginType,
-  SegmentEvent,
-} from '@segment/analytics-react-native';
+  HightouchEvent,
+} from '@ht-sdks/analytics-react-native';
 
-import type {SegmentClient} from '@segment/analytics-react-native';
+import type {HightouchClient} from '@ht-sdks/analytics-react-native';
 
 import {Alert} from 'react-native';
 
@@ -13,15 +13,15 @@ export class ConsentManager extends Plugin {
   key = 'Consent Manager';
 
   consentStatus?: boolean;
-  queuedEvents: SegmentEvent[] = [];
+  queuedEvents: HightouchEvent[] = [];
 
-  configure(analytics: SegmentClient) {
+  configure(analytics: HightouchClient) {
     this.analytics = analytics;
 
     this.showAlert();
   }
 
-  execute(event: SegmentEvent): SegmentEvent | undefined {
+  execute(event: HightouchEvent): HightouchEvent | undefined {
     if (this.consentStatus === true) {
       return event;
     }

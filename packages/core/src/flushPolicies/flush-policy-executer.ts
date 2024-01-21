@@ -1,5 +1,5 @@
-import type { Unsubscribe } from '@segment/sovran-react-native';
-import type { SegmentEvent } from '../types';
+import type { Unsubscribe } from '@ht-sdks/sovran-react-native';
+import type { HightouchEvent } from '../types';
 import type { FlushPolicy } from './types';
 
 export class FlushPolicyExecuter {
@@ -60,7 +60,7 @@ export class FlushPolicyExecuter {
   /**
    * Notifies each flush policy that an event is being processed
    */
-  notify(event: SegmentEvent) {
+  notify(event: HightouchEvent) {
     for (const policy of this.policies) {
       policy.onEvent(event);
     }

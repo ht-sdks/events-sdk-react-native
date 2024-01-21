@@ -1,5 +1,5 @@
 import { BranchEvent } from 'react-native-branch';
-import { isNumber, isObject } from '@segment/analytics-react-native';
+import { isNumber, isObject } from '@ht-sdks/analytics-react-native';
 
 export const mapEventNames: { [key: string]: string } = {
   'Product Clicked': BranchEvent.ViewItem,

@@ -2,8 +2,8 @@ import type { Mixpanel } from 'mixpanel-react-native';
 import {
   IdentifyEventType,
   generateMapTransform,
-} from '@segment/analytics-react-native';
-import type { SegmentMixpanelSettings } from '../types';
+} from '@ht-sdks/analytics-react-native';
+import type { HightouchMixpanelSettings } from '../types';
 
 const traitMap: { [key: string]: string } = {
   firstName: '$first_name',
@@ -21,7 +21,7 @@ const mapTransform = generateMapTransform(traitMap, {});
 export default (
   event: IdentifyEventType,
   mixpanel: Mixpanel,
-  settings: SegmentMixpanelSettings
+  settings: HightouchMixpanelSettings
 ) => {
   const userId = event.userId;
   const mixpanelTraits = mapTransform(event.traits ?? {});

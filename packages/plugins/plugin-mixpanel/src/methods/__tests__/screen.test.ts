@@ -1,6 +1,6 @@
 import screen from '../screen';
-import type { ScreenEventType } from '@segment/analytics-react-native';
-import type { SegmentMixpanelSettings } from '../../types';
+import type { ScreenEventType } from '@ht-sdks/analytics-react-native';
+import type { HightouchMixpanelSettings } from '../../types';
 import { sampleIntegrationSettings } from './__helpers__/constants';
 import { Mixpanel } from '../__mocks__/mixpanel-react-native';
 import track from '../track';
@@ -17,7 +17,7 @@ describe('#screen', () => {
     },
     name: 'Home',
   } as ScreenEventType;
-  const settings: SegmentMixpanelSettings =
+  const settings: HightouchMixpanelSettings =
     sampleIntegrationSettings.integrations.Mixpanel;
 
   beforeEach(() => {

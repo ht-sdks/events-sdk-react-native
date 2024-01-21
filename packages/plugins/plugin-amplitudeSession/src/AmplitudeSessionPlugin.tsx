@@ -3,14 +3,14 @@ import {
   EventType,
   IdentifyEventType,
   PluginType,
-  SegmentAPISettings,
-  SegmentEvent,
+  HightouchAPISettings,
+  HightouchEvent,
   TrackEventType,
   ScreenEventType,
   GroupEventType,
   UpdateType,
   AliasEventType,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 
 const MAX_SESSION_TIME_IN_MS = 300000;
 export class AmplitudeSessionPlugin extends EventPlugin {
@@ -20,7 +20,7 @@ export class AmplitudeSessionPlugin extends EventPlugin {
   sessionId: number | undefined;
   sessionTimer: ReturnType<typeof setTimeout> | undefined;
 
-  update(settings: SegmentAPISettings, _: UpdateType) {
+  update(settings: HightouchAPISettings, _: UpdateType) {
     const integrations = settings.integrations;
     if (this.key in integrations) {
       this.active = true;
@@ -28,7 +28,7 @@ export class AmplitudeSessionPlugin extends EventPlugin {
     }
   }
 
-  execute(event: SegmentEvent) {
+  execute(event: HightouchEvent) {
     if (!this.active) {
       return event;
     }
@@ -80,7 +80,7 @@ export class AmplitudeSessionPlugin extends EventPlugin {
     this.resetSession();
   }
 
-  private insertSession = (event: SegmentEvent) => {
+  private insertSession = (event: HightouchEvent) => {
     const returnEvent = event;
     const integrations = event.integrations;
     returnEvent.integrations = {

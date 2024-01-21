@@ -1,10 +1,10 @@
 import {
   PlatformPlugin,
-  SegmentClient,
+  HightouchClient,
   PluginType,
   ErrorType,
-  SegmentError,
-} from '@segment/analytics-react-native';
+  HightouchError,
+} from '@ht-sdks/analytics-react-native';
 import { Platform } from 'react-native';
 import messaging, {
   FirebaseMessagingTypes,
@@ -15,7 +15,7 @@ export class DeviceTokenPlugin extends PlatformPlugin {
   authStatus: Promise<FirebaseMessagingTypes.AuthorizationStatus | undefined> =
     this.checkUserPermission();
 
-  async configure(analytics: SegmentClient) {
+  async configure(analytics: HightouchClient) {
     this.analytics = analytics;
     try {
       const isAuthorized = await this.authStatus;
@@ -35,7 +35,7 @@ export class DeviceTokenPlugin extends PlatformPlugin {
       }
     } catch (error) {
       this.analytics?.reportInternalError(
-        new SegmentError(
+        new HightouchError(
           ErrorType.PluginError,
           'Unable to confirm authorization status',
           error
@@ -90,7 +90,7 @@ export class DeviceTokenPlugin extends PlatformPlugin {
       return await messaging().hasPermission();
     } catch (error) {
       this.analytics?.reportInternalError(
-        new SegmentError(
+        new HightouchError(
           ErrorType.PluginError,
           'Unable to confirm authorization status',
           error

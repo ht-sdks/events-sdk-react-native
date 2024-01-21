@@ -1,15 +1,15 @@
-import { createStore } from '@segment/sovran-react-native';
+import { createStore } from '@ht-sdks/sovran-react-native';
 
 import { MockEventStore } from '../../test-helpers';
-import { EventType, SegmentEvent } from '../../types';
+import { EventType, HightouchEvent } from '../../types';
 import { QueueFlushingPlugin } from '../QueueFlushingPlugin';
 
-import type { SegmentClient } from '../../analytics';
-jest.mock('@segment/sovran-react-native');
+import type { HightouchClient } from '../../analytics';
+jest.mock('@ht-sdks/sovran-react-native');
 
 describe('QueueFlushingPlugin', () => {
   function setupQueuePlugin(
-    onFlush: (events: SegmentEvent[]) => Promise<void>,
+    onFlush: (events: HightouchEvent[]) => Promise<void>,
     flushAt: number
   ) {
     const queuePlugin = new QueueFlushingPlugin(onFlush);
@@ -17,10 +17,10 @@ describe('QueueFlushingPlugin', () => {
     (createStore as jest.Mock).mockReturnValue(new MockEventStore());
     queuePlugin.configure({
       getConfig: () => ({
-        writeKey: 'SEGMENT_KEY',
+        writeKey: 'HIGHTOUCH_KEY',
         flushAt,
       }),
-    } as unknown as SegmentClient);
+    } as unknown as HightouchClient);
 
     // Mock the create store just before the queue plugin creates its store
     return queuePlugin;
@@ -41,7 +41,7 @@ describe('QueueFlushingPlugin', () => {
       properties: {
         test: 'test1',
       },
-    } as SegmentEvent);
+    } as HightouchEvent);
 
     expect(result).not.toBeUndefined();
 
@@ -57,7 +57,7 @@ describe('QueueFlushingPlugin', () => {
     const onFlush = jest.fn().mockResolvedValue(undefined);
     const queuePlugin = setupQueuePlugin(onFlush, 10);
 
-    const event: SegmentEvent = {
+    const event: HightouchEvent = {
       type: EventType.TrackEvent,
       event: 'test2',
       properties: {

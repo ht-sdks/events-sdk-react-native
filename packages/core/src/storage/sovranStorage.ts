@@ -3,18 +3,18 @@ import {
   registerBridgeStore,
   Store,
   Persistor,
-} from '@segment/sovran-react-native';
+} from '@ht-sdks/sovran-react-native';
 import deepmerge from 'deepmerge';
 import type {
-  SegmentAPIIntegrations,
+  HightouchAPIIntegrations,
   IntegrationSettings,
-  SegmentEvent,
+  HightouchEvent,
   DeepPartial,
   Context,
   UserInfoState,
   RoutingRule,
   DestinationFilters,
-  SegmentAPIConsentSettings,
+  HightouchAPIConsentSettings,
 } from '..';
 import { getUUID } from '../uuid';
 import { createGetter } from './helpers';
@@ -31,11 +31,11 @@ import type {
 } from './types';
 
 type Data = {
-  events: SegmentEvent[];
-  eventsToRetry: SegmentEvent[];
+  events: HightouchEvent[];
+  eventsToRetry: HightouchEvent[];
   context: DeepPartial<Context>;
-  settings: SegmentAPIIntegrations;
-  consentSettings: SegmentAPIConsentSettings | undefined;
+  settings: HightouchAPIIntegrations;
+  consentSettings: HightouchAPIConsentSettings | undefined;
   userInfo: UserInfoState;
   filters: DestinationFilters;
 };
@@ -145,9 +145,9 @@ export class SovranStorage implements Storage {
   private readinessStore: Store<ReadinessStore>;
   private contextStore: Store<{ context: DeepPartial<Context> }>;
   private consentSettingsStore: Store<{
-    consentSettings: SegmentAPIConsentSettings | undefined;
+    consentSettings: HightouchAPIConsentSettings | undefined;
   }>;
-  private settingsStore: Store<{ settings: SegmentAPIIntegrations }>;
+  private settingsStore: Store<{ settings: HightouchAPIIntegrations }>;
   private userInfoStore: Store<{ userInfo: UserInfoState }>;
   private deepLinkStore: Store<DeepLinkData> = deepLinkStore;
   private filtersStore: Store<DestinationFilters>;
@@ -157,12 +157,12 @@ export class SovranStorage implements Storage {
   readonly context: Watchable<DeepPartial<Context> | undefined> &
     Settable<DeepPartial<Context>>;
 
-  readonly settings: Watchable<SegmentAPIIntegrations | undefined> &
-    Settable<SegmentAPIIntegrations> &
-    Dictionary<string, IntegrationSettings, SegmentAPIIntegrations>;
+  readonly settings: Watchable<HightouchAPIIntegrations | undefined> &
+    Settable<HightouchAPIIntegrations> &
+    Dictionary<string, IntegrationSettings, HightouchAPIIntegrations>;
 
-  readonly consentSettings: Watchable<SegmentAPIConsentSettings | undefined> &
-    Settable<SegmentAPIConsentSettings | undefined>;
+  readonly consentSettings: Watchable<HightouchAPIConsentSettings | undefined> &
+    Settable<HightouchAPIConsentSettings | undefined>;
 
   readonly filters: Watchable<DestinationFilters | undefined> &
     Settable<DestinationFilters> &
@@ -259,7 +259,7 @@ export class SovranStorage implements Storage {
     this.settings = {
       get: createStoreGetter(this.settingsStore, 'settings'),
       onChange: (
-        callback: (value?: SegmentAPIIntegrations | undefined) => void
+        callback: (value?: HightouchAPIIntegrations | undefined) => void
       ) => this.settingsStore.subscribe((store) => callback(store.settings)),
       set: async (value) => {
         const { settings } = await this.settingsStore.dispatch((state) => {
@@ -297,7 +297,7 @@ export class SovranStorage implements Storage {
     this.consentSettings = {
       get: createStoreGetter(this.consentSettingsStore, 'consentSettings'),
       onChange: (
-        callback: (value?: SegmentAPIConsentSettings | undefined) => void
+        callback: (value?: HightouchAPIConsentSettings | undefined) => void
       ) =>
         this.consentSettingsStore.subscribe((store) =>
           callback(store.consentSettings)

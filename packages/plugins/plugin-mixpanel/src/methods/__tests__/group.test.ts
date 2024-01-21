@@ -1,6 +1,6 @@
 import group from '../group';
-import type { GroupEventType } from '@segment/analytics-react-native';
-import type { SegmentMixpanelSettings } from '../../types';
+import type { GroupEventType } from '@ht-sdks/analytics-react-native';
+import type { HightouchMixpanelSettings } from '../../types';
 import { sampleIntegrationSettings } from './__helpers__/constants';
 import { Mixpanel } from '../__mocks__/mixpanel-react-native';
 
@@ -15,7 +15,7 @@ describe('#group', () => {
     },
     groupId: '23322',
   } as GroupEventType;
-  const settings: SegmentMixpanelSettings =
+  const settings: HightouchMixpanelSettings =
     sampleIntegrationSettings.integrations.Mixpanel;
 
   beforeEach(() => {

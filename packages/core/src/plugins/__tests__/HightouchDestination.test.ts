@@ -1,28 +1,28 @@
-import { SegmentClient } from '../../analytics';
+import { HightouchClient } from '../../analytics';
 import * as api from '../../api';
 import { defaultApiHost } from '../../constants';
 import {
   createMockStoreGetter,
   getMockLogger,
-  MockSegmentStore,
+  MockHightouchStore,
 } from '../../test-helpers';
 import {
   Config,
   EventType,
-  SegmentAPIIntegration,
-  SegmentEvent,
+  HightouchAPIIntegration,
+  HightouchEvent,
   TrackEventType,
   UpdateType,
 } from '../../types';
 import {
-  SEGMENT_DESTINATION_KEY,
-  SegmentDestination,
-} from '../SegmentDestination';
+  HIGHTOUCH_DESTINATION_KEY,
+  HightouchDestination,
+} from '../HightouchDestination';
 
 jest.mock('uuid');
 
-describe('SegmentDestination', () => {
-  const store = new MockSegmentStore();
+describe('HightouchDestination', () => {
+  const store = new MockHightouchStore();
   const clientArgs = {
     logger: getMockLogger(),
     config: {
@@ -39,10 +39,10 @@ describe('SegmentDestination', () => {
   });
 
   it('executes', async () => {
-    const plugin = new SegmentDestination();
+    const plugin = new HightouchDestination();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    plugin.analytics = new SegmentClient(clientArgs);
+    plugin.analytics = new HightouchClient(clientArgs);
     const event: TrackEventType = {
       anonymousId: '3534a492-e975-4efa-a18b-3c70c562fec2',
       event: 'Awesome event',
@@ -60,15 +60,15 @@ describe('SegmentDestination', () => {
   });
 
   it('disables device mode plugins to prevent dups', async () => {
-    const plugin = new SegmentDestination();
-    const analytics = new SegmentClient({
+    const plugin = new HightouchDestination();
+    const analytics = new HightouchClient({
       ...clientArgs,
-      store: new MockSegmentStore({
+      store: new MockHightouchStore({
         settings: {
           firebase: {
             someConfig: 'someValue',
           },
-          [SEGMENT_DESTINATION_KEY]: {},
+          [HIGHTOUCH_DESTINATION_KEY]: {},
         },
       }),
     });
@@ -104,12 +104,12 @@ describe('SegmentDestination', () => {
   });
 
   it('marks unbundled plugins where the cloud mode is disabled', async () => {
-    const plugin = new SegmentDestination();
-    const analytics = new SegmentClient({
+    const plugin = new HightouchDestination();
+    const analytics = new HightouchClient({
       ...clientArgs,
-      store: new MockSegmentStore({
+      store: new MockHightouchStore({
         settings: {
-          [SEGMENT_DESTINATION_KEY]: {
+          [HIGHTOUCH_DESTINATION_KEY]: {
             unbundledIntegrations: ['firebase'],
             maybeBundledConfigIds: {},
           },
@@ -148,12 +148,12 @@ describe('SegmentDestination', () => {
   });
 
   it('marks active integrations as unbundled if plugin is not bundled', async () => {
-    const plugin = new SegmentDestination();
-    const analytics = new SegmentClient({
+    const plugin = new HightouchDestination();
+    const analytics = new HightouchClient({
       ...clientArgs,
-      store: new MockSegmentStore({
+      store: new MockHightouchStore({
         settings: {
-          [SEGMENT_DESTINATION_KEY]: {
+          [HIGHTOUCH_DESTINATION_KEY]: {
             unbundledIntegrations: ['Amplitude'],
           },
           Mixpanel: {}, // Mixpanel is active but not bundled
@@ -185,17 +185,17 @@ describe('SegmentDestination', () => {
   });
 
   it('lets plugins/events override destination settings', async () => {
-    const plugin = new SegmentDestination();
+    const plugin = new HightouchDestination();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    plugin.analytics = new SegmentClient({
+    plugin.analytics = new HightouchClient({
       ...clientArgs,
-      store: new MockSegmentStore({
+      store: new MockHightouchStore({
         settings: {
           firebase: {
             someConfig: 'someValue',
           },
-          [SEGMENT_DESTINATION_KEY]: {},
+          [HIGHTOUCH_DESTINATION_KEY]: {},
         },
       }),
     });
@@ -225,14 +225,14 @@ describe('SegmentDestination', () => {
   });
 
   it('lets plugins/events disable destinations individually', async () => {
-    const plugin = new SegmentDestination();
+    const plugin = new HightouchDestination();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    plugin.analytics = new SegmentClient({
+    plugin.analytics = new HightouchClient({
       ...clientArgs,
-      store: new MockSegmentStore({
+      store: new MockHightouchStore({
         settings: {
-          [SEGMENT_DESTINATION_KEY]: {},
+          [HIGHTOUCH_DESTINATION_KEY]: {},
         },
       }),
     });
@@ -246,7 +246,7 @@ describe('SegmentDestination', () => {
       messageId: '1d1744bf-5beb-41ac-ad7a-943eac33babc',
       context: { app: { name: 'TestApp' } },
       integrations: {
-        [SEGMENT_DESTINATION_KEY]: false,
+        [HIGHTOUCH_DESTINATION_KEY]: false,
       },
     };
 
@@ -261,17 +261,17 @@ describe('SegmentDestination', () => {
       events,
     }: {
       config?: Config;
-      settings?: SegmentAPIIntegration;
-      events: SegmentEvent[];
+      settings?: HightouchAPIIntegration;
+      events: HightouchEvent[];
     }) => {
-      const plugin = new SegmentDestination();
+      const plugin = new HightouchDestination();
 
-      const analytics = new SegmentClient({
+      const analytics = new HightouchClient({
         ...clientArgs,
         config: config ?? clientArgs.config,
-        store: new MockSegmentStore({
+        store: new MockHightouchStore({
           settings: {
-            [SEGMENT_DESTINATION_KEY]: {},
+            [HIGHTOUCH_DESTINATION_KEY]: {},
           },
         }),
       });
@@ -281,7 +281,7 @@ describe('SegmentDestination', () => {
       plugin.update(
         {
           integrations: {
-            [SEGMENT_DESTINATION_KEY]: settings ?? {},
+            [HIGHTOUCH_DESTINATION_KEY]: settings ?? {},
           },
         },
         UpdateType.initial
@@ -309,7 +309,7 @@ describe('SegmentDestination', () => {
         { messageId: 'message-2' },
         { messageId: 'message-3' },
         { messageId: 'message-4' },
-      ] as SegmentEvent[];
+      ] as HightouchEvent[];
 
       const { plugin, sendEventsSpy } = createTestWith({
         events: events,
@@ -334,12 +334,12 @@ describe('SegmentDestination', () => {
       });
     });
 
-    it('uses segment settings apiHost for uploading events', async () => {
-      const customEndpoint = 'events.eu1.segmentapis.com';
+    it('uses hightouch settings apiHost for uploading events', async () => {
+      const customEndpoint = 'events.eu1.hightouchapis.com';
       const events = [
         { messageId: 'message-1' },
         { messageId: 'message-2' },
-      ] as SegmentEvent[];
+      ] as HightouchEvent[];
 
       const { plugin, sendEventsSpy } = createTestWith({
         events: events,
@@ -366,13 +366,13 @@ describe('SegmentDestination', () => {
       const events = [
         { messageId: 'message-1' },
         { messageId: 'message-2' },
-      ] as SegmentEvent[];
+      ] as HightouchEvent[];
 
       const { plugin, sendEventsSpy } = createTestWith({
         events: events,
         settings: {
           apiKey: '',
-          apiHost: 'events.eu1.segmentapis.com',
+          apiHost: 'events.eu1.hightouchapis.com',
         },
         config: {
           ...clientArgs.config,

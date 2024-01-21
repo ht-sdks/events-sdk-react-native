@@ -1,4 +1,4 @@
-import type { SegmentEvent } from '../types';
+import type { HightouchEvent } from '../types';
 import { FlushPolicyBase } from './types';
 
 /**
@@ -17,7 +17,7 @@ export class CountFlushPolicy extends FlushPolicyBase {
     this.count = 0;
   }
 
-  onEvent(_event: SegmentEvent): void {
+  onEvent(_event: HightouchEvent): void {
     this.count += 1;
     if (this.count >= this.flushAt) {
       this.shouldFlush.value = true;

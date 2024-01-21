@@ -184,7 +184,7 @@ describe('#mainTest', () => {
     expect(request.batch).toHaveLength(1);
     expect(context.app.name).toBe('AnalyticsReactNativeExample');
     expect(context.app.version).toBe('1.0');
-    expect(context.library.name).toBe('@segment/analytics-react-native');
+    expect(context.library.name).toBe('@ht-sdks/analytics-react-native');
     expect(context.locale).toBe('en-US');
     // This test only works in iOS for now
     if (device.getPlatform() === 'ios') {

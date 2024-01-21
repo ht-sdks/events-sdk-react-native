@@ -1,7 +1,7 @@
 import { CountFlushPolicy } from '../count-flush-policy';
 import { FlushPolicyExecuter } from '../flush-policy-executer';
 import { TimerFlushPolicy } from '../timer-flush-policy';
-import type { SegmentEvent } from '../../types';
+import type { HightouchEvent } from '../../types';
 
 describe('FlushPolicyExecuter', () => {
   beforeEach(() => {
@@ -14,8 +14,8 @@ describe('FlushPolicyExecuter', () => {
 
     const executer = new FlushPolicyExecuter(policies, flush);
 
-    executer.notify({} as SegmentEvent);
-    executer.notify({} as SegmentEvent);
+    executer.notify({} as HightouchEvent);
+    executer.notify({} as HightouchEvent);
 
     // CountFlushPolicy should flush as there's 2 events now
     expect(flush).toHaveBeenCalledTimes(1);
@@ -33,8 +33,8 @@ describe('FlushPolicyExecuter', () => {
 
     const executer = new FlushPolicyExecuter(policies, flush);
 
-    executer.notify({} as SegmentEvent);
-    executer.notify({} as SegmentEvent);
+    executer.notify({} as HightouchEvent);
+    executer.notify({} as HightouchEvent);
     expect(countPolicy.shouldFlush.value).toBe(true);
 
     executer.reset();
@@ -49,11 +49,11 @@ describe('FlushPolicyExecuter', () => {
 
     const executer = new FlushPolicyExecuter(policies, flush);
 
-    executer.notify({} as SegmentEvent);
+    executer.notify({} as HightouchEvent);
 
     executer.remove(countPolicy);
 
-    executer.notify({} as SegmentEvent);
+    executer.notify({} as HightouchEvent);
 
     // No CountPolicy so it shouldn't trigger
     expect(flush).not.toHaveBeenCalled();
@@ -70,8 +70,8 @@ describe('FlushPolicyExecuter', () => {
 
     const executer = new FlushPolicyExecuter(policies, flush);
 
-    executer.notify({} as SegmentEvent);
-    executer.notify({} as SegmentEvent);
+    executer.notify({} as HightouchEvent);
+    executer.notify({} as HightouchEvent);
 
     expect(flush).toHaveBeenCalledTimes(1);
 

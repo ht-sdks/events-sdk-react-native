@@ -1,5 +1,5 @@
 import { createTestClient } from '../../test-helpers';
-import { EventType, SegmentEvent } from '../../types';
+import { EventType, HightouchEvent } from '../../types';
 
 jest.mock('uuid');
 
@@ -73,7 +73,7 @@ describe('methods #alias', () => {
     void client.alias('new-user-id');
     await client.track('something');
 
-    const expectedTrackEvent: Partial<SegmentEvent> = {
+    const expectedTrackEvent: Partial<HightouchEvent> = {
       event: 'something',
       userId: 'new-user-id',
       type: EventType.TrackEvent,

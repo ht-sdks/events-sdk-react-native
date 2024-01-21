@@ -2,8 +2,8 @@ import {
   ErrorType,
   Plugin,
   PluginType,
-  SegmentError,
-} from '@segment/analytics-react-native';
+  HightouchError,
+} from '@ht-sdks/analytics-react-native';
 import type { IdfaData } from './types';
 import { AnalyticsReactNativePluginIdfa } from './AnalyticsReactNativePluginIdfa';
 
@@ -40,7 +40,7 @@ make additional tracking decisions based on the user response
       return idfaData.adTrackingEnabled;
     } catch (error) {
       this.analytics?.reportInternalError(
-        new SegmentError(ErrorType.PluginError, JSON.stringify(error), error)
+        new HightouchError(ErrorType.PluginError, JSON.stringify(error), error)
       );
       this.analytics?.logger.warn(error);
       return false;
@@ -56,7 +56,7 @@ make additional tracking decisions based on the user response
       })
       .catch((error) => {
         this.analytics?.reportInternalError(
-          new SegmentError(
+          new HightouchError(
             ErrorType.PluginError,
             'Error retreiving IDFA',
             error
