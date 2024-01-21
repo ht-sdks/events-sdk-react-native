@@ -1,10 +1,10 @@
 import * as ReactNative from 'react-native';
 
-import { SegmentClient } from '../../analytics';
+import { HightouchClient } from '../../analytics';
 import {
   createMockStoreGetter,
   getMockLogger,
-  MockSegmentStore,
+  MockHightouchStore,
 } from '../../test-helpers';
 import { EventType } from '../../types';
 
@@ -15,7 +15,7 @@ jest
   .mockReturnValue('2000-01-01T00:00:00.000Z');
 
 describe('#trackDeepLinks', () => {
-  const store = new MockSegmentStore({
+  const store = new MockHightouchStore({
     context: {
       app: {
         name: 'test',
@@ -51,7 +51,7 @@ describe('#trackDeepLinks', () => {
     jest
       .spyOn(store.deepLinkData, 'get')
       .mockImplementation(createMockStoreGetter(() => deepLinkData));
-    const client = new SegmentClient(clientArgs);
+    const client = new HightouchClient(clientArgs);
     jest.spyOn(client, 'process');
 
     await client.init();
@@ -71,7 +71,7 @@ describe('#trackDeepLinks', () => {
       referring_application: 'Safari',
     };
 
-    const client = new SegmentClient(clientArgs);
+    const client = new HightouchClient(clientArgs);
     jest.spyOn(client, 'process');
 
     await client.init();
@@ -88,7 +88,7 @@ describe('#trackDeepLinks', () => {
   });
 
   it('does not send a track event when trackDeepLinks is not enabled', async () => {
-    const client = new SegmentClient({
+    const client = new HightouchClient({
       ...clientArgs,
       config: {
         writeKey: 'mock-write-key',
@@ -109,7 +109,7 @@ describe('#trackDeepLinks', () => {
   });
 
   it('does not send a track event when trackDeepLinks is enabled, but the app was not opened via deep link', async () => {
-    const client = new SegmentClient(clientArgs);
+    const client = new HightouchClient(clientArgs);
     jest.spyOn(client, 'process');
 
     await client.init();

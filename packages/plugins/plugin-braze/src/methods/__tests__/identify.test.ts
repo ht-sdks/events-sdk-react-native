@@ -10,7 +10,7 @@ import {
   setHomeCity,
   setCustomUserAttribute,
 } from '../__mocks__/@braze/react-native-sdk';
-import type { IdentifyEventType } from '@segment/analytics-react-native';
+import type { IdentifyEventType } from '@ht-sdks/analytics-react-native';
 import { BrazePlugin } from '../../BrazePlugin';
 
 describe('#identify', () => {

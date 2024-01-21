@@ -3,7 +3,7 @@ import React, { createContext, useContext } from 'react';
 import { defaultConfig } from './constants';
 import type { Config, ClientMethods } from './types';
 import { createLogger } from './logger';
-import { SegmentClient } from './analytics';
+import { HightouchClient } from './analytics';
 import { SovranStorage } from './storage';
 
 export const createClient = (config: Config) => {
@@ -17,16 +17,16 @@ export const createClient = (config: Config) => {
   }
   const clientConfig = { ...defaultConfig, ...config };
 
-  const segmentStore = new SovranStorage({
+  const hightouchStore = new SovranStorage({
     storeId: config.writeKey,
     storePersistor: config.storePersistor,
     storePersistorSaveDelay: config.storePersistorSaveDelay,
   });
 
-  const client = new SegmentClient({
+  const client = new HightouchClient({
     config: clientConfig,
     logger,
-    store: segmentStore,
+    store: hightouchStore,
   });
 
   // We don't await the client to be initialized to let the user start attaching plugins and queueing events
@@ -37,13 +37,13 @@ export const createClient = (config: Config) => {
   return client;
 };
 
-const Context = createContext<SegmentClient | null>(null);
+const Context = createContext<HightouchClient | null>(null);
 
 export const AnalyticsProvider = ({
   client,
   children,
 }: {
-  client?: SegmentClient;
+  client?: HightouchClient;
   children?: React.ReactNode;
 }) => {
   if (!client) {
@@ -58,8 +58,8 @@ export const useAnalytics = (): ClientMethods => {
   return React.useMemo(() => {
     if (!client) {
       console.error(
-        'Segment client not configured!',
-        'To use the useAnalytics() hook, pass an initialized Segment client into the AnalyticsProvider'
+        'Hightouch client not configured!',
+        'To use the useAnalytics() hook, pass an initialized Hightouch client into the AnalyticsProvider'
       );
     }
 

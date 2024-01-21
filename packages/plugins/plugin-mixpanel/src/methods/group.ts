@@ -1,11 +1,11 @@
 import type { Mixpanel } from 'mixpanel-react-native';
-import type { GroupEventType } from '@segment/analytics-react-native';
-import type { SegmentMixpanelSettings } from '../types';
+import type { GroupEventType } from '@ht-sdks/analytics-react-native';
+import type { HightouchMixpanelSettings } from '../types';
 
 export default (
   event: GroupEventType,
   mixpanel: Mixpanel,
-  settings: SegmentMixpanelSettings
+  settings: HightouchMixpanelSettings
 ) => {
   const groupId = event.groupId;
   const groupTraits = settings.groupIdentifierTraits;

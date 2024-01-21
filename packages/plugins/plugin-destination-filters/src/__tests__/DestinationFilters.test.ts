@@ -1,13 +1,13 @@
-import { createTestClient } from '@segment/analytics-react-native/src/test-helpers';
+import { createTestClient } from '@ht-sdks/analytics-react-native/src/test-helpers';
 import { DestinationFiltersPlugin } from '../DestinationFilters';
 import {
   DestinationPlugin,
-  SegmentClient,
-} from '@segment/analytics-react-native';
+  HightouchClient,
+} from '@ht-sdks/analytics-react-native';
 
 describe('DestinationFiltersPlugin', () => {
   const { store, client: c } = createTestClient();
-  const client = c as unknown as SegmentClient;
+  const client = c as unknown as HightouchClient;
   client.add({ plugin: new DestinationFiltersPlugin() });
 
   class MockDestination extends DestinationPlugin {

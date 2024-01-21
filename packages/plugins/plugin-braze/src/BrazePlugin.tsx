@@ -10,12 +10,12 @@ import {
   UserInfoState,
   isObject,
   objectToString,
-  SegmentAPISettings,
+  HightouchAPISettings,
   UpdateType,
   JsonMap,
-  SegmentBrazeSettings,
+  HightouchBrazeSettings,
   unknownToString,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 import Braze, { GenderTypes, MonthsAsNumber } from '@braze/react-native-sdk';
 import flush from './methods/flush';
 interface AttributionProperties {
@@ -38,10 +38,10 @@ export class BrazePlugin extends DestinationPlugin {
   private lastSeenTraits: UserInfoState | undefined;
   private revenueEnabled = false;
 
-  update(settings: SegmentAPISettings, _: UpdateType) {
+  update(settings: HightouchAPISettings, _: UpdateType) {
     const brazeSettings = settings.integrations[
       this.key
-    ] as SegmentBrazeSettings;
+    ] as HightouchBrazeSettings;
     if (brazeSettings.logPurchaseWhenRevenuePresent === true) {
       this.revenueEnabled = true;
     }

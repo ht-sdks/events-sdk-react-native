@@ -1,17 +1,17 @@
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
-import { SegmentClient } from '../analytics';
-import { ErrorType, SegmentError } from '../errors';
+import { HightouchClient } from '../analytics';
+import { ErrorType, HightouchError } from '../errors';
 import { CountFlushPolicy, TimerFlushPolicy } from '../flushPolicies';
-import { getMockLogger, MockSegmentStore } from '../test-helpers';
+import { getMockLogger, MockHightouchStore } from '../test-helpers';
 
 jest.mock('../api');
 
-describe('SegmentClient', () => {
-  const store = new MockSegmentStore();
+describe('HightouchClient', () => {
+  const store = new MockHightouchStore();
   const clientArgs = {
     config: {
-      writeKey: 'SEGMENT_KEY',
+      writeKey: 'HIGHTOUCH_KEY',
       flushAt: 10,
       trackAppLifecycleEvents: true,
     },
@@ -19,7 +19,7 @@ describe('SegmentClient', () => {
     store: store,
   };
 
-  let client: SegmentClient;
+  let client: HightouchClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -31,7 +31,7 @@ describe('SegmentClient', () => {
 
   describe('when initializing a new client', () => {
     it('creates the client with default values', () => {
-      client = new SegmentClient(clientArgs);
+      client = new HightouchClient(clientArgs);
       expect(client.getConfig()).toEqual(clientArgs.config);
     });
   });
@@ -47,7 +47,7 @@ describe('SegmentClient', () => {
     });
 
     it('resets the interval and creates a new one when initialised', async () => {
-      client = new SegmentClient({
+      client = new HightouchClient({
         ...clientArgs,
         config: { ...clientArgs.config, flushInterval: 10 },
       });
@@ -76,7 +76,7 @@ describe('SegmentClient', () => {
           return { remove: jest.fn() };
         });
 
-      client = new SegmentClient(clientArgs);
+      client = new HightouchClient(clientArgs);
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -103,23 +103,23 @@ describe('SegmentClient', () => {
 
   describe('#cleanup', () => {
     it('clears all subscriptions and timers', async () => {
-      const segmentClient = new SegmentClient(clientArgs);
-      await segmentClient.init();
+      const hightouchClient = new HightouchClient(clientArgs);
+      await hightouchClient.init();
 
       jest.spyOn(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        segmentClient.appStateSubscription,
+        hightouchClient.appStateSubscription,
         'remove'
       );
 
-      segmentClient.cleanup();
+      hightouchClient.cleanup();
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      expect(segmentClient.destroyed).toBe(true);
+      expect(hightouchClient.destroyed).toBe(true);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      expect(segmentClient.appStateSubscription?.remove).toHaveBeenCalledTimes(
+      expect(hightouchClient.appStateSubscription?.remove).toHaveBeenCalledTimes(
         1
       );
     });
@@ -127,7 +127,7 @@ describe('SegmentClient', () => {
 
   describe('#reset', () => {
     it('resets all userInfo except anonymousId', async () => {
-      client = new SegmentClient(clientArgs);
+      client = new HightouchClient(clientArgs);
       const setUserInfo = jest.spyOn(store.userInfo, 'set');
 
       await client.reset(false);
@@ -140,7 +140,7 @@ describe('SegmentClient', () => {
     });
 
     it('resets user data, identity, traits', async () => {
-      client = new SegmentClient(clientArgs);
+      client = new HightouchClient(clientArgs);
       const setUserInfo = jest.spyOn(store.userInfo, 'set');
 
       await client.reset();
@@ -156,12 +156,12 @@ describe('SegmentClient', () => {
   describe('Error Handler', () => {
     it('calls the error handler when reportErrorInternal is called', () => {
       const errorHandler = jest.fn();
-      client = new SegmentClient({
+      client = new HightouchClient({
         ...clientArgs,
         config: { ...clientArgs.config, errorHandler: errorHandler },
       });
 
-      const error = new SegmentError(
+      const error = new HightouchError(
         ErrorType.NetworkUnknown,
         'Some weird error'
       );
@@ -173,7 +173,7 @@ describe('SegmentClient', () => {
 
   describe('Flush Policies', () => {
     it('creates the default flush policies when config is empty', () => {
-      client = new SegmentClient({
+      client = new HightouchClient({
         ...clientArgs,
         config: {
           ...clientArgs.config,
@@ -186,7 +186,7 @@ describe('SegmentClient', () => {
     });
 
     it('setting flush policies is mutually exclusive with flushAt/Interval', () => {
-      client = new SegmentClient({
+      client = new HightouchClient({
         ...clientArgs,
         config: {
           ...clientArgs.config,
@@ -200,7 +200,7 @@ describe('SegmentClient', () => {
     });
 
     it('setting flushAt/Interval to 0 should make the client have no uploads', () => {
-      client = new SegmentClient({
+      client = new HightouchClient({
         ...clientArgs,
         config: {
           ...clientArgs.config,
@@ -213,7 +213,7 @@ describe('SegmentClient', () => {
     });
 
     it('setting an empty array of policies should make the client have no uploads', () => {
-      client = new SegmentClient({
+      client = new HightouchClient({
         ...clientArgs,
         config: {
           ...clientArgs.config,
@@ -228,7 +228,7 @@ describe('SegmentClient', () => {
 
     it('can add and remove policies, does not mutate original array', () => {
       const policies = [new CountFlushPolicy(1), new TimerFlushPolicy(200)];
-      client = new SegmentClient({
+      client = new HightouchClient({
         ...clientArgs,
         config: {
           ...clientArgs.config,

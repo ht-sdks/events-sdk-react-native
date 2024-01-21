@@ -1,5 +1,5 @@
-import { SegmentClient } from '../../analytics';
-import { getMockLogger, MockSegmentStore } from '../../test-helpers';
+import { HightouchClient } from '../../analytics';
+import { getMockLogger, MockHightouchStore } from '../../test-helpers';
 
 jest.mock('uuid');
 
@@ -8,7 +8,7 @@ jest
   .mockReturnValue('2010-01-01T00:00:00.000Z');
 
 describe('methods #group', () => {
-  const store = new MockSegmentStore({
+  const store = new MockHightouchStore({
     userInfo: {
       userId: 'current-user-id',
       anonymousId: 'very-anonymous',
@@ -29,7 +29,7 @@ describe('methods #group', () => {
   });
 
   it('adds the alias event correctly', async () => {
-    const client = new SegmentClient(clientArgs);
+    const client = new HightouchClient(clientArgs);
     jest.spyOn(client, 'process');
 
     await client.group('new-group-id', { name: 'Best Group Ever' });

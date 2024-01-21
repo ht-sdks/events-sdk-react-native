@@ -13,8 +13,8 @@
     "build:ios": "yarn detox build --configuration ios.sim.release",
     "test:ios": "yarn detox test --configuration ios.sim.release",
     "start:e2e": "yarn start",
-    "android:deeplink": "adb shell am start -a android.intent.action.VIEW -d \"segmentreactnative://hello\" com.example.segmentanalyticsreactnative",
-    "ios:deeplink": "xcrun simctl openurl booted segmentreactnative://hello",
+    "android:deeplink": "adb shell am start -a android.intent.action.VIEW -d \"hightouchreactnative://hello\" com.example.hightouchanalyticsreactnative",
+    "ios:deeplink": "xcrun simctl openurl booted hightouchreactnative://hello",
     "android:emulator": "./android/device_setup.sh",
     "clean": "yarn clean:ios && rimraf node_modules",
     "clean:ios": "rimraf ios/build ios/Pods"

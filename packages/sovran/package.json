@@ -1,5 +1,5 @@
 {
-  "name": "@segment/sovran-react-native",
+  "name": "@ht-sdks/sovran-react-native",
   "version": "1.1.0",
   "description": "A cross-platform state management system",
   "main": "lib/commonjs/index",
@@ -36,18 +36,18 @@
     "react-native",
     "ios",
     "android",
-    "segment"
+    "hightouch"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-react-native.git"
+    "url": "https://github.com/ht-sdks/events-sdk-react-native.git"
   },
-  "author": "Segment <hello@segment.com> (https://segment.com/)",
+  "author": "Hightouch <hello@hightouch.com> (https://hightouch.com/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/segmentio/analytics-react-native/issues"
+    "url": "https://github.com/ht-sdks/events-sdk-react-native/issues"
   },
-  "homepage": "https://github.com/segmentio/analytics-react-native/tree/master/packages/sovran#readme",
+  "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/sovran#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

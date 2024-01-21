@@ -4,11 +4,11 @@ import {
   PluginType,
   TrackEventType,
   UpdateType,
-  SegmentAPISettings,
-  SegmentError,
+  HightouchAPISettings,
+  HightouchError,
   ErrorType,
-} from '@segment/analytics-react-native';
-import type { SegmentAppsflyerSettings } from './types';
+} from '@ht-sdks/analytics-react-native';
+import type { HightouchAppsflyerSettings } from './types';
 import appsFlyer from 'react-native-appsflyer';
 import identify from './methods/identify';
 import track from './methods/track';
@@ -17,12 +17,12 @@ export class AppsflyerPlugin extends DestinationPlugin {
   type = PluginType.destination;
   key = 'AppsFlyer';
 
-  private settings: SegmentAppsflyerSettings | null = null;
+  private settings: HightouchAppsflyerSettings | null = null;
   private hasRegisteredInstallCallback = false;
   private hasRegisteredDeepLinkCallback = false;
   private hasInitialized = false;
 
-  async update(settings: SegmentAPISettings, _: UpdateType): Promise<void> {
+  async update(settings: HightouchAPISettings, _: UpdateType): Promise<void> {
     const defaultOpts = {
       isDebug: false,
       timeToWaitForATTUserAuthorization: 60,
@@ -31,7 +31,7 @@ export class AppsflyerPlugin extends DestinationPlugin {
 
     const appsflyerSettings = settings.integrations[
       this.key
-    ] as SegmentAppsflyerSettings;
+    ] as HightouchAppsflyerSettings;
 
     if (appsflyerSettings === undefined) {
       return;
@@ -69,7 +69,7 @@ export class AppsflyerPlugin extends DestinationPlugin {
       } catch (error) {
         const message = 'AppsFlyer failed to initialize';
         this.analytics?.reportInternalError(
-          new SegmentError(ErrorType.PluginError, message, error)
+          new HightouchError(ErrorType.PluginError, message, error)
         );
         this.analytics?.logger.warn(`${message}: ${JSON.stringify(error)}`);
       }

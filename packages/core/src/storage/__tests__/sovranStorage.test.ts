@@ -3,9 +3,9 @@ import deepmerge from 'deepmerge';
 import { createCallbackManager as mockCreateCallbackManager } from '../../test-helpers/utils';
 import { SovranStorage } from '../sovranStorage';
 
-import type { Persistor } from '@segment/sovran-react-native';
+import type { Persistor } from '@ht-sdks/sovran-react-native';
 import type { Context, DeepPartial } from '../../types';
-jest.mock('@segment/sovran-react-native', () => ({
+jest.mock('@ht-sdks/sovran-react-native', () => ({
   registerBridgeStore: jest.fn(),
   createStore: <T extends object>(initialState: T) => {
     const callbackManager = mockCreateCallbackManager<T>();
@@ -48,7 +48,7 @@ describe('sovranStorage', () => {
     const appContext: DeepPartial<Context> = {
       app: {
         name: 'test',
-        namespace: 'com.segment',
+        namespace: 'com.hightouch',
         version: '1.0.0',
         build: '1',
       },
@@ -80,7 +80,7 @@ describe('sovranStorage', () => {
 
     // Now lets test the settings, settings are not deeply merged, only merged at the top level
     const settings = {
-      segment: {
+      hightouch: {
         apiKey: '123',
       },
     };
@@ -90,7 +90,7 @@ describe('sovranStorage', () => {
     expect(sovran.settings.get()).toEqual(settings);
 
     const settingsUpdate = {
-      segment: {
+      hightouch: {
         key: '123',
       },
       braze: {

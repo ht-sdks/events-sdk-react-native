@@ -3,7 +3,7 @@ import { ConsentPlugin } from '../../ConsentPlugin';
 import destinationsMultipleCategories from './mockSettings/DestinationsMultipleCategories.json';
 import {
   createConsentProvider,
-  createSegmentWatcher,
+  createHightouchWatcher,
   setupTestDestinations,
 } from './utils';
 
@@ -14,7 +14,7 @@ describe('Destinations multiple categories', () => {
         settings: destinationsMultipleCategories.integrations,
         consentSettings: destinationsMultipleCategories.consentSettings,
       },
-      { autoAddSegmentDestination: true }
+      { autoAddHightouchDestination: true }
     );
 
   test('no to all', async () => {
@@ -37,11 +37,11 @@ describe('Destinations multiple categories', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).not.toHaveBeenCalled();
+    expect(hightouchDestination).not.toHaveBeenCalled();
     expect(testDestinations.dest1.track).not.toHaveBeenCalled();
     expect(testDestinations.dest2.track).not.toHaveBeenCalled();
   });
@@ -66,11 +66,11 @@ describe('Destinations multiple categories', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).not.toHaveBeenCalled();
     expect(testDestinations.dest2.track).toHaveBeenCalled();
   });
@@ -95,11 +95,11 @@ describe('Destinations multiple categories', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).not.toHaveBeenCalled();
     expect(testDestinations.dest2.track).not.toHaveBeenCalled();
   });
@@ -124,11 +124,11 @@ describe('Destinations multiple categories', () => {
 
     await client.init();
 
-    const segmentDestination = createSegmentWatcher(client);
+    const hightouchDestination = createHightouchWatcher(client);
 
     await client.track('test');
 
-    expect(segmentDestination).toHaveBeenCalled();
+    expect(hightouchDestination).toHaveBeenCalled();
     expect(testDestinations.dest1.track).toHaveBeenCalled();
     expect(testDestinations.dest2.track).toHaveBeenCalled();
   });

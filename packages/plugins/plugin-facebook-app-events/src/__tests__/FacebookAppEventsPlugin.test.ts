@@ -1,8 +1,8 @@
 import {
-  SegmentClient,
+  HightouchClient,
   TrackEventType,
   UpdateType,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 import { AppEventsLogger, Settings } from 'react-native-fbsdk-next';
 import { FacebookAppEventsPlugin } from '../FacebookAppEventsPlugin';
 
@@ -51,7 +51,7 @@ describe('FacebookAppEventsPlugin', () => {
 
     it('sets the default configuration', async () => {
       const plugin = new FacebookAppEventsPlugin();
-      await plugin.configure(mockClient as unknown as SegmentClient);
+      await plugin.configure(mockClient as unknown as HightouchClient);
 
       expect(Settings.initializeSDK).toHaveBeenCalled();
 
@@ -64,7 +64,7 @@ describe('FacebookAppEventsPlugin', () => {
     it('handles adTrackingEnabled', async () => {
       const plugin = new FacebookAppEventsPlugin();
       mockClient.adTrackingEnabled.get.mockReturnValue(true);
-      await plugin.configure(mockClient as unknown as SegmentClient);
+      await plugin.configure(mockClient as unknown as HightouchClient);
 
       expect(Settings.initializeSDK).toHaveBeenCalled();
 
@@ -84,7 +84,7 @@ describe('FacebookAppEventsPlugin', () => {
         }
       );
 
-      await plugin.configure(mockClient as unknown as SegmentClient);
+      await plugin.configure(mockClient as unknown as HightouchClient);
 
       expect(Settings.setAdvertiserTrackingEnabled).not.toHaveBeenCalled();
 

@@ -14,10 +14,10 @@ export const Linking = {
 export const NativeModules = {
   AnalyticsReactNative: {
     getContextInfo: jest.fn().mockResolvedValue({
-      appName: 'Segment Example',
+      appName: 'Hightouch Example',
       appVersion: '1.0',
       buildNumber: '1',
-      bundleId: 'com.segment.example.analytics',
+      bundleId: 'com.hightouch.example.analytics',
       locale: 'en_US',
       networkType: 'wifi',
       osName: 'iOS',

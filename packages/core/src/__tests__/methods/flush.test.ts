@@ -1,8 +1,8 @@
-import { SegmentClient } from '../../analytics';
+import { HightouchClient } from '../../analytics';
 import {
   getMockLogger,
   getMockTimeline,
-  MockSegmentStore,
+  MockHightouchStore,
 } from '../../test-helpers';
 import { PluginType } from '../../types';
 
@@ -11,12 +11,12 @@ jest.mock('react-native');
 jest.mock('uuid');
 
 describe('methods #flush', () => {
-  const store = new MockSegmentStore();
+  const store = new MockHightouchStore();
 
   const clientArgs = {
     config: {
       writeKey: '123-456',
-      autoAddSegmentDestination: false,
+      autoAddHightouchDestination: false,
       trackAppLifecycleEvents: false,
       flushInterval: 0,
     },
@@ -34,7 +34,7 @@ describe('methods #flush', () => {
   });
 
   it('does not flush plugins when the client is destroyed', async () => {
-    const client = new SegmentClient(clientArgs);
+    const client = new HightouchClient(clientArgs);
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -49,9 +49,9 @@ describe('methods #flush', () => {
   });
 
   it('calls flush on the plugins correctly', async () => {
-    const client = new SegmentClient({
+    const client = new HightouchClient({
       ...clientArgs,
-      store: new MockSegmentStore({
+      store: new MockHightouchStore({
         userInfo: {
           anonymousId: '123-456',
           traits: {
@@ -77,14 +77,14 @@ describe('methods #flush', () => {
   //     events: [
   //       { messageId: 'message-1' },
   //       { messageId: 'message-2' },
-  //     ] as SegmentEvent[],
-  //     eventsToRetry: [] as SegmentEvent[],
+  //     ] as HightouchEvent[],
+  //     eventsToRetry: [] as HightouchEvent[],
   //     userTraits: {
   //       name: 'Mary',
   //     },
   //   };
   //   const clientContext = {
-  //     key: 'segment-key',
+  //     key: 'hightouch-key',
   //     config: { maxBatchSize: 2 },
   //     secondsElapsed: 10,
   //     logger: getMockLogger(),
@@ -97,7 +97,7 @@ describe('methods #flush', () => {
   //       addEventsToRetry: jest.fn() as jest.MockedFunction<any>,
   //     },
   //     timeline: getMockTimeline(),
-  //   } as SegmentClientContext;
+  //   } as HightouchClientContext;
 
   //   const sendEventsSpy = jest.spyOn(api, 'sendEvents').mockRejectedValue(null);
 

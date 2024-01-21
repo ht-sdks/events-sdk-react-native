@@ -1,18 +1,18 @@
-import { SegmentClient } from '@segment/analytics-react-native';
+import { HightouchClient } from '@ht-sdks/analytics-react-native';
 import {
   getMockLogger,
-  MockSegmentStore,
-} from '@segment/analytics-react-native/src/test-helpers';
+  MockHightouchStore,
+} from '@ht-sdks/analytics-react-native/src/test-helpers';
 
 import { MixpanelPlugin } from '../../MixpanelPlugin';
 import { Mixpanel } from '../__mocks__/mixpanel-react-native';
 import alias from '../alias';
 
-import type { AliasEventType } from '@segment/analytics-react-native';
+import type { AliasEventType } from '@ht-sdks/analytics-react-native';
 jest.mock('mixpanel-react-native');
 
 describe('#alias', () => {
-  const store = new MockSegmentStore();
+  const store = new MockHightouchStore();
   const clientArgs = {
     logger: getMockLogger(),
     config: {
@@ -27,7 +27,7 @@ describe('#alias', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     plugin = new MixpanelPlugin();
-    plugin.analytics = new SegmentClient(clientArgs);
+    plugin.analytics = new HightouchClient(clientArgs);
   });
 
   it('calls the alias method', async () => {

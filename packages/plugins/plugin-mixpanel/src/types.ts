@@ -1,4 +1,4 @@
-export type SegmentMixpanelSettings = {
+export type HightouchMixpanelSettings = {
   enableEuropeanEndpoint?: boolean;
   token: string;
   consolidatedPageCalls?: boolean;

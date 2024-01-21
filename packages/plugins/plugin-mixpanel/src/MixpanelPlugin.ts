@@ -3,16 +3,16 @@ import {
   PluginType,
   TrackEventType,
   ScreenEventType,
-  SegmentAPISettings,
+  HightouchAPISettings,
   UpdateType,
   IdentifyEventType,
   GroupEventType,
   JsonMap,
   AliasEventType,
-  SegmentError,
+  HightouchError,
   ErrorType,
-} from '@segment/analytics-react-native';
-import type { SegmentMixpanelSettings } from './types';
+} from '@ht-sdks/analytics-react-native';
+import type { HightouchMixpanelSettings } from './types';
 import { Mixpanel } from 'mixpanel-react-native';
 import identify from './methods/identify';
 import screen from './methods/screen';
@@ -26,14 +26,14 @@ export class MixpanelPlugin extends DestinationPlugin {
   key = 'Mixpanel';
   trackScreens = false;
   private mixpanel: Mixpanel | undefined;
-  private settings: SegmentMixpanelSettings | undefined;
+  private settings: HightouchMixpanelSettings | undefined;
   private isInitialized = () =>
     this.mixpanel !== undefined && this.settings !== undefined;
 
-  update(settings: SegmentAPISettings, _: UpdateType) {
+  update(settings: HightouchAPISettings, _: UpdateType) {
     const mixpanelSettings = settings.integrations[
       this.key
-    ] as SegmentMixpanelSettings;
+    ] as HightouchMixpanelSettings;
 
     if (mixpanelSettings === undefined || this.mixpanel !== undefined) {
       return;
@@ -44,7 +44,7 @@ export class MixpanelPlugin extends DestinationPlugin {
     this.mixpanel = new Mixpanel(mixpanelSettings.token, false);
     this.mixpanel.init().catch((error) => {
       this.analytics?.reportInternalError(
-        new SegmentError(
+        new HightouchError(
           ErrorType.PluginError,
           'Error initializing Mixpanel',
           error

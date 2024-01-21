@@ -1,4 +1,4 @@
-package com.segmentanalyticsreactnative
+package com.hightouchanalyticsreactnative
 
 import java.util.Arrays
 import java.util.Collections

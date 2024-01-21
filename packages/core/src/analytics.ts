@@ -1,16 +1,10 @@
-import type { Rule } from '@segment/tsub/dist/store';
 import deepmerge from 'deepmerge';
 import {
   AppState,
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import {
-  settingsCDN,
-  workspaceDestinationFilterKey,
-  defaultFlushInterval,
-  defaultFlushAt,
-} from './constants';
+import { defaultFlushInterval, defaultFlushAt } from './constants';
 import { getContext } from './context';
 import {
   createAliasEvent,
@@ -26,7 +20,10 @@ import {
 } from './flushPolicies';
 import { FlushPolicyExecuter } from './flushPolicies/flush-policy-executer';
 import type { DestinationPlugin, PlatformPlugin, Plugin } from './plugin';
-import { SegmentDestination } from './plugins/SegmentDestination';
+import {
+  HightouchDestination,
+  HIGHTOUCH_DESTINATION_KEY,
+} from './plugins/HightouchDestination';
 import {
   createGetter,
   DeepLinkData,
@@ -35,7 +32,7 @@ import {
   Watchable,
 } from './storage';
 import { Timeline } from './timeline';
-import { DestinationFilters, EventType, SegmentAPISettings } from './types';
+import { DestinationFilters, EventType } from './types';
 import {
   Config,
   Context,
@@ -45,25 +42,20 @@ import {
   JsonMap,
   LoggerType,
   PluginType,
-  SegmentAPIIntegrations,
-  SegmentEvent,
+  HightouchAPIIntegrations,
+  HightouchEvent,
   UserInfoState,
   UserTraits,
 } from './types';
 import { allSettled, getPluginsWithFlush, getPluginsWithReset } from './util';
 import { getUUID } from './uuid';
 import type { FlushPolicy } from './flushPolicies';
-import {
-  checkResponseForErrors,
-  ErrorType,
-  SegmentError,
-  translateHTTPError,
-} from './errors';
-import type { SegmentAPIConsentSettings } from '.';
+import { ErrorType, HightouchError } from './errors';
+import type { HightouchAPIConsentSettings } from '.';
 
 type OnPluginAddedCallback = (plugin: Plugin) => void;
 
-export class SegmentClient {
+export class HightouchClient {
   // the config parameters for the client - a merge of user provided and default options
   private config: Config;
 
@@ -86,7 +78,7 @@ export class SegmentClient {
 
   private timeline: Timeline;
 
-  private pendingEvents: SegmentEvent[] = [];
+  private pendingEvents: HightouchEvent[] = [];
 
   private pluginsToAdd: Plugin[] = [];
 
@@ -115,12 +107,12 @@ export class SegmentClient {
   /**
    * Access or subscribe to integration settings
    */
-  readonly settings: Watchable<SegmentAPIIntegrations | undefined>;
+  readonly settings: Watchable<HightouchAPIIntegrations | undefined>;
 
   /**
    * Access or subscribe to integration settings
    */
-  readonly consentSettings: Watchable<SegmentAPIConsentSettings | undefined>;
+  readonly consentSettings: Watchable<HightouchAPIConsentSettings | undefined>;
 
   /**
    * Access or subscribe to destination filter settings
@@ -225,11 +217,11 @@ export class SegmentClient {
       onChange: this.store.deepLinkData.onChange,
     };
 
-    // add segment destination plugin unless
+    // add hightouch destination plugin unless
     // asked not to via configuration.
-    if (this.config.autoAddSegmentDestination === true) {
-      const segmentDestination = new SegmentDestination();
-      this.add({ plugin: segmentDestination });
+    if (this.config.autoAddHightouchDestination !== false) {
+      const hightouchDestination = new HightouchDestination();
+      this.add({ plugin: hightouchDestination });
     }
 
     // Setup platform specific plugins
@@ -258,7 +250,7 @@ export class SegmentClient {
   async init() {
     try {
       if (this.isReady.value) {
-        this.logger.warn('SegmentClient already initialized');
+        this.logger.warn('HightouchClient already initialized');
         return;
       }
 
@@ -266,7 +258,7 @@ export class SegmentClient {
         await this.storageReady();
       }
 
-      // Get new settings from segment
+      // Get new settings from hightouch
       // It's important to run this before checkInstalledVersion and trackDeeplinks to give time for destination plugins
       // which make use of the settings object to initialize
       await this.fetchSettings();
@@ -285,7 +277,7 @@ export class SegmentClient {
       this.flushPolicyExecuter.manualFlush();
     } catch (error) {
       this.reportInternalError(
-        new SegmentError(
+        new HightouchError(
           ErrorType.InitializationError,
           'Client did not initialize correctly',
           error
@@ -294,6 +286,7 @@ export class SegmentClient {
     }
   }
 
+  /*
   private generateFiltersMap(rules: Rule[]): DestinationFilters {
     const map: DestinationFilters = {};
 
@@ -304,8 +297,13 @@ export class SegmentClient {
 
     return map;
   }
+  */
 
   async fetchSettings() {
+    // Note that Hightouch doesn't serve any additional settings, so we just
+    // pass the user's local config directly to the destination plugins.
+
+    /*
     const settingsPrefix: string = this.config.cdnProxy ?? settingsCDN;
     const settingsEndpoint = `${settingsPrefix}/${this.config.writeKey}/settings`;
 
@@ -313,14 +311,14 @@ export class SegmentClient {
       const res = await fetch(settingsEndpoint);
       checkResponseForErrors(res);
 
-      const resJson: SegmentAPISettings =
-        (await res.json()) as SegmentAPISettings;
+      const resJson: HightouchAPISettings =
+        (await res.json()) as HightouchAPISettings;
       const integrations = resJson.integrations;
       const consentSettings = resJson.consentSettings;
       const filters = this.generateFiltersMap(
         resJson.middlewareSettings?.routingRules ?? []
       );
-      this.logger.info(`Received settings from Segment succesfully.`);
+      this.logger.info(`Received settings from Hightouch succesfully.`);
       await Promise.all([
         this.store.settings.set(integrations),
         this.store.consentSettings.set(consentSettings),
@@ -330,7 +328,7 @@ export class SegmentClient {
       this.reportInternalError(translateHTTPError(e));
 
       this.logger.warn(
-        `Could not receive settings from Segment. ${
+        `Could not receive settings from Hightouch. ${
           this.config.defaultSettings
             ? 'Will use the default settings.'
             : 'Device mode destinations will be ignored unless you specify default settings in the client config.'
@@ -341,6 +339,14 @@ export class SegmentClient {
         await this.store.settings.set(this.config.defaultSettings.integrations);
       }
     }
+    */
+
+    await this.store.settings.set({
+      [HIGHTOUCH_DESTINATION_KEY]: {
+        apiHost: this.config.proxy,
+      },
+      ...this.config?.defaultSettings?.integrations,
+    });
   }
 
   /**
@@ -384,7 +390,7 @@ export class SegmentClient {
 
   /**
    * Adds a new plugin to the currently loaded set.
-   * @param {{ plugin: Plugin, settings?: IntegrationSettings }} Plugin to be added. Settings are optional if you want to force a configuration instead of the Segment Cloud received one
+   * @param {{ plugin: Plugin, settings?: IntegrationSettings }} Plugin to be added. Settings are optional if you want to force a configuration instead of the Hightouch Cloud received one
    */
   add<P extends Plugin>({
     plugin,
@@ -425,7 +431,7 @@ export class SegmentClient {
     this.timeline.remove(plugin);
   }
 
-  async process(incomingEvent: SegmentEvent) {
+  async process(incomingEvent: HightouchEvent) {
     const event = this.applyRawEventData(incomingEvent);
 
     if (this.isReady.value) {
@@ -438,12 +444,12 @@ export class SegmentClient {
 
   /**
    * Starts timeline processing
-   * @param incomingEvent Segment Event
-   * @returns Segment Event
+   * @param incomingEvent Hightouch Event
+   * @returns Hightouch Event
    */
   private async startTimelineProcessing(
-    incomingEvent: SegmentEvent
-  ): Promise<SegmentEvent | undefined> {
+    incomingEvent: HightouchEvent
+  ): Promise<HightouchEvent | undefined> {
     const event = await this.applyContextData(incomingEvent);
     this.flushPolicyExecuter.notify(event);
     return this.timeline.process(event);
@@ -521,13 +527,16 @@ export class SegmentClient {
         if (r.status === 'rejected') {
           this.reportInternalError(
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            new SegmentError(ErrorType.FlushError, `Flush failed: ${r.reason}`)
+            new HightouchError(
+              ErrorType.FlushError,
+              `Flush failed: ${r.reason}`
+            )
           );
         }
       }
     } catch (error) {
       this.reportInternalError(
-        new SegmentError(ErrorType.FlushError, 'Flush failed', error)
+        new HightouchError(ErrorType.FlushError, 'Flush failed', error)
       );
     }
   }
@@ -707,7 +716,7 @@ export class SegmentClient {
       this.logger.info('Client has been reset');
     } catch (error) {
       this.reportInternalError(
-        new SegmentError(ErrorType.ResetError, 'Error during reset', error)
+        new HightouchError(ErrorType.ResetError, 'Error during reset', error)
       );
     }
   }
@@ -757,6 +766,9 @@ export class SegmentClient {
     }
 
     this.flushPolicyExecuter = new FlushPolicyExecuter(flushPolicies, () => {
+      // TODO: This is what causes the queue to get flushed.
+      // QueueFlushingPlugin doesn't flush until it's explicitly called, and in
+      // the normal case it's only called by the FlushPolicyExecuter.
       void this.flush();
     });
   }
@@ -790,7 +802,7 @@ export class SegmentClient {
     return this.flushPolicyExecuter.policies;
   }
 
-  reportInternalError(error: SegmentError, fatal = false) {
+  reportInternalError(error: HightouchError, fatal = false) {
     if (fatal) {
       this.logger.error('A critical error ocurred: ', error);
     } else {
@@ -801,28 +813,28 @@ export class SegmentClient {
 
   /**
    * Sets the messageId and timestamp
-   * @param event Segment Event
+   * @param event Hightouch Event
    * @returns event with data injected
    */
-  private applyRawEventData = (event: SegmentEvent): SegmentEvent => {
+  private applyRawEventData = (event: HightouchEvent): HightouchEvent => {
     return {
       ...event,
       messageId: getUUID(),
       timestamp: new Date().toISOString(),
       integrations: event.integrations ?? {},
-    } as SegmentEvent;
+    } as HightouchEvent;
   };
 
   /**
    * Injects context and userInfo data into the event
    * This is handled outside of the timeline to prevent concurrency issues between plugins
    * This is only added after the client is ready to let the client restore values from storage
-   * @param event Segment Event
+   * @param event Hightouch Event
    * @returns event with data injected
    */
   private applyContextData = async (
-    event: SegmentEvent
-  ): Promise<SegmentEvent> => {
+    event: HightouchEvent
+  ): Promise<HightouchEvent> => {
     const userInfo = await this.processUserInfo(event);
     const context = await this.context.get(true);
 
@@ -833,19 +845,19 @@ export class SegmentClient {
         ...event.context,
         ...context,
       },
-    } as SegmentEvent;
+    } as HightouchEvent;
   };
 
   /**
    * Processes the userInfo to add to an event.
    * For Identify and Alias: it saves the new userId and traits into the storage
    * For all: set the userId and anonymousId from the current values
-   * @param event segment event
+   * @param event hightouch event
    * @returns userInfo to inject to an event
    */
   private processUserInfo = async (
-    event: SegmentEvent
-  ): Promise<Partial<SegmentEvent>> => {
+    event: HightouchEvent
+  ): Promise<Partial<HightouchEvent>> => {
     // Order here is IMPORTANT!
     // Identify and Alias userInfo set operations have to come as soon as possible
     // Do not block the set by doing a safe get first as it might cause a race condition

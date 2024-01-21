@@ -5,7 +5,7 @@ import {
   ScreenEventType,
   IdentifyEventType,
   generateMapTransform,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 
 import { mapTraits, transformMap } from './parameterMapping';
 import CleverTap from 'clevertap-react-native';

@@ -3,10 +3,10 @@ import {
   IdentifyEventType,
   PluginType,
   ScreenEventType,
-  SegmentError,
+  HightouchError,
   ErrorType,
   TrackEventType,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 import screen from './methods/screen';
 import track from './methods/track';
 import reset from './methods/reset';
@@ -56,7 +56,7 @@ export class FirebasePlugin extends DestinationPlugin {
       await track(event);
     } catch (error) {
       this.analytics?.reportInternalError(
-        new SegmentError(
+        new HightouchError(
           ErrorType.PluginError,
           'Error on Firebase Track',
           error
@@ -71,7 +71,7 @@ export class FirebasePlugin extends DestinationPlugin {
       await screen(event);
     } catch (error) {
       this.analytics?.reportInternalError(
-        new SegmentError(
+        new HightouchError(
           ErrorType.PluginError,
           'Error on Firebase Track',
           error
@@ -86,7 +86,7 @@ export class FirebasePlugin extends DestinationPlugin {
       await reset();
     } catch (error) {
       this.analytics?.reportInternalError(
-        new SegmentError(
+        new HightouchError(
           ErrorType.PluginError,
           'Error on Firebase Track',
           error

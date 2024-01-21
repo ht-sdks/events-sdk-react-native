@@ -1,4 +1,4 @@
-import type { SegmentEvent } from '../types';
+import type { HightouchEvent } from '../types';
 import { FlushPolicyBase } from './types';
 
 /**
@@ -9,7 +9,7 @@ export class StartupFlushPolicy extends FlushPolicyBase {
     this.shouldFlush.value = true;
   }
 
-  onEvent(_event: SegmentEvent): void {
+  onEvent(_event: HightouchEvent): void {
     // Nothing to do
   }
 }

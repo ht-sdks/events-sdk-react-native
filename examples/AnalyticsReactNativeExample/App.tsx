@@ -15,23 +15,23 @@ import {
   // StartupFlushPolicy,
   // @ts-ignore unused for e2e tests
   // TimerFlushPolicy,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 import Home from './Home';
 import SecondPage from './SecondPage';
 import Modal from './Modal';
 import {useState} from 'react';
 import {Logger} from './plugins/Logger';
 
-// import {AmplitudeSessionPlugin} from '@segment/analytics-react-native-plugin-amplitude-session';
+// import {AmplitudeSessionPlugin} from '@ht-sdks/analytics-react-native-plugin-amplitude-session';
 // import { ConsentManager } from './plugins/ConsentManager';
-// import { FirebasePlugin } from '@segment/analytics-react-native-plugin-firebase';
-// import { FacebookAppEventsPlugin } from '@segment/analytics-react-native-plugin-facebook-app-events';
-// import { IdfaPlugin } from '@segment/analytics-react-native-plugin-idfa';
-// import { AdvertisingIdPlugin } from '@segment/analytics-react-native-plugin-advertising-id';
-// import { ClevertapPlugin } from '@segment/analytics-react-native-plugin-clevertap';
-// import { BrazePlugin } from '@segment/analytics-react-native-plugin-braze';
+// import { FirebasePlugin } from '@ht-sdks/analytics-react-native-plugin-firebase';
+// import { FacebookAppEventsPlugin } from '@ht-sdks/analytics-react-native-plugin-facebook-app-events';
+// import { IdfaPlugin } from '@ht-sdks/analytics-react-native-plugin-idfa';
+// import { AdvertisingIdPlugin } from '@ht-sdks/analytics-react-native-plugin-advertising-id';
+// import { ClevertapPlugin } from '@ht-sdks/analytics-react-native-plugin-clevertap';
+// import { BrazePlugin } from '@ht-sdks/analytics-react-native-plugin-braze';
 
-const segmentClient = createClient({
+const hightouchClient = createClient({
   writeKey: '<WRITE_KEY>',
   trackAppLifecycleEvents: true,
   collectDeviceId: true,
@@ -47,27 +47,27 @@ const segmentClient = createClient({
 
 const LoggerPlugin = new Logger();
 
-segmentClient.add({plugin: LoggerPlugin});
+hightouchClient.add({plugin: LoggerPlugin});
 
 // To see an example Consent Manager uncomment the following
 // const ConsentManagerPlugin = new ConsentManager();
-// segmentClient.add({ plugin: ConsentManagerPlugin });
+// hightouchClient.add({ plugin: ConsentManagerPlugin });
 
 // To test the Firebase plugin make sure to add your own API_KEY in example/ios/GoogleService-Info.plist
-// segmentClient.add({ plugin: new FirebasePlugin() });
+// hightouchClient.add({ plugin: new FirebasePlugin() });
 
 // To test the Facebook App Events plugin make sure to add your Facebook App Id to Info.plist
-// segmentClient.add({ plugin: new FacebookAppEventsPlugin() });
+// hightouchClient.add({ plugin: new FacebookAppEventsPlugin() });
 // const idfaPlugin = new IdfaPlugin();
-// segmentClient.add({ plugin: idfaPlugin });
+// hightouchClient.add({ plugin: idfaPlugin });
 
-// segmentClient.add({plugin: new AmplitudeSessionPlugin()});
+// hightouchClient.add({plugin: new AmplitudeSessionPlugin()});
 
-// segmentClient.add({ plugin: new BrazePlugin() });
+// hightouchClient.add({ plugin: new BrazePlugin() });
 
-// segmentClient.add({ plugin: new ClevertapPlugin() });
+// hightouchClient.add({ plugin: new ClevertapPlugin() });
 
-// segmentClient.add({
+// hightouchClient.add({
 //   plugin: new AdvertisingIdPlugin(),
 // });
 
@@ -123,13 +123,13 @@ const App = () => {
   const [routeName, setRouteName] = useState('Unknown');
 
   return (
-    <AnalyticsProvider client={segmentClient}>
+    <AnalyticsProvider client={hightouchClient}>
       <NavigationContainer
         onStateChange={state => {
           const newRouteName = getActiveRouteName(state);
 
           if (routeName !== newRouteName) {
-            void segmentClient.screen(newRouteName);
+            void hightouchClient.screen(newRouteName);
 
             setRouteName(newRouteName);
           }

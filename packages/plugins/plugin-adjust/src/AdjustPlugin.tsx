@@ -3,10 +3,10 @@ import {
   IdentifyEventType,
   PluginType,
   TrackEventType,
-  SegmentAdjustSettings,
-  SegmentAPISettings,
+  HightouchAdjustSettings,
+  HightouchAPISettings,
   UpdateType,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 import { Adjust, AdjustConfig } from 'react-native-adjust';
 import identify from './methods/identify';
 import track from './methods/track';
@@ -16,13 +16,13 @@ export class AdjustPlugin extends DestinationPlugin {
   type = PluginType.destination;
   key = 'Adjust';
 
-  private settings: SegmentAdjustSettings | null = null;
+  private settings: HightouchAdjustSettings | null = null;
   private hasRegisteredCallback = false;
 
-  update(settings: SegmentAPISettings, _: UpdateType) {
+  update(settings: HightouchAPISettings, _: UpdateType) {
     const adjustSettings = settings.integrations[
       this.key
-    ] as SegmentAdjustSettings;
+    ] as HightouchAdjustSettings;
 
     if (adjustSettings === undefined || adjustSettings === null) {
       return;

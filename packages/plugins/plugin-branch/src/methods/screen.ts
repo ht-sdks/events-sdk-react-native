@@ -1,6 +1,6 @@
 import { BranchEvent } from 'react-native-branch';
-import { generateMapTransform } from '@segment/analytics-react-native';
-import type { ScreenEventType } from '@segment/analytics-react-native';
+import { generateMapTransform } from '@ht-sdks/analytics-react-native';
+import type { ScreenEventType } from '@ht-sdks/analytics-react-native';
 import { mapEventProps, transformMap } from './parameterMapping';
 import { createBranchEventWithProps } from './util';
 

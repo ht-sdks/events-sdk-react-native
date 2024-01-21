@@ -1,5 +1,5 @@
 import identify from '../identify';
-import type { IdentifyEventType } from '@segment/analytics-react-native';
+import type { IdentifyEventType } from '@ht-sdks/analytics-react-native';
 import { addSessionPartnerParameter } from '../__mocks__/react-native-adjust';
 
 describe('#identify', () => {

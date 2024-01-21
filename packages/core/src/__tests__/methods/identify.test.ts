@@ -1,5 +1,5 @@
 import { createTestClient } from '../../test-helpers';
-import { EventType, SegmentEvent } from '../../types';
+import { EventType, HightouchEvent } from '../../types';
 
 describe('methods #identify', () => {
   const initialUserInfo = {
@@ -23,7 +23,7 @@ describe('methods #identify', () => {
   it('adds the identify event correctly', async () => {
     await client.identify('new-user-id', { name: 'Mary', age: 30 });
 
-    const expectedEvent: Partial<SegmentEvent> = {
+    const expectedEvent: Partial<HightouchEvent> = {
       traits: {
         name: 'Mary',
         age: 30,
@@ -80,7 +80,7 @@ describe('methods #identify', () => {
   it('does not persist identity traits accross events', async () => {
     await client.identify('new-user-id', { name: 'Mary', age: 30 });
 
-    const expectedEvent: Partial<SegmentEvent> = {
+    const expectedEvent: Partial<HightouchEvent> = {
       traits: {
         name: 'Mary',
         age: 30,
@@ -116,7 +116,7 @@ describe('methods #identify', () => {
     void client.identify('new-user-id');
     await client.track('something');
 
-    const expectedTrackEvent: Partial<SegmentEvent> = {
+    const expectedTrackEvent: Partial<HightouchEvent> = {
       event: 'something',
       userId: 'new-user-id',
       type: EventType.TrackEvent,

@@ -12,8 +12,8 @@ export {
   objectToString,
   unknownToString,
 } from './util';
-export { SegmentClient } from './analytics';
-export { SegmentDestination } from './plugins/SegmentDestination';
+export { HightouchClient } from './analytics';
+export { HightouchDestination } from './plugins/HightouchDestination';
 export {
   type CategoryConsentStatusProvider,
   ConsentPlugin,

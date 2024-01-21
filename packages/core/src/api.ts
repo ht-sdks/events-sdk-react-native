@@ -1,4 +1,4 @@
-import type { SegmentEvent } from './types';
+import type { HightouchEvent } from './types';
 
 export const uploadEvents = async ({
   writeKey,
@@ -7,7 +7,7 @@ export const uploadEvents = async ({
 }: {
   writeKey: string;
   url: string;
-  events: SegmentEvent[];
+  events: HightouchEvent[];
 }) => {
   return await fetch(url, {
     method: 'POST',

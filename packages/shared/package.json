@@ -1,10 +1,10 @@
 {
-  "name": "@segment/analytics-rn-shared",
+  "name": "@ht-sdks/analytics-rn-shared",
   "version": "1.0.0",
   "private": true,
   "description": "Shared dev code between Analytics React Native projects",
   "main": "index.js",
-  "author": "Segment <hello@segment.com> (https://segment.com/)",
+  "author": "Hightouch <hello@hightouch.com> (https://hightouch.com/)",
   "license": "MIT",
   "peerDependencies": {
     "react": "*",

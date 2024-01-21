@@ -2,16 +2,16 @@ import {
   Plugin,
   PluginType,
   UserInfoState,
-  SegmentEvent,
+  HightouchEvent,
   EventType,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 
 export class BrazeMiddlewarePlugin extends Plugin {
   type = PluginType.before;
   key = 'Appboy';
   private lastSeenTraits: UserInfoState | undefined = undefined;
 
-  execute(event: SegmentEvent): SegmentEvent | undefined {
+  execute(event: HightouchEvent): HightouchEvent | undefined {
     //check to see if anything has changed
     //if it hasn't changed disable integration
     if (event.type === EventType.IdentifyEvent) {

@@ -14,10 +14,10 @@ jest.mock('../uuid', () => ({
 
 describe('#getContext', () => {
   const mockNativeContext: NativeContextInfo = {
-    appName: 'Segment Example',
+    appName: 'Hightouch Example',
     appVersion: '1.0',
     buildNumber: '1',
-    bundleId: 'com.segment.example.analytics',
+    bundleId: 'com.hightouch.example.analytics',
     locale: 'en_US',
     networkType: 'wifi',
     osName: 'iOS',
@@ -36,8 +36,8 @@ describe('#getContext', () => {
   const contextResult: Context = {
     app: {
       build: '1',
-      name: 'Segment Example',
-      namespace: 'com.segment.example.analytics',
+      name: 'Hightouch Example',
+      namespace: 'com.hightouch.example.analytics',
       version: '1.0',
     },
     device: {

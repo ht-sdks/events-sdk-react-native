@@ -1,7 +1,7 @@
 {
-  "name": "@segment/analytics-react-native-plugin-branch",
+  "name": "@ht-sdks/analytics-react-native-plugin-branch",
   "version": "1.1.0",
-  "description": "The hassle-free way to add Segment analytics to your React-Native app.",
+  "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
   "scripts": {
     "build": "bob build",
@@ -11,7 +11,7 @@
     "release": "semantic-release"
   },
   "keywords": [
-    "segment",
+    "hightouch",
     "react-native",
     "ios",
     "android"
@@ -26,7 +26,7 @@
     "android",
     "ios",
     "cpp",
-    "segment-analytics-react-native.podspec",
+    "hightouch-analytics-react-native.podspec",
     "package.json",
     "!src/**/*.e2e.mock.js",
     "!**/__tests__",
@@ -35,23 +35,23 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-react-native.git",
+    "url": "https://github.com/ht-sdks/events-sdk-react-native.git",
     "directory": "packages/core"
   },
-  "author": "Segment <hello@segment.com> (https://segment.com/)",
+  "author": "Hightouch <hello@hightouch.com> (https://hightouch.com/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/segmentio/analytics-react-native/issues"
+    "url": "https://github.com/ht-sdks/events-sdk-react-native/issues"
   },
-  "homepage": "https://github.com/segmentio/analytics-react-native/tree/master/packages/plugins/plugin-branch#readme",
+  "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/plugins/plugin-branch#readme",
   "peerDependencies": {
-    "@segment/analytics-react-native": "^2.18.0",
+    "@ht-sdks/analytics-react-native": "^2.18.0",
     "react-native-branch": "^5.6.0"
   },
   "devDependencies": {
-    "@segment/analytics-react-native": "^2.18.0",
-    "@segment/analytics-rn-shared": "workspace:^",
-    "@segment/sovran-react-native": "^1.1.0",
+    "@ht-sdks/analytics-react-native": "^2.18.0",
+    "@ht-sdks/analytics-rn-shared": "workspace:^",
+    "@ht-sdks/sovran-react-native": "^1.1.0",
     "jest": "^29.7.0",
     "react-native-branch": "^5.6.0",
     "react-native-builder-bob": "^0.23.1",

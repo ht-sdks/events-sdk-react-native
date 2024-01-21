@@ -1,8 +1,8 @@
-import { SegmentClient } from '@segment/analytics-react-native';
+import { HightouchClient } from '@ht-sdks/analytics-react-native';
 import {
   getMockLogger,
-  MockSegmentStore,
-} from '@segment/analytics-react-native/src/test-helpers';
+  MockHightouchStore,
+} from '@ht-sdks/analytics-react-native/src/test-helpers';
 import CleverTap from 'clevertap-react-native';
 
 import { ClevertapPlugin } from '../ClevertapPlugin';
@@ -11,11 +11,11 @@ import type {
   IdentifyEventType,
   TrackEventType,
   ScreenEventType,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 jest.mock('clevertap-react-native');
 
 describe('ClevertapPlugin ', () => {
-  const store = new MockSegmentStore();
+  const store = new MockHightouchStore();
   const clientArgs = {
     logger: getMockLogger(),
     config: {
@@ -30,7 +30,7 @@ describe('ClevertapPlugin ', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     plugin = new ClevertapPlugin();
-    plugin.analytics = new SegmentClient(clientArgs);
+    plugin.analytics = new HightouchClient(clientArgs);
   });
 
   it('sends an identify event with correct traits', () => {

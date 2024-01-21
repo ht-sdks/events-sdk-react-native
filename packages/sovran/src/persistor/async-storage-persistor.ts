@@ -18,7 +18,7 @@ function warnIfMissingPackage() {
   if (AsyncStorage === null) {
     if (!hasShownWarning) {
       console.warn(
-        "Segment: Tried to access AsyncStoragePersistor but couldn't find package @react-native-async-storage/async-storage.\n\
+        "Hightouch: Tried to access AsyncStoragePersistor but couldn't find package @react-native-async-storage/async-storage.\n\
         - Install '@react-native-async-storage/async-storage' to use the default persistence layer you need\n\
         - You might be missing the 'storePersistor' argument in your client configuration to use your own persistence layer\n\
         Execution will continue but no information will be persisted. This warning will only show once."

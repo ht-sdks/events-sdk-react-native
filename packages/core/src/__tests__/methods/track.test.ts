@@ -1,5 +1,5 @@
-import { SegmentClient } from '../../analytics';
-import { getMockLogger, MockSegmentStore } from '../../test-helpers';
+import { HightouchClient } from '../../analytics';
+import { getMockLogger, MockHightouchStore } from '../../test-helpers';
 import { EventType } from '../../types';
 
 jest.mock('uuid');
@@ -9,7 +9,7 @@ jest
   .mockReturnValue('2010-01-01T00:00:00.000Z');
 
 describe('methods #track', () => {
-  const store = new MockSegmentStore({
+  const store = new MockHightouchStore({
     userInfo: {
       userId: 'current-user-id',
       anonymousId: 'very-anonymous',
@@ -30,7 +30,7 @@ describe('methods #track', () => {
   });
 
   it('adds the track event correctly', async () => {
-    const client = new SegmentClient(clientArgs);
+    const client = new HightouchClient(clientArgs);
     jest.spyOn(client, 'process');
 
     await client.track('Some Event', { id: 1 });

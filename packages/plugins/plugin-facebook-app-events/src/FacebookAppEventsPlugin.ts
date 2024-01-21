@@ -8,12 +8,12 @@ import {
   isObject,
   PluginType,
   ScreenEventType,
-  SegmentAPISettings,
-  SegmentClient,
-  SegmentError,
+  HightouchAPISettings,
+  HightouchClient,
+  HightouchError,
   TrackEventType,
   UpdateType,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 import { AppEventsLogger, Settings } from 'react-native-fbsdk-next';
 
 import screen from './methods/screen';
@@ -85,11 +85,11 @@ export class FacebookAppEventsPlugin extends DestinationPlugin {
   trackScreens = false;
   limitedDataUse = false;
   /**
-   * Mappings for event names from Segment Settings
+   * Mappings for event names from Hightouch Settings
    */
   appEvents: { [key: string]: string } = {};
 
-  async configure(analytics: SegmentClient) {
+  async configure(analytics: HightouchClient) {
     this.analytics = analytics;
     const adTrackingEnabled = this.analytics?.adTrackingEnabled.get();
 
@@ -99,7 +99,7 @@ export class FacebookAppEventsPlugin extends DestinationPlugin {
           await Settings.setAdvertiserTrackingEnabled(value);
         } catch (error) {
           this.analytics?.reportInternalError(
-            new SegmentError(
+            new HightouchError(
               ErrorType.PluginError,
               'Facebook failed to set AdvertiserTrackingEnabled',
               error
@@ -119,7 +119,7 @@ export class FacebookAppEventsPlugin extends DestinationPlugin {
       } catch (e) {
         //handle error
         this.analytics?.reportInternalError(
-          new SegmentError(ErrorType.PluginError, JSON.stringify(e), e)
+          new HightouchError(ErrorType.PluginError, JSON.stringify(e), e)
         );
         this.analytics?.logger.warn('Add Tracking Enabled Error', e);
       }
@@ -129,7 +129,7 @@ export class FacebookAppEventsPlugin extends DestinationPlugin {
     Settings.setDataProcessingOptions([], 0, 0);
   }
 
-  update(settings: SegmentAPISettings, _: UpdateType) {
+  update(settings: HightouchAPISettings, _: UpdateType) {
     const fbSettings = settings.integrations[this.key];
 
     if (isFBPluginSettings(fbSettings)) {

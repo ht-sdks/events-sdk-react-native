@@ -2,7 +2,7 @@ import {
   isNumber,
   isString,
   unknownToString,
-} from '@segment/analytics-react-native';
+} from '@ht-sdks/analytics-react-native';
 
 export const sanitizeValue = (value: unknown): string | number | undefined => {
   if (isNumber(value) || isString(value)) {

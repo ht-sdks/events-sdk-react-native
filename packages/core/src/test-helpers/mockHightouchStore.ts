@@ -1,4 +1,4 @@
-import { SEGMENT_DESTINATION_KEY } from '../plugins/SegmentDestination';
+import { HIGHTOUCH_DESTINATION_KEY } from '../plugins/HightouchDestination';
 import type {
   DeepLinkData,
   Dictionary,
@@ -12,8 +12,8 @@ import type {
   DestinationFilters,
   IntegrationSettings,
   RoutingRule,
-  SegmentAPIConsentSettings,
-  SegmentAPIIntegrations,
+  HightouchAPIConsentSettings,
+  HightouchAPIIntegrations,
   UserInfoState,
 } from '../types';
 import { createCallbackManager } from './utils';
@@ -22,8 +22,8 @@ import { createGetter } from '../storage/helpers';
 export type StoreData = {
   isReady: boolean;
   context?: DeepPartial<Context>;
-  settings: SegmentAPIIntegrations;
-  consentSettings?: SegmentAPIConsentSettings;
+  settings: HightouchAPIIntegrations;
+  consentSettings?: HightouchAPIConsentSettings;
   filters: DestinationFilters;
   userInfo: UserInfoState;
   deepLinkData: DeepLinkData;
@@ -33,7 +33,7 @@ const INITIAL_VALUES: StoreData = {
   isReady: true,
   context: undefined,
   settings: {
-    [SEGMENT_DESTINATION_KEY]: {},
+    [HIGHTOUCH_DESTINATION_KEY]: {},
   },
   consentSettings: undefined,
   filters: {},
@@ -56,7 +56,7 @@ export function createMockStoreGetter<T>(fn: () => T) {
   });
 }
 
-export class MockSegmentStore implements Storage {
+export class MockHightouchStore implements Storage {
   private data: StoreData;
   private initialData: StoreData;
 
@@ -73,9 +73,9 @@ export class MockSegmentStore implements Storage {
 
   private callbacks = {
     context: createCallbackManager<DeepPartial<Context> | undefined>(),
-    settings: createCallbackManager<SegmentAPIIntegrations>(),
+    settings: createCallbackManager<HightouchAPIIntegrations>(),
     consentSettings: createCallbackManager<
-      SegmentAPIConsentSettings | undefined
+      HightouchAPIConsentSettings | undefined
     >(),
     filters: createCallbackManager<DestinationFilters>(),
     userInfo: createCallbackManager<UserInfoState>(),
@@ -108,11 +108,11 @@ export class MockSegmentStore implements Storage {
     },
   };
 
-  readonly settings: Watchable<SegmentAPIIntegrations | undefined> &
-    Settable<SegmentAPIIntegrations> &
-    Dictionary<string, IntegrationSettings, SegmentAPIIntegrations> = {
+  readonly settings: Watchable<HightouchAPIIntegrations | undefined> &
+    Settable<HightouchAPIIntegrations> &
+    Dictionary<string, IntegrationSettings, HightouchAPIIntegrations> = {
     get: createMockStoreGetter(() => this.data.settings),
-    onChange: (callback: (value?: SegmentAPIIntegrations) => void) =>
+    onChange: (callback: (value?: HightouchAPIIntegrations) => void) =>
       this.callbacks.settings.register(callback),
     set: (value) => {
       this.data.settings =
@@ -129,10 +129,10 @@ export class MockSegmentStore implements Storage {
     },
   };
 
-  readonly consentSettings: Watchable<SegmentAPIConsentSettings | undefined> &
-    Settable<SegmentAPIConsentSettings | undefined> = {
+  readonly consentSettings: Watchable<HightouchAPIConsentSettings | undefined> &
+    Settable<HightouchAPIConsentSettings | undefined> = {
     get: createMockStoreGetter(() => this.data.consentSettings),
-    onChange: (callback: (value?: SegmentAPIConsentSettings) => void) =>
+    onChange: (callback: (value?: HightouchAPIConsentSettings) => void) =>
       this.callbacks.consentSettings.register(callback),
     set: (value) => {
       this.data.consentSettings =

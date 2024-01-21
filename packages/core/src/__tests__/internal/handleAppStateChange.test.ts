@@ -1,11 +1,11 @@
 import { AppState, AppStateStatus } from 'react-native';
 
 import { createTestClient } from '../../test-helpers';
-import { EventType, SegmentEvent } from '../../types';
+import { EventType, HightouchEvent } from '../../types';
 
-import type { SegmentClient } from '../../analytics';
+import type { HightouchClient } from '../../analytics';
 import type { UtilityPlugin } from '../../plugin';
-import type { MockSegmentStore } from '../../test-helpers';
+import type { MockHightouchStore } from '../../test-helpers';
 jest.mock('uuid');
 jest.mock('../../context');
 jest.mock('react-native');
@@ -14,11 +14,11 @@ jest
   .spyOn(Date.prototype, 'toISOString')
   .mockReturnValue('2010-01-01T00:00:00.000Z');
 
-describe('SegmentClient #handleAppStateChange', () => {
-  let store: MockSegmentStore;
-  let client: SegmentClient;
+describe('HightouchClient #handleAppStateChange', () => {
+  let store: MockHightouchStore;
+  let client: HightouchClient;
   let appStateChangeListener: ((state: AppStateStatus) => void) | undefined;
-  let expectEvent: (event: Partial<SegmentEvent>) => void;
+  let expectEvent: (event: Partial<HightouchEvent>) => void;
   let mockPlugin: UtilityPlugin;
 
   afterEach(() => {

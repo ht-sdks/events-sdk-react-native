@@ -1,5 +1,5 @@
 import { Adjust } from 'react-native-adjust';
-import type { IdentifyEventType } from '@segment/analytics-react-native';
+import type { IdentifyEventType } from '@ht-sdks/analytics-react-native';
 
 export default (event: IdentifyEventType) => {
   const userId = event.userId;

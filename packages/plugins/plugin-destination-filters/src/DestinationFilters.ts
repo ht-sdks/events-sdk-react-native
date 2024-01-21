@@ -4,11 +4,11 @@ import {
   Plugin,
   PluginType,
   RoutingRule,
-  SegmentClient,
-  SegmentEvent,
+  HightouchClient,
+  HightouchEvent,
   UtilityPlugin,
-} from '@segment/analytics-react-native';
-import type { Unsubscribe } from '@segment/sovran-react-native';
+} from '@ht-sdks/analytics-react-native';
+import type { Unsubscribe } from '@ht-sdks/sovran-react-native';
 import * as tsub from '@segment/tsub';
 import clone from 'clone';
 
@@ -16,7 +16,7 @@ const WORKSPACE_DESTINATION_FILTER_KEY = '';
 
 /**
  * Adds processing for Destination Filters
- * (https://segment.com/docs/connections/destinations/destination-filters/)
+ * (https://hightouch.com/docs/connections/destinations/destination-filters/)
  * to work on device mode destinations
  */
 export class DestinationFiltersPlugin extends UtilityPlugin {
@@ -37,7 +37,7 @@ export class DestinationFiltersPlugin extends UtilityPlugin {
     }
   };
 
-  override configure(analytics: SegmentClient) {
+  override configure(analytics: HightouchClient) {
     super.configure(analytics);
 
     if (this.key === undefined) {
@@ -58,13 +58,13 @@ export class DestinationFiltersPlugin extends UtilityPlugin {
     });
   }
 
-  execute(event: SegmentEvent) {
+  execute(event: HightouchEvent) {
     if (this.filter === undefined) {
       return event;
     }
 
     const { matchers, transformers } = this.filter;
-    let transformedEvent: SegmentEvent | undefined;
+    let transformedEvent: HightouchEvent | undefined;
     for (let i = 0; i < matchers.length; i++) {
       if (tsub.matches(event, matchers[i])) {
         // We have to deep clone the event as the tsub transform modifies the event in place
@@ -82,7 +82,7 @@ export class DestinationFiltersPlugin extends UtilityPlugin {
         ) {
           return undefined;
         }
-        transformedEvent = newEvent as unknown as SegmentEvent;
+        transformedEvent = newEvent as unknown as HightouchEvent;
       }
     }
     return transformedEvent ?? event;

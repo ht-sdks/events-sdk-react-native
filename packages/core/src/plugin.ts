@@ -1,4 +1,4 @@
-import type { SegmentClient } from './analytics';
+import type { HightouchClient } from './analytics';
 import { Timeline } from './timeline';
 import {
   AliasEventType,
@@ -7,8 +7,8 @@ import {
   IdentifyEventType,
   PluginType,
   ScreenEventType,
-  SegmentAPISettings,
-  SegmentEvent,
+  HightouchAPISettings,
+  HightouchEvent,
   TrackEventType,
   UpdateType,
 } from './types';
@@ -16,19 +16,19 @@ import {
 export class Plugin {
   // default to utility to avoid automatic processing
   type: PluginType = PluginType.utility;
-  analytics?: SegmentClient = undefined;
+  analytics?: HightouchClient = undefined;
 
-  configure(analytics: SegmentClient) {
+  configure(analytics: HightouchClient) {
     this.analytics = analytics;
   }
 
-  update(_settings: SegmentAPISettings, _type: UpdateType) {
+  update(_settings: HightouchAPISettings, _type: UpdateType) {
     // do nothing by default, user can override.
   }
 
   execute(
-    event: SegmentEvent
-  ): Promise<SegmentEvent | undefined> | SegmentEvent | undefined {
+    event: HightouchEvent
+  ): Promise<HightouchEvent | undefined> | HightouchEvent | undefined {
     // do nothing.
     return event;
   }
@@ -40,12 +40,12 @@ export class Plugin {
 
 export class EventPlugin extends Plugin {
   execute(
-    event: SegmentEvent
-  ): Promise<SegmentEvent | undefined> | SegmentEvent | undefined {
+    event: HightouchEvent
+  ): Promise<HightouchEvent | undefined> | HightouchEvent | undefined {
     if (event === undefined) {
       return event;
     }
-    let result: Promise<SegmentEvent | undefined> | SegmentEvent | undefined =
+    let result: Promise<HightouchEvent | undefined> | HightouchEvent | undefined =
       event;
     switch (result.type) {
       case EventType.IdentifyEvent:
@@ -120,7 +120,7 @@ export class DestinationPlugin extends EventPlugin {
     return this.analytics?.settings.get()?.[this.key] !== undefined;
   }
 
-  private isEnabled(event: SegmentEvent): boolean {
+  private isEnabled(event: HightouchEvent): boolean {
     let customerDisabled = false;
     if (event.integrations?.[this.key] === false) {
       customerDisabled = true;
@@ -153,7 +153,7 @@ export class DestinationPlugin extends EventPlugin {
     this.timeline.apply(closure);
   }
 
-  configure(analytics: SegmentClient) {
+  configure(analytics: HightouchClient) {
     this.analytics = analytics;
     this.apply((plugin) => {
       plugin.configure(analytics);
@@ -169,7 +169,7 @@ export class DestinationPlugin extends EventPlugin {
     this.timeline.remove(plugin);
   }
 
-  async execute(event: SegmentEvent): Promise<SegmentEvent | undefined> {
+  async execute(event: HightouchEvent): Promise<HightouchEvent | undefined> {
     if (!this.isEnabled(event)) {
       return;
     }
