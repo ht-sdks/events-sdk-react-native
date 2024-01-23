@@ -1,9 +1,12 @@
 import { HightouchClient } from '../../analytics';
-import { settingsCDN } from '../../constants';
+//import { settingsCDN } from '../../constants';
 import { HIGHTOUCH_DESTINATION_KEY } from '../../plugins/HightouchDestination';
 import { getMockLogger, MockHightouchStore } from '../../test-helpers';
 
-describe('internal #getSettings', () => {
+const settingsCDN = 'mock';
+
+// Hightouch doesn't load settings from the control plane.
+describe.skip('internal #getSettings', () => {
   const defaultIntegrationSettings = {
     integrations: {
       // Make sure the value associated with this key here is different

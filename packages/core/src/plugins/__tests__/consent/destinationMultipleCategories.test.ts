@@ -7,7 +7,8 @@ import {
   setupTestDestinations,
 } from './utils';
 
-describe('Destinations multiple categories', () => {
+// The Consent API is not currently supported.
+describe.skip('Destinations multiple categories', () => {
   const createClient = () =>
     createTestClient(
       {

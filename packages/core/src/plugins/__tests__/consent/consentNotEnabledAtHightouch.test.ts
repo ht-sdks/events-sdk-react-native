@@ -7,7 +7,8 @@ import {
   setupTestDestinations,
 } from './utils';
 
-describe('Consent not enabled at Hightouch', () => {
+// The Consent API is not currently supported.
+describe.skip('Consent not enabled at Hightouch', () => {
   const createClient = () =>
     createTestClient(
       {

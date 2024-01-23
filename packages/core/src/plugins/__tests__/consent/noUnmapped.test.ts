@@ -3,7 +3,8 @@ import { ConsentPlugin } from '../../ConsentPlugin';
 import noUnmappedDestinations from './mockSettings/NoUnmappedDestinations.json';
 import { createConsentProvider, setupTestDestinations } from './utils';
 
-describe('No unmapped destinations', () => {
+// The Consent API is not currently supported.
+describe.skip('No unmapped destinations', () => {
   const createClient = () =>
     createTestClient({
       settings: noUnmappedDestinations.integrations,

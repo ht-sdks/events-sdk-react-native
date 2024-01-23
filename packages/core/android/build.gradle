@@ -129,5 +129,5 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation project(path: ':hightouch_sovran-react-native')
+  implementation project(path: ':ht-sdks_sovran-react-native')
 }

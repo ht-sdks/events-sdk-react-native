@@ -103,25 +103,23 @@ describe('HightouchClient', () => {
 
   describe('#cleanup', () => {
     it('clears all subscriptions and timers', async () => {
-      const hightouchClient = new HightouchClient(clientArgs);
-      await hightouchClient.init();
+      const htClient = new HightouchClient(clientArgs);
+      await htClient.init();
 
       jest.spyOn(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        hightouchClient.appStateSubscription,
+        htClient.appStateSubscription,
         'remove'
       );
 
-      hightouchClient.cleanup();
+      htClient.cleanup();
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      expect(hightouchClient.destroyed).toBe(true);
+      expect(htClient.destroyed).toBe(true);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      expect(hightouchClient.appStateSubscription?.remove).toHaveBeenCalledTimes(
-        1
-      );
+      expect(htClient.appStateSubscription?.remove).toHaveBeenCalledTimes(1);
     });
   });
 

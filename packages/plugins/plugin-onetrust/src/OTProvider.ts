@@ -36,10 +36,9 @@ export class OTCategoryConsentProvider
       categories.map((categoryId) =>
         this.oneTrust
           .getConsentStatusForCategory(categoryId)
-          .then<[string, boolean]>((status) => [
-            categoryId,
-            status === ConsentStatus.Granted,
-          ])
+          .then<
+            [string, boolean]
+          >((status) => [categoryId, status === ConsentStatus.Granted])
       )
     ).then((entries) => Object.fromEntries(entries));
 

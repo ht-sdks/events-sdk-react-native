@@ -41,7 +41,6 @@ export class QueueFlushingPlugin extends UtilityPlugin {
       {
         persist: {
           storeId: `${config.writeKey}-${this.storeKey}`,
-          // TODO: Does it persist in local storage to handle restarts?
           persistor: config.storePersistor,
           saveDelay: config.storePersistorSaveDelay ?? 0,
         },

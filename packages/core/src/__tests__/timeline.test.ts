@@ -2,7 +2,12 @@ import { HightouchClient } from '../analytics';
 import { Plugin } from '../plugin';
 import { getMockLogger, MockHightouchStore } from '../test-helpers';
 import { Timeline } from '../timeline';
-import { EventType, PluginType, HightouchEvent, TrackEventType } from '../types';
+import {
+  EventType,
+  PluginType,
+  HightouchEvent,
+  TrackEventType,
+} from '../types';
 
 jest.mock('uuid');
 

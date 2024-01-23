@@ -6,7 +6,9 @@ export class MockEventStore {
   private initialData: HightouchEvent[] = [];
   private events: HightouchEvent[] = [];
 
-  private callbackManager = createCallbackManager<{ events: HightouchEvent[] }>();
+  private callbackManager = createCallbackManager<{
+    events: HightouchEvent[];
+  }>();
 
   constructor(initialData?: HightouchEvent[]) {
     this.events = [...(initialData ?? [])];
@@ -27,7 +29,9 @@ export class MockEventStore {
     this.callbackManager.register(callback);
 
   dispatch = (
-    callback: (value: { events: HightouchEvent[] }) => { events: HightouchEvent[] }
+    callback: (value: { events: HightouchEvent[] }) => {
+      events: HightouchEvent[];
+    }
   ) => {
     this.events = callback({ events: this.events }).events;
     this.callbackManager.run({ events: this.events });

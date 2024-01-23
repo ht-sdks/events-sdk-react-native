@@ -526,7 +526,6 @@ export class HightouchClient {
       for (const r of results) {
         if (r.status === 'rejected') {
           this.reportInternalError(
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             new HightouchError(
               ErrorType.FlushError,
               `Flush failed: ${r.reason}`
@@ -766,9 +765,6 @@ export class HightouchClient {
     }
 
     this.flushPolicyExecuter = new FlushPolicyExecuter(flushPolicies, () => {
-      // TODO: This is what causes the queue to get flushed.
-      // QueueFlushingPlugin doesn't flush until it's explicitly called, and in
-      // the normal case it's only called by the FlushPolicyExecuter.
       void this.flush();
     });
   }

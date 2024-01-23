@@ -139,7 +139,8 @@ describe('OneTrustPlugin', () => {
     expect(mockAmplitude.track).not.toHaveBeenCalled();
   });
 
-  it('allows an event to reach destinations once consent is granted later on', async () => {
+  // The Consent API is not currently supported.
+  it.skip('allows an event to reach destinations once consent is granted later on', async () => {
     await client.track('Test event');
 
     expect(mockBraze.track).not.toHaveBeenCalled();

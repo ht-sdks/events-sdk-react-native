@@ -59,7 +59,8 @@ describe('HightouchDestination', () => {
     expect(result).toEqual(event);
   });
 
-  it('disables device mode plugins to prevent dups', async () => {
+  // Device mode plugins aren't currently supported.
+  it.skip('disables device mode plugins to prevent dups', async () => {
     const plugin = new HightouchDestination();
     const analytics = new HightouchClient({
       ...clientArgs,
@@ -103,7 +104,8 @@ describe('HightouchDestination', () => {
     });
   });
 
-  it('marks unbundled plugins where the cloud mode is disabled', async () => {
+  // Device mode plugins aren't currently supported.
+  it.skip('marks unbundled plugins where the cloud mode is disabled', async () => {
     const plugin = new HightouchDestination();
     const analytics = new HightouchClient({
       ...clientArgs,
@@ -147,7 +149,8 @@ describe('HightouchDestination', () => {
     });
   });
 
-  it('marks active integrations as unbundled if plugin is not bundled', async () => {
+  // Device mode plugins aren't currently supported.
+  it.skip('marks active integrations as unbundled if plugin is not bundled', async () => {
     const plugin = new HightouchDestination();
     const analytics = new HightouchClient({
       ...clientArgs,

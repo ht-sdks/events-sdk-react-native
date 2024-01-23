@@ -45,8 +45,10 @@ export class EventPlugin extends Plugin {
     if (event === undefined) {
       return event;
     }
-    let result: Promise<HightouchEvent | undefined> | HightouchEvent | undefined =
-      event;
+    let result:
+      | Promise<HightouchEvent | undefined>
+      | HightouchEvent
+      | undefined = event;
     switch (result.type) {
       case EventType.IdentifyEvent:
         result = this.identify(result);

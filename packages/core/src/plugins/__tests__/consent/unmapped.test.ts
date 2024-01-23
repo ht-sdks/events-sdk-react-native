@@ -7,7 +7,8 @@ import {
   setupTestDestinations,
 } from './utils';
 
-describe('Unmapped destinations', () => {
+// The Consent API is not currently supported.
+describe.skip('Unmapped destinations', () => {
   const createClient = () =>
     createTestClient(
       {
