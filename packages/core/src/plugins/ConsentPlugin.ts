@@ -1,13 +1,13 @@
-import {
-  Plugin,
-  type HightouchClient,
-  type DestinationPlugin,
+import { Plugin } from '../plugin';
+import { PluginType } from '../types';
+import type {
   IntegrationSettings,
-  PluginType,
   HightouchAPIIntegration,
   HightouchEvent,
   TrackEventType,
-} from '..';
+} from '../types';
+import type { DestinationPlugin } from '../plugin';
+import type { HightouchClient } from '../analytics';
 
 import { HIGHTOUCH_DESTINATION_KEY } from './HightouchDestination';
 
