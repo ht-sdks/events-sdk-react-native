@@ -78,8 +78,6 @@ export class HightouchClient {
 
   private timeline: Timeline;
 
-  private pendingEvents: HightouchEvent[] = [];
-
   private pluginsToAdd: Plugin[] = [];
 
   private flushPolicyExecuter!: FlushPolicyExecuter;
@@ -434,10 +432,12 @@ export class HightouchClient {
   async process(incomingEvent: HightouchEvent) {
     const event = this.applyRawEventData(incomingEvent);
 
+    console.log(`Process: ${this.isReady.value}`);
+
     if (this.isReady.value) {
       return this.startTimelineProcessing(event);
     } else {
-      this.pendingEvents.push(event);
+      this.store.pendingEvents.add(event);
       return event;
     }
   }
@@ -485,6 +485,9 @@ export class HightouchClient {
    * @param isReady
    */
   private async onReady() {
+    console.log(
+      `onReady, pendingEvents=${this.store.pendingEvents.get().length}`
+    );
     // Add all plugins awaiting store
     if (this.pluginsToAdd.length > 0 && !this.isAddingPlugins) {
       this.isAddingPlugins = true;
@@ -503,10 +506,12 @@ export class HightouchClient {
     }
 
     // Send all events in the queue
-    for (const e of this.pendingEvents) {
+    const pending = await this.store.pendingEvents.get(true);
+    for (const e of pending) {
       await this.startTimelineProcessing(e);
+      await this.store.pendingEvents.remove(e);
     }
-    this.pendingEvents = [];
+    // this.store.pendingEvents.set([]);
   }
 
   async flush(): Promise<void> {

@@ -7,6 +7,7 @@ import type {
   IntegrationSettings,
   RoutingRule,
   HightouchAPIIntegrations,
+  HightouchEvent,
   UserInfoState,
 } from '../types';
 
@@ -57,6 +58,7 @@ export interface ReadinessStore {
   hasRestoredSettings: boolean;
   hasRestoredUserInfo: boolean;
   hasRestoredFilters: boolean;
+  hasRestoredPendingEvents: boolean;
 }
 
 /**
@@ -82,6 +84,10 @@ export interface Storage {
   readonly userInfo: Watchable<UserInfoState> & Settable<UserInfoState>;
 
   readonly deepLinkData: Watchable<DeepLinkData>;
+
+  readonly pendingEvents: Watchable<HightouchEvent[]> &
+    Settable<HightouchEvent[]> &
+    Queue<HightouchEvent, HightouchEvent[]>;
 }
 export type DeepLinkData = {
   referring_application: string;

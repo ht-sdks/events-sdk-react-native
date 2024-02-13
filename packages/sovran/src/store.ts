@@ -102,7 +102,9 @@ export const createStore = <T extends object>(
   initialState: T,
   config?: StoreConfig
 ): Store<T> => {
-  let state = initialState;
+  let state: T = Array.isArray(initialState)
+    ? ([...initialState] as T)
+    : ({ ...initialState } as T);
   const queue: { call: Action<T>; finally?: (newState: T) => void }[] = [];
   const isPersisted = config?.persist !== undefined;
   let saveTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -162,7 +164,9 @@ export const createStore = <T extends object>(
   function getState(): T;
   function getState(safe: true): Promise<T>;
   function getState(safe?: boolean): T | Promise<T> {
-    if (safe !== true) return { ...state };
+    if (safe !== true) {
+      return Array.isArray(state) ? ([...state] as T) : { ...state };
+    }
     return new Promise<T>((resolve) => {
       queue.push({
         call: (state) => {
@@ -191,7 +195,7 @@ export const createStore = <T extends object>(
       const action = queue.shift();
       try {
         if (action !== undefined) {
-          const newState = await action.call(state);
+          const newState = await action.call(state as T);
           if (newState !== state) {
             state = newState;
             // TODO: Debounce notifications

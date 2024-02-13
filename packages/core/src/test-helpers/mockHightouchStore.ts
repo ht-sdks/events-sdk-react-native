@@ -2,6 +2,7 @@ import { HIGHTOUCH_DESTINATION_KEY } from '../plugins/HightouchDestination';
 import type {
   DeepLinkData,
   Dictionary,
+  Queue,
   Settable,
   Storage,
   Watchable,
@@ -14,6 +15,7 @@ import type {
   RoutingRule,
   HightouchAPIConsentSettings,
   HightouchAPIIntegrations,
+  HightouchEvent,
   UserInfoState,
 } from '../types';
 import { createCallbackManager } from './utils';
@@ -27,6 +29,7 @@ export type StoreData = {
   filters: DestinationFilters;
   userInfo: UserInfoState;
   deepLinkData: DeepLinkData;
+  pendingEvents: HightouchEvent[];
 };
 
 const INITIAL_VALUES: StoreData = {
@@ -46,6 +49,7 @@ const INITIAL_VALUES: StoreData = {
     referring_application: '',
     url: '',
   },
+  pendingEvents: [],
 };
 
 export function createMockStoreGetter<T>(fn: () => T) {
@@ -80,6 +84,7 @@ export class MockHightouchStore implements Storage {
     filters: createCallbackManager<DestinationFilters>(),
     userInfo: createCallbackManager<UserInfoState>(),
     deepLinkData: createCallbackManager<DeepLinkData>(),
+    pendingEvents: createCallbackManager<HightouchEvent[]>(),
   };
 
   readonly isReady = {
@@ -187,5 +192,35 @@ export class MockHightouchStore implements Storage {
     },
     onChange: (callback: (value: DeepLinkData) => void) =>
       this.callbacks.deepLinkData.register(callback),
+  };
+
+  readonly pendingEvents: Watchable<HightouchEvent[]> &
+    Settable<HightouchEvent[]> &
+    Queue<HightouchEvent, HightouchEvent[]> = {
+    get: createMockStoreGetter(() => {
+      return this.data.pendingEvents;
+    }),
+    set: (value) => {
+      this.data.pendingEvents =
+        value instanceof Function
+          ? value(this.data.pendingEvents ?? [])
+          : [...value];
+      this.callbacks.pendingEvents.run(this.data.pendingEvents);
+      return this.data.pendingEvents;
+    },
+    add: (value: HightouchEvent) => {
+      this.data.pendingEvents.push(value);
+      this.callbacks.pendingEvents.run(this.data.pendingEvents);
+      return Promise.resolve(this.data.pendingEvents);
+    },
+    remove: (value: HightouchEvent) => {
+      this.data.pendingEvents = this.data.pendingEvents.filter(
+        (e) => e.messageId != value.messageId
+      );
+      this.callbacks.pendingEvents.run(this.data.pendingEvents);
+      return Promise.resolve(this.data.pendingEvents);
+    },
+    onChange: (callback: (value: HightouchEvent[]) => void) =>
+      this.callbacks.pendingEvents.register(callback),
   };
 }
