@@ -432,8 +432,6 @@ export class HightouchClient {
   async process(incomingEvent: HightouchEvent) {
     const event = this.applyRawEventData(incomingEvent);
 
-    console.log(`Process: ${this.isReady.value}`);
-
     if (this.isReady.value) {
       return this.startTimelineProcessing(event);
     } else {
@@ -485,9 +483,6 @@ export class HightouchClient {
    * @param isReady
    */
   private async onReady() {
-    console.log(
-      `onReady, pendingEvents=${this.store.pendingEvents.get().length}`
-    );
     // Add all plugins awaiting store
     if (this.pluginsToAdd.length > 0 && !this.isAddingPlugins) {
       this.isAddingPlugins = true;
