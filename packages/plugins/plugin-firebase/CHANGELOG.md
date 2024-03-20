@@ -1,3 +1,7 @@
+### Dependencies
+
+* **@ht-sdks/analytics-react-native:** upgraded to 2.18.2
+
 ## [@segment/analytics-react-native-plugin-firebase-v0.3.11](https://github.com/segmentio/analytics-react-native/compare/@segment/analytics-react-native-plugin-firebase-v0.3.10...@segment/analytics-react-native-plugin-firebase-v0.3.11) (2023-10-20)
 
 
