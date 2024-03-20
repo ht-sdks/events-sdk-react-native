@@ -1,6 +1,6 @@
 {
   "name": "@ht-sdks/analytics-react-native-plugin-idfa",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
   "scripts": {
@@ -44,12 +44,12 @@
   },
   "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/plugins/plugin-idfa#readme",
   "peerDependencies": {
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/analytics-react-native": "^2.18.2"
   },
   "devDependencies": {
-    "@ht-sdks/analytics-react-native": "workspace:^",
+    "@ht-sdks/analytics-react-native": "^2.18.2",
     "@ht-sdks/analytics-rn-shared": "workspace:^",
-    "@ht-sdks/sovran-react-native": "workspace:^",
+    "@ht-sdks/sovran-react-native": "^1.1.1",
     "jest": "^29.7.0",
     "react-native-builder-bob": "^0.23.1",
     "rimraf": "^5.0.5",
