@@ -1,6 +1,6 @@
 {
   "name": "@ht-sdks/analytics-react-native-plugin-branch",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
   "scripts": {
