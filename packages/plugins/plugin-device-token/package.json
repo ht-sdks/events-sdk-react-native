@@ -1,6 +1,6 @@
 {
   "name": "@ht-sdks/analytics-react-native-plugin-device-token",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
   "scripts": {
@@ -45,14 +45,14 @@
   },
   "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/plugins/plugin-firebase#readme",
   "peerDependencies": {
-    "@ht-sdks/analytics-react-native": "workspace:^",
+    "@ht-sdks/analytics-react-native": "^2.18.2",
     "@react-native-firebase/app": "^17.3.2",
     "@react-native-firebase/messaging": "^17.3.2"
   },
   "devDependencies": {
-    "@ht-sdks/analytics-react-native": "workspace:^",
+    "@ht-sdks/analytics-react-native": "^2.18.2",
     "@ht-sdks/analytics-rn-shared": "workspace:^",
-    "@ht-sdks/sovran-react-native": "workspace:^",
+    "@ht-sdks/sovran-react-native": "^1.1.1",
     "@react-native-firebase/app": "^17.3.2",
     "@react-native-firebase/messaging": "^17.3.2",
     "jest": "^29.7.0",
