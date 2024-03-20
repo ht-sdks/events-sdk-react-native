@@ -1,3 +1,7 @@
+### Dependencies
+
+* **@ht-sdks/analytics-react-native:** upgraded to 2.18.2
+
 ## @segment/analytics-react-native-plugin-onetrust-v1.0.0 (2023-10-20)
 
 
