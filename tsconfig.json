@@ -4,7 +4,7 @@
     "baseUrl": ".",
     "paths": {
       "@ht-sdks/sovran-react-native": ["packages/sovran/src/index"],
-      "@ht-sdks/analytics-react-native": ["packages/core/src/index"]
+      "@ht-sdks/events-sdk-react-native": ["packages/core/src/index"]
     },
     "composite": true,
     "allowUnreachableCode": false,

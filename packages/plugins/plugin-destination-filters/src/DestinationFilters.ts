@@ -7,7 +7,7 @@ import {
   HightouchClient,
   HightouchEvent,
   UtilityPlugin,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import type { Unsubscribe } from '@ht-sdks/sovran-react-native';
 import * as tsub from '@segment/tsub';
 import clone from 'clone';

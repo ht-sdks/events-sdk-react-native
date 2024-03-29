@@ -2,7 +2,7 @@ import firebaseAnalytics from '@react-native-firebase/analytics';
 import {
   generateMapTransform,
   TrackEventType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import { mapEventProps, transformMap } from './parameterMapping';
 
 const mappedPropNames = generateMapTransform(mapEventProps, transformMap);

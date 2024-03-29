@@ -1,5 +1,5 @@
 import identify from '../identify';
-import type { IdentifyEventType } from '@ht-sdks/analytics-react-native';
+import type { IdentifyEventType } from '@ht-sdks/events-sdk-react-native';
 import type { HightouchMixpanelSettings } from '../../types';
 import { sampleIntegrationSettings } from './__helpers__/constants';
 import { Mixpanel } from '../__mocks__/mixpanel-react-native';

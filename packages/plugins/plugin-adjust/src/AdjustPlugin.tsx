@@ -6,7 +6,7 @@ import {
   HightouchAdjustSettings,
   HightouchAPISettings,
   UpdateType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import { Adjust, AdjustConfig } from 'react-native-adjust';
 import identify from './methods/identify';
 import track from './methods/track';

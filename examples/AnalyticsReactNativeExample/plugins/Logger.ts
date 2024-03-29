@@ -2,7 +2,7 @@ import {
   Plugin,
   PluginType,
   HightouchEvent,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 
 export class Logger extends Plugin {
   type = PluginType.before;

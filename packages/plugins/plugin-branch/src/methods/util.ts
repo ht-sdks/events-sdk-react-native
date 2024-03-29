@@ -1,4 +1,4 @@
-import { isObject } from '@ht-sdks/analytics-react-native';
+import { isObject } from '@ht-sdks/events-sdk-react-native';
 import branch, { BranchEvent } from 'react-native-branch';
 import { mapEventProps, Product, transformMap } from './parameterMapping';
 

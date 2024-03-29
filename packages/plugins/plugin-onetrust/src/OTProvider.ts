@@ -1,4 +1,4 @@
-import type { CategoryConsentStatusProvider } from '@ht-sdks/analytics-react-native';
+import type { CategoryConsentStatusProvider } from '@ht-sdks/events-sdk-react-native';
 
 enum ConsentStatus {
   Granted = 1,

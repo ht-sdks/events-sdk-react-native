@@ -4,7 +4,7 @@ import {
   UserInfoState,
   HightouchEvent,
   EventType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 
 export class BrazeMiddlewarePlugin extends Plugin {
   type = PluginType.before;

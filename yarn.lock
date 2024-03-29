@@ -2202,12 +2202,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ht-sdks/analytics-react-native-plugin-adjust@workspace:packages/plugins/plugin-adjust":
+"@ht-sdks/analytics-rn-shared@workspace:^, @ht-sdks/analytics-rn-shared@workspace:packages/shared":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-adjust@workspace:packages/plugins/plugin-adjust"
+  resolution: "@ht-sdks/analytics-rn-shared@workspace:packages/shared"
   dependencies:
-    "@ht-sdks/analytics-react-native": "npm:^2.18.0"
+    "@types/jest": "npm:^29.5.10"
+    "@types/node": "npm:^20.9.4"
+    "@types/react-native": "npm:^0.72.6"
+    jest: "npm:^29.7.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  languageName: unknown
+  linkType: soft
+
+"@ht-sdks/events-sdk-react-native-plugin-adjust@workspace:packages/plugins/plugin-adjust":
+  version: 0.0.0-use.local
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-adjust@workspace:packages/plugins/plugin-adjust"
+  dependencies:
     "@ht-sdks/analytics-rn-shared": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.0"
     "@ht-sdks/sovran-react-native": "npm:^1.1.0"
     jest: "npm:^29.7.0"
     react-native-adjust: "npm:^4.33.0"
@@ -2215,49 +2229,49 @@ __metadata:
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": ^2.18.0
+    "@ht-sdks/events-sdk-react-native": ^2.18.0
     react-native-adjust: ^4.33.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-advertising-id@workspace:packages/plugins/plugin-advertising-id":
+"@ht-sdks/events-sdk-react-native-plugin-advertising-id@workspace:packages/plugins/plugin-advertising-id":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-advertising-id@workspace:packages/plugins/plugin-advertising-id"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-advertising-id@workspace:packages/plugins/plugin-advertising-id"
   dependencies:
-    "@ht-sdks/analytics-react-native": "npm:^2.18.0"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.0"
     "@ht-sdks/sovran-react-native": "npm:^1.1.0"
     jest: "npm:^29.7.0"
     react-native-builder-bob: "npm:^0.23.1"
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": ^2.18.0
+    "@ht-sdks/events-sdk-react-native": ^2.18.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-amplitude-session@workspace:packages/plugins/plugin-amplitudeSession":
+"@ht-sdks/events-sdk-react-native-plugin-amplitude-session@workspace:packages/plugins/plugin-amplitudeSession":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-amplitude-session@workspace:packages/plugins/plugin-amplitudeSession"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-amplitude-session@workspace:packages/plugins/plugin-amplitudeSession"
   dependencies:
-    "@ht-sdks/analytics-react-native": "npm:^2.18.0"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.0"
     "@ht-sdks/sovran-react-native": "npm:^1.1.0"
     "@types/jest": "npm:^29.5.8"
     rimraf: "npm:^5.0.5"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": ^2.18.0
+    "@ht-sdks/events-sdk-react-native": ^2.18.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-appsflyer@workspace:packages/plugins/plugin-appsflyer":
+"@ht-sdks/events-sdk-react-native-plugin-appsflyer@workspace:packages/plugins/plugin-appsflyer":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-appsflyer@workspace:packages/plugins/plugin-appsflyer"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-appsflyer@workspace:packages/plugins/plugin-appsflyer"
   dependencies:
-    "@ht-sdks/analytics-react-native": "npm:^2.18.0"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.0"
     "@ht-sdks/sovran-react-native": "npm:^1.1.0"
     jest: "npm:^29.7.0"
     react-native-appsflyer: "npm:^6.9.4"
@@ -2266,17 +2280,17 @@ __metadata:
     semantic-release: "npm:^22.0.8"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": ^2.18.0
+    "@ht-sdks/events-sdk-react-native": ^2.18.0
     react-native-appsflyer: ^6.9.4
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-branch@workspace:packages/plugins/plugin-branch":
+"@ht-sdks/events-sdk-react-native-plugin-branch@workspace:packages/plugins/plugin-branch":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-branch@workspace:packages/plugins/plugin-branch"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-branch@workspace:packages/plugins/plugin-branch"
   dependencies:
-    "@ht-sdks/analytics-react-native": "npm:^2.18.0"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.0"
     "@ht-sdks/sovran-react-native": "npm:^1.1.0"
     jest: "npm:^29.7.0"
     react-native-branch: "npm:^5.6.0"
@@ -2285,34 +2299,34 @@ __metadata:
     semantic-release: "npm:^22.0.8"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": ^2.18.0
+    "@ht-sdks/events-sdk-react-native": ^2.18.0
     react-native-branch: ^5.6.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-braze-middleware@workspace:packages/plugins/plugin-braze-middleware":
+"@ht-sdks/events-sdk-react-native-plugin-braze-middleware@workspace:packages/plugins/plugin-braze-middleware":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-braze-middleware@workspace:packages/plugins/plugin-braze-middleware"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-braze-middleware@workspace:packages/plugins/plugin-braze-middleware"
   dependencies:
-    "@ht-sdks/analytics-react-native": "npm:^2.18.0"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.0"
     "@ht-sdks/sovran-react-native": "npm:^1.1.0"
     jest: "npm:^29.7.0"
     react-native-builder-bob: "npm:^0.23.1"
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": ^2.18.0
+    "@ht-sdks/events-sdk-react-native": ^2.18.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-braze@workspace:packages/plugins/plugin-braze":
+"@ht-sdks/events-sdk-react-native-plugin-braze@workspace:packages/plugins/plugin-braze":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-braze@workspace:packages/plugins/plugin-braze"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-braze@workspace:packages/plugins/plugin-braze"
   dependencies:
     "@braze/react-native-sdk": "npm:^5.x"
-    "@ht-sdks/analytics-react-native": "npm:^2.18.0"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.0"
     "@ht-sdks/sovran-react-native": "npm:^1.1.0"
     jest: "npm:^29.7.0"
     react-native-builder-bob: "npm:^0.23.1"
@@ -2320,35 +2334,35 @@ __metadata:
     typescript: "npm:^5.2.2"
   peerDependencies:
     "@braze/react-native-sdk": ^5.x
-    "@ht-sdks/analytics-react-native": ^2.18.0
+    "@ht-sdks/events-sdk-react-native": ^2.18.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-clevertap@workspace:packages/plugins/plugin-clevertap":
+"@ht-sdks/events-sdk-react-native-plugin-clevertap@workspace:packages/plugins/plugin-clevertap":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-clevertap@workspace:packages/plugins/plugin-clevertap"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-clevertap@workspace:packages/plugins/plugin-clevertap"
   dependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@ht-sdks/sovran-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.2"
+    "@ht-sdks/sovran-react-native": "npm:^1.1.1"
     clevertap-react-native: "npm:^1.0.0"
     jest: "npm:^29.7.0"
     react-native-builder-bob: "npm:^0.23.1"
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": ^2.18.2
     clevertap-react-native: ^1.0.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-destination-filters@workspace:packages/plugins/plugin-destination-filters":
+"@ht-sdks/events-sdk-react-native-plugin-destination-filters@workspace:packages/plugins/plugin-destination-filters":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-destination-filters@workspace:packages/plugins/plugin-destination-filters"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-destination-filters@workspace:packages/plugins/plugin-destination-filters"
   dependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@ht-sdks/sovran-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.2"
+    "@ht-sdks/sovran-react-native": "npm:^1.1.1"
     "@segment/tsub": "npm:^2"
     "@types/clone": "npm:^2.1.1"
     clone: "npm:^2.1.2"
@@ -2357,18 +2371,18 @@ __metadata:
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": ^2.18.2
     "@ht-sdks/sovran-react-native": "*"
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-device-token@workspace:packages/plugins/plugin-device-token":
+"@ht-sdks/events-sdk-react-native-plugin-device-token@workspace:packages/plugins/plugin-device-token":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-device-token@workspace:packages/plugins/plugin-device-token"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-device-token@workspace:packages/plugins/plugin-device-token"
   dependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@ht-sdks/sovran-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.2"
+    "@ht-sdks/sovran-react-native": "npm:^1.1.1"
     "@react-native-firebase/app": "npm:^17.3.2"
     "@react-native-firebase/messaging": "npm:^17.3.2"
     jest: "npm:^29.7.0"
@@ -2377,37 +2391,37 @@ __metadata:
     semantic-release: "npm:^22.0.8"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": ^2.18.2
     "@react-native-firebase/app": ^17.3.2
     "@react-native-firebase/messaging": ^17.3.2
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-facebook-app-events@workspace:packages/plugins/plugin-facebook-app-events":
+"@ht-sdks/events-sdk-react-native-plugin-facebook-app-events@workspace:packages/plugins/plugin-facebook-app-events":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-facebook-app-events@workspace:packages/plugins/plugin-facebook-app-events"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-facebook-app-events@workspace:packages/plugins/plugin-facebook-app-events"
   dependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@ht-sdks/sovran-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.2"
+    "@ht-sdks/sovran-react-native": "npm:^1.1.1"
     jest: "npm:^29.7.0"
     react-native-builder-bob: "npm:^0.23.1"
     react-native-fbsdk-next: "npm:^11"
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": ^2.18.2
     react-native-fbsdk-next: ^11
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-firebase@workspace:packages/plugins/plugin-firebase":
+"@ht-sdks/events-sdk-react-native-plugin-firebase@workspace:packages/plugins/plugin-firebase":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-firebase@workspace:packages/plugins/plugin-firebase"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-firebase@workspace:packages/plugins/plugin-firebase"
   dependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@ht-sdks/sovran-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.2"
+    "@ht-sdks/sovran-react-native": "npm:^1.1.1"
     "@react-native-firebase/analytics": "npm:^18.4.0"
     "@react-native-firebase/app": "npm:^18.4.0"
     jest: "npm:^29.7.0"
@@ -2415,53 +2429,53 @@ __metadata:
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": ^2.18.2
     "@react-native-firebase/analytics": ^18.4.0
     "@react-native-firebase/app": ^18.4.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-idfa@workspace:packages/plugins/plugin-idfa":
+"@ht-sdks/events-sdk-react-native-plugin-idfa@workspace:packages/plugins/plugin-idfa":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-idfa@workspace:packages/plugins/plugin-idfa"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-idfa@workspace:packages/plugins/plugin-idfa"
   dependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@ht-sdks/sovran-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.2"
+    "@ht-sdks/sovran-react-native": "npm:^1.1.1"
     jest: "npm:^29.7.0"
     react-native-builder-bob: "npm:^0.23.1"
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": ^2.18.2
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-mixpanel@workspace:packages/plugins/plugin-mixpanel":
+"@ht-sdks/events-sdk-react-native-plugin-mixpanel@workspace:packages/plugins/plugin-mixpanel":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-mixpanel@workspace:packages/plugins/plugin-mixpanel"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-mixpanel@workspace:packages/plugins/plugin-mixpanel"
   dependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@ht-sdks/sovran-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.2"
+    "@ht-sdks/sovran-react-native": "npm:^1.1.1"
     jest: "npm:^29.7.0"
     mixpanel-react-native: "npm:^2.1.0"
     react-native-builder-bob: "npm:^0.23.1"
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": ^2.18.2
     mixpanel-react-native: ^2.1.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native-plugin-onetrust@workspace:packages/plugins/plugin-onetrust":
+"@ht-sdks/events-sdk-react-native-plugin-onetrust@workspace:packages/plugins/plugin-onetrust":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native-plugin-onetrust@workspace:packages/plugins/plugin-onetrust"
+  resolution: "@ht-sdks/events-sdk-react-native-plugin-onetrust@workspace:packages/plugins/plugin-onetrust"
   dependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
     "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@ht-sdks/sovran-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": "npm:^2.18.2"
+    "@ht-sdks/sovran-react-native": "npm:^1.1.1"
     jest: "npm:^29.7.0"
     on-change: "npm:^3.0.2"
     react-native-builder-bob: "npm:^0.23.1"
@@ -2469,15 +2483,15 @@ __metadata:
     semantic-release: "npm:^22.0.8"
     typescript: "npm:^5.2.2"
   peerDependencies:
-    "@ht-sdks/analytics-react-native": "workspace:^"
+    "@ht-sdks/events-sdk-react-native": ^2.18.2
     "@ht-sdks/sovran-react-native": "*"
     react-native-onetrust-cmp: ^202308.2.0
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-react-native@npm:^2.18.0, @ht-sdks/analytics-react-native@workspace:^, @ht-sdks/analytics-react-native@workspace:packages/core":
+"@ht-sdks/events-sdk-react-native@npm:^2.18.0, @ht-sdks/events-sdk-react-native@npm:^2.18.2, @ht-sdks/events-sdk-react-native@workspace:packages/core":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-react-native@workspace:packages/core"
+  resolution: "@ht-sdks/events-sdk-react-native@workspace:packages/core"
   dependencies:
     "@ht-sdks/sovran-react-native": "npm:^1.1.0"
     "@segment/tsub": "npm:^2"
@@ -2499,21 +2513,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ht-sdks/analytics-rn-shared@workspace:^, @ht-sdks/analytics-rn-shared@workspace:packages/shared":
-  version: 0.0.0-use.local
-  resolution: "@ht-sdks/analytics-rn-shared@workspace:packages/shared"
-  dependencies:
-    "@types/jest": "npm:^29.5.10"
-    "@types/node": "npm:^20.9.4"
-    "@types/react-native": "npm:^0.72.6"
-    jest: "npm:^29.7.0"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  languageName: unknown
-  linkType: soft
-
-"@ht-sdks/sovran-react-native@npm:^1.1.0, @ht-sdks/sovran-react-native@workspace:^, @ht-sdks/sovran-react-native@workspace:packages/sovran":
+"@ht-sdks/sovran-react-native@npm:^1.1.0, @ht-sdks/sovran-react-native@npm:^1.1.1, @ht-sdks/sovran-react-native@workspace:packages/sovran":
   version: 0.0.0-use.local
   resolution: "@ht-sdks/sovran-react-native@workspace:packages/sovran"
   dependencies:
@@ -5623,48 +5623,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"analytics-react-native@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "analytics-react-native@workspace:."
-  dependencies:
-    "@anolilab/multi-semantic-release": "npm:^1.0.3"
-    "@babel/core": "npm:^7.23.3"
-    "@babel/runtime": "npm:^7.23.2"
-    "@changesets/cli": "npm:^2.26.2"
-    "@commitlint/config-conventional": "npm:^18.4.2"
-    "@ht-sdks/analytics-rn-shared": "workspace:^"
-    "@react-native-async-storage/async-storage": "npm:^1.19"
-    "@react-native/eslint-config": "npm:^0.73.2"
-    "@semantic-release/changelog": "npm:^6.0.3"
-    "@semantic-release/commit-analyzer": "npm:^11.1.0"
-    "@semantic-release/git": "npm:^10.0.1"
-    "@semantic-release/github": "npm:^9.2.3"
-    "@semantic-release/npm": "npm:^11.0.1"
-    "@semantic-release/release-notes-generator": "npm:^12.1.0"
-    "@types/jest": "npm:^29.5.8"
-    "@types/node": "npm:^20.9.1"
-    "@types/react": "npm:^18.2.37"
-    "@types/react-native": "npm:0.72.6"
-    "@types/uuid": "npm:^9.0.7"
-    babel-jest: "npm:^29.7.0"
-    commitlint: "npm:^18.4.2"
-    conventional-changelog-conventionalcommits: "npm:^7.0.2"
-    eslint: "npm:^8.56.0"
-    husky: "npm:^8.0.3"
-    jest: "npm:^29.7.0"
-    metro-react-native-babel-preset: "npm:^0.77.0"
-    prettier: "npm:^2.8.8"
-    react: "npm:18.2.0"
-    react-native: "npm:^0.72.7"
-    react-native-builder-bob: "npm:^0.23.1"
-    rimraf: "npm:^5.0.5"
-    semantic-release: "npm:^22.0.12"
-    semantic-release-yarn: "npm:^3.0.2"
-    ts-jest: "npm:^29.1.1"
-    typescript: "npm:^5.2.2"
-  languageName: unknown
-  linkType: soft
-
 "anser@npm:^1.4.9":
   version: 1.4.10
   resolution: "anser@npm:1.4.10"
@@ -7957,6 +7915,48 @@ __metadata:
   checksum: 10c0/0255d9f936215fd206156fd4caa9e8d35e62075d720dc7d847e89b417e5e62cf1ce6c9b4e0a1633a9256de0efefaf9f8d26924b1f3c8620cffb9db78e7d3076b
   languageName: node
   linkType: hard
+
+"events-sdk-react-native@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "events-sdk-react-native@workspace:."
+  dependencies:
+    "@anolilab/multi-semantic-release": "npm:^1.0.3"
+    "@babel/core": "npm:^7.23.3"
+    "@babel/runtime": "npm:^7.23.2"
+    "@changesets/cli": "npm:^2.26.2"
+    "@commitlint/config-conventional": "npm:^18.4.2"
+    "@ht-sdks/analytics-rn-shared": "workspace:^"
+    "@react-native-async-storage/async-storage": "npm:^1.19"
+    "@react-native/eslint-config": "npm:^0.73.2"
+    "@semantic-release/changelog": "npm:^6.0.3"
+    "@semantic-release/commit-analyzer": "npm:^11.1.0"
+    "@semantic-release/git": "npm:^10.0.1"
+    "@semantic-release/github": "npm:^9.2.3"
+    "@semantic-release/npm": "npm:^11.0.1"
+    "@semantic-release/release-notes-generator": "npm:^12.1.0"
+    "@types/jest": "npm:^29.5.8"
+    "@types/node": "npm:^20.9.1"
+    "@types/react": "npm:^18.2.37"
+    "@types/react-native": "npm:0.72.6"
+    "@types/uuid": "npm:^9.0.7"
+    babel-jest: "npm:^29.7.0"
+    commitlint: "npm:^18.4.2"
+    conventional-changelog-conventionalcommits: "npm:^7.0.2"
+    eslint: "npm:^8.56.0"
+    husky: "npm:^8.0.3"
+    jest: "npm:^29.7.0"
+    metro-react-native-babel-preset: "npm:^0.77.0"
+    prettier: "npm:^2.8.8"
+    react: "npm:18.2.0"
+    react-native: "npm:^0.72.7"
+    react-native-builder-bob: "npm:^0.23.1"
+    rimraf: "npm:^5.0.5"
+    semantic-release: "npm:^22.0.12"
+    semantic-release-yarn: "npm:^3.0.2"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:^5.2.2"
+  languageName: unknown
+  linkType: soft
 
 "execa@npm:^4.0.3":
   version: 4.1.0

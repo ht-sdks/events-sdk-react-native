@@ -2,7 +2,7 @@ import {
   HightouchClient,
   TrackEventType,
   UpdateType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import { AppEventsLogger, Settings } from 'react-native-fbsdk-next';
 import { FacebookAppEventsPlugin } from '../FacebookAppEventsPlugin';
 

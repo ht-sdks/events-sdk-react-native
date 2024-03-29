@@ -4,7 +4,7 @@ import {
   PluginType,
   HightouchClient,
   HightouchError,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import type { IdfaData } from './types';
 import { AnalyticsReactNativePluginIdfa } from './AnalyticsReactNativePluginIdfa';
 import { Platform } from 'react-native';

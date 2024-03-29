@@ -9,7 +9,7 @@ const sizeOf = (obj: unknown): number => {
 
 export const warnMissingNativeModule = () => {
   const MISSING_NATIVE_MODULE_WARNING =
-    `The package 'analytics-react-native' can't access a custom native module. Make sure: \n\n` +
+    `The package 'events-sdk-react-native' can't access a custom native module. Make sure: \n\n` +
     Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
     '- You rebuilt the app after installing the package\n' +
     '- You are not using Expo managed workflow\n';

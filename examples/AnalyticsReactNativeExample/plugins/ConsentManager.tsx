@@ -2,9 +2,9 @@ import {
   Plugin,
   PluginType,
   HightouchEvent,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 
-import type {HightouchClient} from '@ht-sdks/analytics-react-native';
+import type {HightouchClient} from '@ht-sdks/events-sdk-react-native';
 
 import {Alert} from 'react-native';
 

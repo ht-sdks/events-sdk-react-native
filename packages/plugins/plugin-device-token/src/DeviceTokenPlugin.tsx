@@ -4,7 +4,7 @@ import {
   PluginType,
   ErrorType,
   HightouchError,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import { Platform } from 'react-native';
 import messaging, {
   FirebaseMessagingTypes,

@@ -5,7 +5,7 @@ import {
   ScreenEventType,
   IdentifyEventType,
   AliasEventType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import identify from './methods/identify';
 import screen from './methods/screen';
 import alias from './methods/alias';

@@ -1,4 +1,4 @@
-import { isString } from '@ht-sdks/analytics-react-native';
+import { isString } from '@ht-sdks/events-sdk-react-native';
 
 export const mapEventNames: Record<string, string> = {
   'Application Installed': 'MOBILE_APP_INSTALL',

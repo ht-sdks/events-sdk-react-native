@@ -2,7 +2,7 @@ import { Adjust, AdjustEvent } from 'react-native-adjust';
 import type {
   TrackEventType,
   HightouchAdjustSettings,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import { extract, mappedCustomEventToken } from '../util';
 
 export default (event: TrackEventType, settings: HightouchAdjustSettings) => {

@@ -13,7 +13,7 @@ export const getContext = jest.fn().mockResolvedValue({
     type: 'phone',
   },
   library: {
-    name: '@ht-sdks/analytics-react-native',
+    name: '@ht-sdks/events-sdk-react-native',
     version: '2.0.0-pilot.1',
   },
   locale: 'en_US',

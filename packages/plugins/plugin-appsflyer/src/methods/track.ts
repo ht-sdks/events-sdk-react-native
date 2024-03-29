@@ -1,5 +1,5 @@
 import appsFlyer from 'react-native-appsflyer';
-import { isString, TrackEventType } from '@ht-sdks/analytics-react-native';
+import { isString, TrackEventType } from '@ht-sdks/events-sdk-react-native';
 
 type Properties = { [key: string]: unknown };
 

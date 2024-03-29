@@ -10,7 +10,7 @@ import {
   GroupEventType,
   UpdateType,
   AliasEventType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 
 const MAX_SESSION_TIME_IN_MS = 300000;
 export class AmplitudeSessionPlugin extends EventPlugin {

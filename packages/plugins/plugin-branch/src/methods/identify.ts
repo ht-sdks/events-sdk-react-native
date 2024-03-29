@@ -1,5 +1,5 @@
 import Branch from 'react-native-branch';
-import type { IdentifyEventType } from '@ht-sdks/analytics-react-native';
+import type { IdentifyEventType } from '@ht-sdks/events-sdk-react-native';
 
 export default (event: IdentifyEventType) => {
   const userId = event.userId;

@@ -1,5 +1,5 @@
 {
-  "name": "@ht-sdks/analytics-react-native-plugin-braze-middleware",
+  "name": "@ht-sdks/events-sdk-react-native-plugin-braze-middleware",
   "version": "1.1.0",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
@@ -25,7 +25,7 @@
     "android",
     "ios",
     "cpp",
-    "hightouch-analytics-react-native.podspec",
+    "hightouch-events-sdk-react-native.podspec",
     "package.json",
     "!src/**/*.e2e.mock.js",
     "!**/__tests__",
@@ -46,11 +46,11 @@
   },
   "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/plugins/plugin-braze-middleware#readme",
   "peerDependencies": {
-    "@ht-sdks/analytics-react-native": "^2.18.0"
+    "@ht-sdks/events-sdk-react-native": "^2.18.0"
   },
   "devDependencies": {
-    "@ht-sdks/analytics-react-native": "^2.18.0",
     "@ht-sdks/analytics-rn-shared": "workspace:^",
+    "@ht-sdks/events-sdk-react-native": "^2.18.0",
     "@ht-sdks/sovran-react-native": "^1.1.0",
     "jest": "^29.7.0",
     "react-native-builder-bob": "^0.23.1",

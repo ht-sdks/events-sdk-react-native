@@ -4,7 +4,7 @@ import {
   ErrorType,
   HightouchClient,
   HightouchError,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 
 export default async (
   event: AliasEventType,

@@ -1,8 +1,8 @@
-import { HightouchClient } from '@ht-sdks/analytics-react-native';
+import { HightouchClient } from '@ht-sdks/events-sdk-react-native';
 import {
   getMockLogger,
   MockHightouchStore,
-} from '@ht-sdks/analytics-react-native/src/test-helpers';
+} from '@ht-sdks/events-sdk-react-native/src/test-helpers';
 import { Platform } from 'react-native';
 
 import { DeviceTokenPlugin } from '../../DeviceTokenPlugin';

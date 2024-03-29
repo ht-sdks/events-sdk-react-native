@@ -3,8 +3,8 @@ import {
   Plugin,
   PluginType,
   HightouchClient,
-} from '@ht-sdks/analytics-react-native';
-import { createTestClient } from '@ht-sdks/analytics-react-native/src/test-helpers';
+} from '@ht-sdks/events-sdk-react-native';
+import { createTestClient } from '@ht-sdks/events-sdk-react-native/src/test-helpers';
 import onChange from 'on-change';
 
 import { OneTrustPlugin } from '../OneTrust';

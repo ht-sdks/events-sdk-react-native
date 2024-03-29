@@ -11,7 +11,7 @@ import {
   AliasEventType,
   HightouchError,
   ErrorType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import type { HightouchMixpanelSettings } from './types';
 import { Mixpanel } from 'mixpanel-react-native';
 import identify from './methods/identify';

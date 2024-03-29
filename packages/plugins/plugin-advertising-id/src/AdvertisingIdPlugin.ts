@@ -5,7 +5,7 @@ import {
   getNativeModule,
   ErrorType,
   HightouchError,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 
 import { Platform, NativeModule } from 'react-native';
 

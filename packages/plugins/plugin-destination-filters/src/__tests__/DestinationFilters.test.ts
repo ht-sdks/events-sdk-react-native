@@ -1,9 +1,9 @@
-import { createTestClient } from '@ht-sdks/analytics-react-native/src/test-helpers';
+import { createTestClient } from '@ht-sdks/events-sdk-react-native/src/test-helpers';
 import { DestinationFiltersPlugin } from '../DestinationFilters';
 import {
   DestinationPlugin,
   HightouchClient,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 
 describe('DestinationFiltersPlugin', () => {
   const { store, client: c } = createTestClient();

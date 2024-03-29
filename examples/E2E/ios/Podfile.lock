@@ -73,7 +73,7 @@ PODS:
   - hermes-engine (0.72.9):
     - hermes-engine/Pre-built (= 0.72.9)
   - hermes-engine/Pre-built (0.72.9)
-  - hightouch-analytics-react-native (2.18.0):
+  - hightouch-events-sdk-react-native (2.18.0):
     - React-Core
     - sovran-react-native
   - libevent (2.1.12)
@@ -536,7 +536,7 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (= 0.182.0)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
-  - hightouch-analytics-react-native (from `../../../packages/core`)
+  - hightouch-events-sdk-react-native (from `../../../packages/core`)
   - libevent (~> 2.1.12)
   - OpenSSL-Universal (= 1.1.1100)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -612,7 +612,7 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
-  hightouch-analytics-react-native:
+  hightouch-events-sdk-react-native:
     :path: "../../../packages/core"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
@@ -712,7 +712,7 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 9b9bb14184a11b8ceb4131b09abf634880f0f46d
-  hightouch-analytics-react-native: 4aff425a084c00583898e74d9b8eb28a8643997b
+  hightouch-events-sdk-react-native: 4aff425a084c00583898e74d9b8eb28a8643997b
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1

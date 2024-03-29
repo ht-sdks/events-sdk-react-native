@@ -1,8 +1,8 @@
-import { HightouchClient } from '@ht-sdks/analytics-react-native';
+import { HightouchClient } from '@ht-sdks/events-sdk-react-native';
 import {
   getMockLogger,
   MockHightouchStore,
-} from '@ht-sdks/analytics-react-native/src/test-helpers';
+} from '@ht-sdks/events-sdk-react-native/src/test-helpers';
 import CleverTap from 'clevertap-react-native';
 
 import { ClevertapPlugin } from '../ClevertapPlugin';
@@ -11,7 +11,7 @@ import type {
   IdentifyEventType,
   TrackEventType,
   ScreenEventType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 jest.mock('clevertap-react-native');
 
 describe('ClevertapPlugin ', () => {

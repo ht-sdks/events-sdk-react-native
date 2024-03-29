@@ -1,4 +1,4 @@
-import type { ScreenEventType } from '@ht-sdks/analytics-react-native';
+import type { ScreenEventType } from '@ht-sdks/events-sdk-react-native';
 import screen from '../screen';
 
 const mockScreen = jest.fn();

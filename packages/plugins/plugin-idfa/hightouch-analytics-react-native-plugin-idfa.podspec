@@ -3,7 +3,7 @@ require "json"
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
-  s.name         = "hightouch-analytics-react-native-plugin-idfa"
+  s.name         = "hightouch-events-sdk-react-native-plugin-idfa"
   s.version      = package["version"]
   s.summary      = package["description"]
   s.homepage     = package["homepage"]

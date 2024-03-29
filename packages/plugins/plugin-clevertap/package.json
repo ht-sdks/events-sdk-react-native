@@ -1,5 +1,5 @@
 {
-  "name": "@ht-sdks/analytics-react-native-plugin-clevertap",
+  "name": "@ht-sdks/events-sdk-react-native-plugin-clevertap",
   "version": "1.0.4",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
@@ -25,7 +25,7 @@
     "android",
     "ios",
     "cpp",
-    "hightouch-analytics-react-native.podspec",
+    "hightouch-events-sdk-react-native.podspec",
     "package.json",
     "!src/**/*.e2e.mock.js",
     "!**/__tests__",
@@ -44,12 +44,12 @@
   },
   "homepage": "https://github.com/ht-sdks/events-sdk-react-native#readme",
   "peerDependencies": {
-    "@ht-sdks/analytics-react-native": "^2.18.2",
+    "@ht-sdks/events-sdk-react-native": "^2.18.2",
     "clevertap-react-native": "^1.0.0"
   },
   "devDependencies": {
-    "@ht-sdks/analytics-react-native": "^2.18.2",
     "@ht-sdks/analytics-rn-shared": "workspace:^",
+    "@ht-sdks/events-sdk-react-native": "^2.18.2",
     "@ht-sdks/sovran-react-native": "^1.1.1",
     "clevertap-react-native": "^1.0.0",
     "jest": "^29.7.0",

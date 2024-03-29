@@ -2,7 +2,7 @@ import type { Mixpanel } from 'mixpanel-react-native';
 import {
   IdentifyEventType,
   generateMapTransform,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import type { HightouchMixpanelSettings } from '../types';
 
 const traitMap: { [key: string]: string } = {

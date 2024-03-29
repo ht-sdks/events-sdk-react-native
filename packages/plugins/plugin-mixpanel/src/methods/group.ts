@@ -1,5 +1,5 @@
 import type { Mixpanel } from 'mixpanel-react-native';
-import type { GroupEventType } from '@ht-sdks/analytics-react-native';
+import type { GroupEventType } from '@ht-sdks/events-sdk-react-native';
 import type { HightouchMixpanelSettings } from '../types';
 
 export default (

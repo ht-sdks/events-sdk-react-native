@@ -1,14 +1,14 @@
-import { HightouchClient } from '@ht-sdks/analytics-react-native';
+import { HightouchClient } from '@ht-sdks/events-sdk-react-native';
 import {
   getMockLogger,
   MockHightouchStore,
-} from '@ht-sdks/analytics-react-native/src/test-helpers';
+} from '@ht-sdks/events-sdk-react-native/src/test-helpers';
 
 import { MixpanelPlugin } from '../../MixpanelPlugin';
 import { Mixpanel } from '../__mocks__/mixpanel-react-native';
 import alias from '../alias';
 
-import type { AliasEventType } from '@ht-sdks/analytics-react-native';
+import type { AliasEventType } from '@ht-sdks/events-sdk-react-native';
 jest.mock('mixpanel-react-native');
 
 describe('#alias', () => {

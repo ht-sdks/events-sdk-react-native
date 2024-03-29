@@ -15,21 +15,21 @@ import {
   // StartupFlushPolicy,
   // @ts-ignore unused for e2e tests
   // TimerFlushPolicy,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import Home from './Home';
 import SecondPage from './SecondPage';
 import Modal from './Modal';
 import {useState} from 'react';
 import {Logger} from './plugins/Logger';
 
-// import {AmplitudeSessionPlugin} from '@ht-sdks/analytics-react-native-plugin-amplitude-session';
+// import {AmplitudeSessionPlugin} from '@ht-sdks/events-sdk-react-native-plugin-amplitude-session';
 // import { ConsentManager } from './plugins/ConsentManager';
-// import { FirebasePlugin } from '@ht-sdks/analytics-react-native-plugin-firebase';
-// import { FacebookAppEventsPlugin } from '@ht-sdks/analytics-react-native-plugin-facebook-app-events';
-// import { IdfaPlugin } from '@ht-sdks/analytics-react-native-plugin-idfa';
-// import { AdvertisingIdPlugin } from '@ht-sdks/analytics-react-native-plugin-advertising-id';
-// import { ClevertapPlugin } from '@ht-sdks/analytics-react-native-plugin-clevertap';
-// import { BrazePlugin } from '@ht-sdks/analytics-react-native-plugin-braze';
+// import { FirebasePlugin } from '@ht-sdks/events-sdk-react-native-plugin-firebase';
+// import { FacebookAppEventsPlugin } from '@ht-sdks/events-sdk-react-native-plugin-facebook-app-events';
+// import { IdfaPlugin } from '@ht-sdks/events-sdk-react-native-plugin-idfa';
+// import { AdvertisingIdPlugin } from '@ht-sdks/events-sdk-react-native-plugin-advertising-id';
+// import { ClevertapPlugin } from '@ht-sdks/events-sdk-react-native-plugin-clevertap';
+// import { BrazePlugin } from '@ht-sdks/events-sdk-react-native-plugin-braze';
 
 const hightouchClient = createClient({
   writeKey: '<WRITE_KEY>',

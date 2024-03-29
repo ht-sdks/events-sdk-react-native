@@ -1,5 +1,5 @@
-import { generateMapTransform } from '@ht-sdks/analytics-react-native';
-import type { TrackEventType } from '@ht-sdks/analytics-react-native';
+import { generateMapTransform } from '@ht-sdks/events-sdk-react-native';
+import type { TrackEventType } from '@ht-sdks/events-sdk-react-native';
 import { mapEventNames, mapEventProps, transformMap } from './parameterMapping';
 import { createBranchEventWithProps } from './util';
 

@@ -9,7 +9,7 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
-import {useAnalytics} from '@ht-sdks/analytics-react-native';
+import {useAnalytics} from '@ht-sdks/events-sdk-react-native';
 
 const screenWidth = Dimensions.get('screen').width;
 

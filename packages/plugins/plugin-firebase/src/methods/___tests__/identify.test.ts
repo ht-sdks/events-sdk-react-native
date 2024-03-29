@@ -1,4 +1,4 @@
-import type { IdentifyEventType } from '@ht-sdks/analytics-react-native';
+import type { IdentifyEventType } from '@ht-sdks/events-sdk-react-native';
 import { FirebasePlugin } from '../../FirebasePlugin';
 
 const mockSetUserId = jest.fn();

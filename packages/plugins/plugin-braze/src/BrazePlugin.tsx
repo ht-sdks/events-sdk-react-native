@@ -15,7 +15,7 @@ import {
   JsonMap,
   HightouchBrazeSettings,
   unknownToString,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import Braze, { GenderTypes, MonthsAsNumber } from '@braze/react-native-sdk';
 import flush from './methods/flush';
 interface AttributionProperties {

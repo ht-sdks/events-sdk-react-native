@@ -6,7 +6,7 @@ import {
   HightouchError,
   ErrorType,
   TrackEventType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import screen from './methods/screen';
 import track from './methods/track';
 import reset from './methods/reset';

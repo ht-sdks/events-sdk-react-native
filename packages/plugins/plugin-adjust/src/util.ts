@@ -1,4 +1,4 @@
-import type { HightouchAdjustSettings } from '@ht-sdks/analytics-react-native';
+import type { HightouchAdjustSettings } from '@ht-sdks/events-sdk-react-native';
 
 export const mappedCustomEventToken = (
   eventName: string,

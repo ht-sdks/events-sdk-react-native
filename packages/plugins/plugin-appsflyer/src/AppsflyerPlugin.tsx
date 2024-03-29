@@ -7,7 +7,7 @@ import {
   HightouchAPISettings,
   HightouchError,
   ErrorType,
-} from '@ht-sdks/analytics-react-native';
+} from '@ht-sdks/events-sdk-react-native';
 import type { HightouchAppsflyerSettings } from './types';
 import appsFlyer from 'react-native-appsflyer';
 import identify from './methods/identify';

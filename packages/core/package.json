@@ -1,5 +1,5 @@
 {
-  "name": "@ht-sdks/analytics-react-native",
+  "name": "@ht-sdks/events-sdk-react-native",
   "version": "2.18.2",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "keywords": [
@@ -30,7 +30,7 @@
     "android",
     "ios",
     "cpp",
-    "hightouch-analytics-react-native.podspec",
+    "hightouch-events-sdk-react-native.podspec",
     "package.json",
     "!src/**/*.e2e.mock.js",
     "!**/__tests__",

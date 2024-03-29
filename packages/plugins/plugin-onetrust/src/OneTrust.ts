@@ -1,4 +1,4 @@
-import { ConsentPlugin } from '@ht-sdks/analytics-react-native';
+import { ConsentPlugin } from '@ht-sdks/events-sdk-react-native';
 
 import { OTPublishersNativeSDK, OTCategoryConsentProvider } from './OTProvider';
 

@@ -1,8 +1,8 @@
-import { HightouchClient, UpdateType } from '@ht-sdks/analytics-react-native';
+import { HightouchClient, UpdateType } from '@ht-sdks/events-sdk-react-native';
 import {
   getMockLogger,
   MockHightouchStore,
-} from '@ht-sdks/analytics-react-native/src/test-helpers';
+} from '@ht-sdks/events-sdk-react-native/src/test-helpers';
 
 import { EU_SERVER, MixpanelPlugin } from '../../MixpanelPlugin';
 import { initMock, setServerMock } from '../__mocks__/mixpanel-react-native';

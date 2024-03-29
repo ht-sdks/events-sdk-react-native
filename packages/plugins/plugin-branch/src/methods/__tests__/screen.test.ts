@@ -1,4 +1,4 @@
-import { EventType, ScreenEventType } from '@ht-sdks/analytics-react-native';
+import { EventType, ScreenEventType } from '@ht-sdks/events-sdk-react-native';
 import { BranchEvent } from 'react-native-branch';
 import { mockLogEvent } from '../__mocks__/react-native-branch';
 import * as util from '../util';
