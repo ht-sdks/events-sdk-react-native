@@ -5,8 +5,8 @@ struct Action {
     var payload: Any!
 }
 
-@objc(Sovran)
-public class Sovran: RCTEventEmitter {
+@objc(HtSovran)
+public class HtSovran: RCTEventEmitter {
 
     @objc public static var emitter: RCTEventEmitter?
     
@@ -18,11 +18,11 @@ public class Sovran: RCTEventEmitter {
 
     @objc override init() {
         super.init()
-        Sovran.emitter = self
+        HtSovran.emitter = self
     }
     
     @objc public override func constantsToExport() -> [AnyHashable : Any]! {
-        return ["ON_STORE_ACTION": Sovran.onStoreActionEvent]
+        return ["ON_STORE_ACTION": HtSovran.onStoreActionEvent]
     }
 
     override public static func requiresMainQueueSetup() -> Bool {
@@ -30,7 +30,7 @@ public class Sovran: RCTEventEmitter {
     }
 
     @objc open override func supportedEvents() -> [String] {
-        [Sovran.onStoreActionEvent]
+        [HtSovran.onStoreActionEvent]
     }
     
     private static func sendStoreAction(_ action: Action) -> Void {
@@ -53,15 +53,15 @@ public class Sovran: RCTEventEmitter {
     
     @objc public override func startObserving() -> Void {
         // Replay event queue
-        Sovran.isInitialized = true
-        for event in Sovran.queue {
-            Sovran.sendStoreAction(event)
+        HtSovran.isInitialized = true
+        for event in HtSovran.queue {
+            HtSovran.sendStoreAction(event)
         }
-        Sovran.queue = []
+        HtSovran.queue = []
     }
     
     @objc public override func stopObserving() -> Void {
-        Sovran.isInitialized = false
+        HtSovran.isInitialized = false
     }
 }
 

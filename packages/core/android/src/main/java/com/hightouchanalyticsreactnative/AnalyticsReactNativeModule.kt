@@ -17,7 +17,7 @@ import com.facebook.react.ReactActivity
 import com.facebook.react.ReactApplication
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.sovranreactnative.SovranModule
+import com.htsovranreactnative.SovranModule
 import java.lang.Exception
 import java.util.*
 import java.security.MessageDigest

@@ -1,8 +1,8 @@
 import AdSupport
 import AppTrackingTransparency
 
-@objc(AnalyticsReactNativePluginIdfa)
-class AnalyticsReactNativePluginIdfa: NSObject {
+@objc(HtAnalyticsReactNativePluginIdfa)
+class HtAnalyticsReactNativePluginIdfa: NSObject {
     
     @objc
     static func requiresMainQueueSetup() -> Bool {

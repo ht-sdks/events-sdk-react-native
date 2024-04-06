@@ -1,4 +1,4 @@
-package com.sovranreactnative
+package com.htsovranreactnative
 
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext

@@ -73,7 +73,7 @@ PODS:
   - hermes-engine (0.72.9):
     - hermes-engine/Pre-built (= 0.72.9)
   - hermes-engine/Pre-built (0.72.9)
-  - hightouch-events-sdk-react-native (2.18.0):
+  - hightouch-events-sdk-react-native (2.18.2):
     - React-Core
     - sovran-react-native
   - libevent (2.1.12)
@@ -503,7 +503,7 @@ PODS:
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - SocketRocket (0.6.1)
-  - sovran-react-native (1.1.0):
+  - sovran-react-native (1.1.1):
     - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -712,7 +712,7 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 9b9bb14184a11b8ceb4131b09abf634880f0f46d
-  hightouch-events-sdk-react-native: 4aff425a084c00583898e74d9b8eb28a8643997b
+  hightouch-events-sdk-react-native: 24b090caad11cf10fa9c34080b824e70ec6d22f9
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -754,7 +754,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 32a01c29ecc9bb0b5bf7bc0a33547f61b4dc2741
   RNScreens: 3c2d122f5e08c192e254c510b212306da97d2581
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  sovran-react-native: eabefc97ebbf2c48788c15870343982d443509ab
+  sovran-react-native: 3e0dc5bd768afd14ef88cf3fee1542f6dba78d57
   Yoga: eddf2bbe4a896454c248a8f23b4355891eb720a6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
