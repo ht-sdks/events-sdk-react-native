@@ -2,7 +2,7 @@ import CoreTelephony
 import SystemConfiguration
 import UIKit
 import AdSupport
-import sovran_react_native
+import ht_sovran_react_native
 
 enum ConnectionType: String {
     case wifi = "wifi"

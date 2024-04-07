@@ -31,5 +31,5 @@ Pod::Spec.new do |s|
   }
   
   s.dependency "React-Core"
-  s.dependency "sovran-react-native"
+  s.dependency "ht-sovran-react-native"
 end

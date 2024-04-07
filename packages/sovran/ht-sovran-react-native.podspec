@@ -3,7 +3,7 @@ require "json"
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
-  s.name         = "sovran-react-native"
+  s.name         = "ht-sovran-react-native"
   s.version      = package["version"]
   s.summary      = package["description"]
   s.homepage     = package["homepage"]
@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 
-  s.header_dir     = 'sovran-react-native'
+  s.header_dir     = 'ht-sovran-react-native'
 
   s.static_framework = true
 
@@ -26,7 +26,7 @@ Pod::Spec.new do |s|
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
   }
   s.user_target_xcconfig = {
-    "HEADER_SEARCH_PATHS" => "\"${PODS_CONFIGURATION_BUILD_DIR}/sovran-react-native/Swift Compatibility Header\"",
+    "HEADER_SEARCH_PATHS" => "\"${PODS_CONFIGURATION_BUILD_DIR}/ht-sovran-react-native/Swift Compatibility Header\"",
   }
   
   s.dependency "React-Core"
