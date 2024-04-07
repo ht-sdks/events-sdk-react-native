@@ -1,3 +1,7 @@
+### Dependencies
+
+* **@ht-sdks/events-sdk-react-native:** upgraded to 2.18.3
+
 ## @segment/analytics-react-native-plugin-appsflyer [0.6.0](https://github.com/segmentio/analytics-react-native/compare/@segment/analytics-react-native-plugin-appsflyer-v0.5.3...@segment/analytics-react-native-plugin-appsflyer-v0.6.0) (2023-12-15)
 
 
