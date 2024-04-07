@@ -1,7 +1,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
-@interface RCT_EXTERN_REMAP_MODULE(AnalyticsReactNativePluginIdfa, HtAnalyticsReactNativePluginIdfa, RCTEventEmitter)
+@interface RCT_EXTERN_MODULE(HtAnalyticsReactNativePluginIdfa, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(
                   getTrackingAuthorizationStatus: (RCTPromiseResolveBlock)resolve

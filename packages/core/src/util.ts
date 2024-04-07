@@ -1,4 +1,4 @@
-import { NativeModule, NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import type { EventPlugin } from './plugin';
 import type { Timeline } from './timeline';
 
@@ -16,8 +16,15 @@ export const warnMissingNativeModule = () => {
   console.warn(MISSING_NATIVE_MODULE_WARNING);
 };
 
-export const getNativeModule = (moduleName: string) => {
-  const module = (NativeModules[moduleName] as NativeModule) ?? undefined;
+export const getNativeModule = (
+  androidModuleName: string,
+  iosModuleName: string
+) => {
+  const module =
+    Platform.select({
+      android: NativeModules[androidModuleName],
+      ios: NativeModules[iosModuleName],
+    }) ?? undefined;
   if (module === undefined) warnMissingNativeModule();
   return module;
 };

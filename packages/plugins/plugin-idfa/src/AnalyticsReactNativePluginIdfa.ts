@@ -14,5 +14,5 @@ export const AnalyticsReactNativePluginIdfa = Platform.select({
       return Promise.reject('IDFA is only supported on iOS');
     },
   },
-  ios: NativeModules.AnalyticsReactNativePluginIdfa as unknown as IDFANativeModule,
+  ios: NativeModules.HtAnalyticsReactNativePluginIdfa as unknown as IDFANativeModule,
 });
