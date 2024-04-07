@@ -1,6 +1,6 @@
 {
   "name": "@ht-sdks/events-sdk-react-native-plugin-destination-filters",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
