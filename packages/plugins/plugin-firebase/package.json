@@ -1,6 +1,6 @@
 {
   "name": "@ht-sdks/events-sdk-react-native-plugin-firebase",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "main": "lib/commonjs/index",
   "scripts": {
