@@ -6,7 +6,7 @@ import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 
-class Sovran : ReactPackage {
+class HtSovran : ReactPackage {
   
   data class Action (val type: String, val payload: Map<String, Any?>)
 

@@ -9,7 +9,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 import com.facebook.react.bridge.JavaScriptModule
 
-class AnalyticsReactNativePackage : ReactPackage {
+class HtAnalyticsReactNativePackage : ReactPackage {
 
     private var isInitialized = false
     private var anonymousId: String? = null
