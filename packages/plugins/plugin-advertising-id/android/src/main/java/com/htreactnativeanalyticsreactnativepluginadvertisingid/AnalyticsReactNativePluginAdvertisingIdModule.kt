@@ -1,4 +1,4 @@
-package com.analyticsreactnativepluginadvertisingid
+package com.htanalyticsreactnativepluginadvertisingid
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -13,7 +13,7 @@ import java.io.IOException;
 
 
 @ReactModule(name="HtAnalyticsReactNativePluginAdvertisingId")
-class AnalyticsReactNativePluginAdvertisingIdModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class HtAnalyticsReactNativePluginAdvertisingIdModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
       return "HtAnalyticsReactNativePluginAdvertisingId"
   }
