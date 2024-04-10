@@ -1,5 +1,10 @@
 ### Dependencies
 
+* **@ht-sdks/events-sdk-react-native:** upgraded to 2.18.6
+* **@ht-sdks/sovran-react-native:** upgraded to 1.1.5
+
+### Dependencies
+
 * **@ht-sdks/events-sdk-react-native:** upgraded to 2.18.5
 * **@ht-sdks/sovran-react-native:** upgraded to 1.1.4
 
