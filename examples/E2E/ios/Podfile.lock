@@ -73,10 +73,10 @@ PODS:
   - hermes-engine (0.72.9):
     - hermes-engine/Pre-built (= 0.72.9)
   - hermes-engine/Pre-built (0.72.9)
-  - hightouch-events-sdk-react-native (2.18.3):
+  - hightouch-events-sdk-react-native (2.18.5):
     - ht-sovran-react-native
     - React-Core
-  - ht-sovran-react-native (1.1.2):
+  - ht-sovran-react-native (1.1.4):
     - React-Core
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
@@ -712,8 +712,8 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 9b9bb14184a11b8ceb4131b09abf634880f0f46d
-  hightouch-events-sdk-react-native: 930ac4a858eedee60be3a1e18d80526160571131
-  ht-sovran-react-native: 01b0ebf1f2c1e7323c827e23f037054cf9c0012f
+  hightouch-events-sdk-react-native: 0f25063c03ec0d67da5c69ddad770caa0dfc002c
+  ht-sovran-react-native: f70ed4e80c696b8e9c5ee95eacd4bef3803b7f05
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1

@@ -24,8 +24,7 @@ export class AdvertisingIdPlugin extends Plugin {
     this.analytics = analytics;
     (
       getNativeModule(
-        'AnalyticsReactNativePluginAdvertisingId',
-        'AnalyticsReactNativePluginAdvertisingId'
+        'HtAnalyticsReactNativePluginAdvertisingId'
       ) as AdvertisingIDNativeModule
     )
       ?.getAdvertisingId()

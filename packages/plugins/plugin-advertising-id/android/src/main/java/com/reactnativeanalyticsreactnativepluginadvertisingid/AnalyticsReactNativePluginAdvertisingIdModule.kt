@@ -12,10 +12,10 @@ import android.util.Log
 import java.io.IOException;
 
 
-@ReactModule(name="AnalyticsReactNativePluginAdvertisingId")
+@ReactModule(name="HtAnalyticsReactNativePluginAdvertisingId")
 class AnalyticsReactNativePluginAdvertisingIdModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
-      return "AnalyticsReactNativePluginAdvertisingId"
+      return "HtAnalyticsReactNativePluginAdvertisingId"
   }
 
   @ReactMethod

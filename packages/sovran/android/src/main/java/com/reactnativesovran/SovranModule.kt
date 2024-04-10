@@ -9,13 +9,13 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.module.annotations.ReactModule;
 
-@ReactModule(name="Sovran")
+@ReactModule(name="HtSovran")
 class SovranModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
   var onInitialized: () -> Unit = {}; 
 
   override fun getName(): String {
-    return "Sovran"
+    return "HtSovran"
   }
 
   companion object {

@@ -71,24 +71,24 @@ describe('#getContext', () => {
   };
 
   beforeEach(() => {
-    NativeModules.AnalyticsReactNative = {
+    NativeModules.HtAnalyticsReactNative = {
       getContextInfo: jest.fn().mockResolvedValue(mockNativeContext),
     };
   });
 
   it('gets the context', async () => {
-    const { AnalyticsReactNative } = NativeModules;
+    const { HtAnalyticsReactNative } = NativeModules;
 
     const context = await getContext(undefined);
 
     expect(
-      (AnalyticsReactNative as AnalyticsReactNativeModule).getContextInfo
+      (HtAnalyticsReactNative as AnalyticsReactNativeModule).getContextInfo
     ).toHaveBeenCalledTimes(1);
     expect(context).toEqual(contextResult);
   });
 
   it('gets the context with Traits', async () => {
-    const { AnalyticsReactNative } = NativeModules;
+    const { HtAnalyticsReactNative } = NativeModules;
     const userTraits: UserTraits = {
       firstName: 'John',
       lastName: 'Doe',
@@ -97,13 +97,13 @@ describe('#getContext', () => {
     const context = await getContext(userTraits);
 
     expect(
-      (AnalyticsReactNative as AnalyticsReactNativeModule).getContextInfo
+      (HtAnalyticsReactNative as AnalyticsReactNativeModule).getContextInfo
     ).toHaveBeenCalledTimes(1);
     expect(context).toEqual({ ...contextResult, traits: userTraits });
   });
 
   it('strip non-required config from native calls', async () => {
-    const { AnalyticsReactNative } = NativeModules;
+    const { HtAnalyticsReactNative } = NativeModules;
     await getContext(undefined, {
       writeKey: 'notRequiredInNative',
       collectDeviceId: true,
@@ -111,10 +111,10 @@ describe('#getContext', () => {
     });
 
     expect(
-      (AnalyticsReactNative as AnalyticsReactNativeModule).getContextInfo
+      (HtAnalyticsReactNative as AnalyticsReactNativeModule).getContextInfo
     ).toHaveBeenCalledTimes(1);
     expect(
-      (AnalyticsReactNative as AnalyticsReactNativeModule).getContextInfo
+      (HtAnalyticsReactNative as AnalyticsReactNativeModule).getContextInfo
     ).toHaveBeenCalledWith({
       collectDeviceId: true,
     });

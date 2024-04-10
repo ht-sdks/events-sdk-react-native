@@ -28,7 +28,7 @@ enum class ConnectionType {
   Cellular, Unknown, Wifi
 }
 
-@ReactModule(name="AnalyticsReactNative")
+@ReactModule(name="HtAnalyticsReactNative")
 class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventListener, LifecycleEventListener {
 
   var onInitialized: () -> Unit = {};
@@ -50,7 +50,7 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
   private val pInfo: PackageInfo
 
   override fun getName(): String {
-      return "AnalyticsReactNative"
+      return "HtAnalyticsReactNative"
   }
 
   private fun getBuildNumber(): String {

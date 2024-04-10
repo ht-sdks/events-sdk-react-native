@@ -13,10 +13,7 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo managed workflow\n';
 
-const Sovran = Platform.select({
-  android: NativeModules.Sovran as NativeModule,
-  ios: NativeModules.HtSovran as NativeModule,
-});
+const Sovran = NativeModules.HtSovran as NativeModule;
 
 type NativeModuleConstants = { ON_STORE_ACTION: string };
 

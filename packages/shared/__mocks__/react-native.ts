@@ -12,7 +12,7 @@ export const Linking = {
 };
 
 export const NativeModules = {
-  AnalyticsReactNative: {
+  HtAnalyticsReactNative: {
     getContextInfo: jest.fn().mockResolvedValue({
       appName: 'Hightouch Example',
       appVersion: '1.0',
@@ -33,7 +33,7 @@ export const NativeModules = {
       deviceType: 'phone',
     }),
   },
-  Sovran: {
+  HtSovran: {
     getConstants: () => ({
       ON_STORE_ACTION: 'ON_STORE_ACTION',
     }),

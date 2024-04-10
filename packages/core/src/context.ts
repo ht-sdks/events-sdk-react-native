@@ -42,7 +42,6 @@ export const getContext = async (
   };
 
   const nativeModule = getNativeModule(
-    'AnalyticsReactNative',
     'HtAnalyticsReactNative'
   ) as AnalyticsReactNativeModule;
 
