@@ -1,6 +1,6 @@
 {
   "name": "@ht-sdks/events-sdk-react-native",
-  "version": "2.18.6",
+  "version": "2.18.7",
   "description": "The hassle-free way to add Hightouch analytics to your React-Native app.",
   "keywords": [
     "hightouch",
