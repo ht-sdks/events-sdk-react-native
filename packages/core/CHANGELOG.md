@@ -1,5 +1,9 @@
 ### Dependencies
 
+* **@ht-sdks/sovran-react-native:** upgraded to 1.1.5
+
+### Dependencies
+
 * **@ht-sdks/sovran-react-native:** upgraded to 1.1.4
 
 ### Dependencies
