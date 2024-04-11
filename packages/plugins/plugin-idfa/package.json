@@ -9,12 +9,7 @@
     "typescript": "tsc --noEmit",
     "clean": "rimraf lib node_modules"
   },
-  "keywords": [
-    "hightouch",
-    "react-native",
-    "ios",
-    "android"
-  ],
+  "keywords": ["hightouch", "react-native", "ios", "android"],
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
   "react-native": "src/index",
@@ -58,11 +53,7 @@
   "react-native-builder-bob": {
     "source": "src",
     "output": "lib",
-    "targets": [
-      "commonjs",
-      "module",
-      "typescript"
-    ]
+    "targets": ["commonjs", "module", "typescript"]
   },
   "engines": {
     "node": ">=12"
