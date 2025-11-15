@@ -1,9 +1,9 @@
 import {
   NativeEventEmitter,
-  NativeModule,
   NativeModules,
   Platform,
-  TurboModule,
+  type NativeModule,
+  type TurboModule,
 } from 'react-native';
 import { onStoreAction } from './bridge';
 

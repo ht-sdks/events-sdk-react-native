@@ -125,7 +125,7 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
   @ReactMethod
   fun getContextInfo(config: ReadableMap, promise: Promise) {
     val appName: String = reactApplicationContext.applicationInfo.loadLabel(reactApplicationContext.packageManager).toString()
-    val appVersion: String = pInfo.versionName
+    val appVersion: String = pInfo.versionName ?: ""
     val buildNumber = getBuildNumber()
     val bundleId = reactApplicationContext.packageName
 
@@ -161,7 +161,7 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
 
     contextInfo.putString("timezone", timezone.id)
     contextInfo.putString("locale", locale)
-    contextInfo.putString("networkType", connectionType.toString().toLowerCase(currentLocale))
+    contextInfo.putString("networkType", connectionType.toString().lowercase(currentLocale))
 
     contextInfo.putString("osName", "Android")
     contextInfo.putString("osVersion", Build.VERSION.RELEASE)
@@ -189,12 +189,13 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
 
     val properties = Hashtable<String, String>()
 
+    val currentActivity = reactApplicationContext.currentActivity
     if (currentActivity == null) {
       Log.d(name, "No activity found")
       return
     }
 
-    val referrer = getReferrer(currentActivity!!)
+    val referrer = getReferrer(currentActivity)
 
     if (referrer != null) {
       val referringApplication = referrer.toString()
@@ -217,14 +218,12 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
     }
 
     Log.d(name, "Sending Deeplink data to store: uri=${uri}, referrer=${referrer}")
-    val sovran = (currentActivity?.application as ReactApplication)
+    val sovran = (currentActivity.application as? ReactApplication)
       ?.reactNativeHost
       ?.reactInstanceManager
       ?.currentReactContext
       ?.getNativeModule(SovranModule::class.java)
     sovran?.dispatch("add-deepLink-data", properties)
-
-    
   }
 
   fun setAnonymousId(anonymousId: String) {
@@ -239,20 +238,21 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
     }
   }
 
-  override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, data: Intent?) {
+  override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
     // Do nothing
   }
 
-  override fun onNewIntent(intent: Intent?) {
+  override fun onNewIntent(intent: Intent) {
     Log.d(name, "onNewIntent = ${intent}")
     trackDeepLinks(intent)
   }
 
   override fun onHostResume() {
-    if (currentActivity != null && isColdLaunch) {
+    val activity = reactApplicationContext.currentActivity
+    if (activity != null && isColdLaunch) {
       isColdLaunch = false
-      Log.d(name, "onHostResume = ${currentActivity!!.intent}")
-      trackDeepLinks(currentActivity!!.intent)
+      Log.d(name, "onHostResume = ${activity.intent}")
+      trackDeepLinks(activity.intent)
     }
   }
 
