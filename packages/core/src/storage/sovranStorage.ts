@@ -1,9 +1,5 @@
-import {
-  createStore,
-  registerBridgeStore,
-  Store,
-  Persistor,
-} from '@ht-sdks/sovran-react-native';
+import { createStore, registerBridgeStore } from '@ht-sdks/sovran-react-native';
+import type { Store, Persistor } from '@ht-sdks/sovran-react-native';
 import deepmerge from 'deepmerge';
 import type {
   HightouchAPIIntegrations,
