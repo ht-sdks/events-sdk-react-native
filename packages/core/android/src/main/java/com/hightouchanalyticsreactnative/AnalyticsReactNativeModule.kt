@@ -189,13 +189,13 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
 
     val properties = Hashtable<String, String>()
 
-    val activity = reactApplicationContext.currentActivity
-    if (activity == null) {
+    val currentActivity = reactApplicationContext.currentActivity
+    if (currentActivity == null) {
       Log.d(name, "No activity found")
       return
     }
 
-    val referrer = getReferrer(activity)
+    val referrer = getReferrer(currentActivity)
 
     if (referrer != null) {
       val referringApplication = referrer.toString()
@@ -218,14 +218,12 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
     }
 
     Log.d(name, "Sending Deeplink data to store: uri=${uri}, referrer=${referrer}")
-    val sovran = (activity.application as? ReactApplication)
+    val sovran = (currentActivity.application as? ReactApplication)
       ?.reactNativeHost
       ?.reactInstanceManager
       ?.currentReactContext
       ?.getNativeModule(SovranModule::class.java)
     sovran?.dispatch("add-deepLink-data", properties)
-
-    
   }
 
   fun setAnonymousId(anonymousId: String) {

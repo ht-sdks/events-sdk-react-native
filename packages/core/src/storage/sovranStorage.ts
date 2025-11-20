@@ -1,5 +1,9 @@
-import { createStore, registerBridgeStore } from '@ht-sdks/sovran-react-native';
-import type { Store, Persistor } from '@ht-sdks/sovran-react-native';
+import {
+  createStore,
+  registerBridgeStore,
+  type Store,
+  type Persistor,
+} from '@ht-sdks/sovran-react-native';
 import deepmerge from 'deepmerge';
 import type {
   HightouchAPIIntegrations,
@@ -112,7 +116,7 @@ const addAnonymousId =
 function createStoreGetter<
   U extends object,
   Z extends keyof U | undefined = undefined,
-  V = undefined,
+  V = undefined
 >(store: Store<U>, key?: Z): getStateFunc<Z extends keyof U ? V : U> {
   type X = Z extends keyof U ? V : U;
   return createGetter(

@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "AnalyticsReactNativeE2E73.app"
-               BlueprintName = "AnalyticsReactNativeE2E73"
-               ReferencedContainer = "container:AnalyticsReactNativeE2E73.xcodeproj">
+               BuildableName = "AnalyticsReactNativeE2E81.app"
+               BlueprintName = "AnalyticsReactNativeE2E81"
+               ReferencedContainer = "container:AnalyticsReactNativeE2E81.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "AnalyticsReactNativeE2E73Tests.xctest"
-               BlueprintName = "AnalyticsReactNativeE2E73Tests"
-               ReferencedContainer = "container:AnalyticsReactNativeE2E73.xcodeproj">
+               BuildableName = "AnalyticsReactNativeE2E81Tests.xctest"
+               BlueprintName = "AnalyticsReactNativeE2E81Tests"
+               ReferencedContainer = "container:AnalyticsReactNativeE2E81.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "AnalyticsReactNativeE2E73.app"
-            BlueprintName = "AnalyticsReactNativeE2E73"
-            ReferencedContainer = "container:AnalyticsReactNativeE2E73.xcodeproj">
+            BuildableName = "AnalyticsReactNativeE2E81.app"
+            BlueprintName = "AnalyticsReactNativeE2E81"
+            ReferencedContainer = "container:AnalyticsReactNativeE2E81.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "AnalyticsReactNativeE2E73.app"
-            BlueprintName = "AnalyticsReactNativeE2E73"
-            ReferencedContainer = "container:AnalyticsReactNativeE2E73.xcodeproj">
+            BuildableName = "AnalyticsReactNativeE2E81.app"
+            BlueprintName = "AnalyticsReactNativeE2E81"
+            ReferencedContainer = "container:AnalyticsReactNativeE2E81.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

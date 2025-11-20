@@ -1,5 +1,10 @@
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
-import type { NativeModule, TurboModule } from 'react-native';
+import {
+  NativeEventEmitter,
+  NativeModules,
+  Platform,
+  type NativeModule,
+  type TurboModule,
+} from 'react-native';
 import { onStoreAction } from './bridge';
 
 const LINKING_ERROR =
