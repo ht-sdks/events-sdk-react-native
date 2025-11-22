@@ -7,7 +7,10 @@ let AsyncStorage: {
 
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  AsyncStorage = require('@react-native-async-storage/async-storage').default;
+  const asyncStorageModule = require('@react-native-async-storage/async-storage');
+  // Some versions of the library export the module itself, others a `default`
+  // property containing the implementation.  Support both shapes.
+  AsyncStorage = asyncStorageModule?.default ?? asyncStorageModule;
 } catch (error) {
   AsyncStorage = null;
 }
