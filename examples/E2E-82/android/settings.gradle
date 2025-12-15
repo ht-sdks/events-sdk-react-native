@@ -1,0 +1,18 @@
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+plugins { id("com.facebook.react.settings") }
+
+def autolinkConfigFile = file("build/generated/autolinking/autolinking.json")
+def legacyNativeModulesScript = file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+  ex.autolinkLibrariesFromCommand()
+}
+
+if (!autolinkConfigFile.exists() && legacyNativeModulesScript.exists()) {
+  apply from: legacyNativeModulesScript
+  applyNativeModulesSettingsGradle(settings)
+}
+
+rootProject.name = 'AnalyticsReactNativeE2E82'
+include ':app'
+includeBuild('../node_modules/@react-native/gradle-plugin')

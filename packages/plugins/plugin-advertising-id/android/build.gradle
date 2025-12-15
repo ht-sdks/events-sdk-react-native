@@ -4,11 +4,10 @@ buildscript {
 
   repositories {
     google()
-    jcenter()
+    mavenCentral()
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:4.0.1'
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
@@ -40,7 +39,7 @@ android {
       minifyEnabled false
     }
   }
-  lintOptions {
+  lint {
     disable 'GradleCompatible'
   }
   
@@ -52,7 +51,6 @@ android {
 
 repositories {
   mavenCentral()
-  jcenter()
   google()
 
   def found = false
