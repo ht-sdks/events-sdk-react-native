@@ -18,4 +18,29 @@ buildscript {
     }
 }
 
+// Fix for duplicate libfbjni.so from CMake IMPORTED targets (AGP 4.0+ behavior)
+// See: https://developer.android.com/build/releases/past-releases/agp-4-0-0-release-notes#cmake-imported-targets
+subprojects {
+    project.plugins.withId("com.android.application") {
+        project.android {
+            packaging {
+                jniLibs {
+                    pickFirsts.add("**/libfbjni.so")
+                    pickFirsts.add("**/libc++_shared.so")
+                }
+            }
+        }
+    }
+    project.plugins.withId("com.android.library") {
+        project.android {
+            packaging {
+                jniLibs {
+                    pickFirsts.add("**/libfbjni.so")
+                    pickFirsts.add("**/libc++_shared.so")
+                }
+            }
+        }
+    }
+}
+
 apply plugin: "com.facebook.react.rootproject"
