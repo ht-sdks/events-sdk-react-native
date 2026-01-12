@@ -141,7 +141,8 @@ jobs:
         run: yarn build
 
       - name: Detox - Build
-        run: RCT_NO_LAUNCH_PACKAGER=1 yarn --cwd examples/${{ matrix.e2e-example }} build:android
+        run: RCT_NO_LAUNCH_PACKAGER=1 yarn build:android
+        working-directory: examples/${{ matrix.e2e-example }}
 
       - name: Detox - Test
         continue-on-error: true
@@ -154,4 +155,5 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: yarn --cwd examples/${{ matrix.e2e-example }} test:android
+          script: yarn test:android
+        working-directory: examples/${{ matrix.e2e-example }}
