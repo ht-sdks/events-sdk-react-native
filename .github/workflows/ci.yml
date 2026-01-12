@@ -155,5 +155,5 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
+          working-directory: examples/${{ matrix.e2e-example }}
           script: yarn test:android
-        working-directory: examples/${{ matrix.e2e-example }}
