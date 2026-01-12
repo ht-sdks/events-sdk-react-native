@@ -1,0 +1,46 @@
+buildscript {
+    ext {
+        buildToolsVersion = "35.0.0"
+        minSdkVersion = 24
+        compileSdkVersion = 35
+        targetSdkVersion = 34
+        ndkVersion = "27.0.12077973"
+        kotlinVersion = "2.1.20"
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.12.0")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    }
+}
+
+// Fix for duplicate libfbjni.so from CMake IMPORTED targets (AGP 4.0+ behavior)
+// See: https://developer.android.com/build/releases/past-releases/agp-4-0-0-release-notes#cmake-imported-targets
+subprojects {
+    project.plugins.withId("com.android.application") {
+        project.android {
+            packaging {
+                jniLibs {
+                    pickFirsts.add("**/libfbjni.so")
+                    pickFirsts.add("**/libc++_shared.so")
+                }
+            }
+        }
+    }
+    project.plugins.withId("com.android.library") {
+        project.android {
+            packaging {
+                jniLibs {
+                    pickFirsts.add("**/libfbjni.so")
+                    pickFirsts.add("**/libc++_shared.so")
+                }
+            }
+        }
+    }
+}
+
+apply plugin: "com.facebook.react.rootproject"

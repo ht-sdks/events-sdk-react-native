@@ -82,6 +82,7 @@ jobs:
       matrix:
         api-level: [29]
         profile: ['pixel_xl']
+        e2e-example: ['E2E', 'E2E-82']
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v3
@@ -105,15 +106,15 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.api-level }}-${{matrix.profile}}
+          key: avd-${{ matrix.api-level }}-${{ matrix.profile }}-${{ matrix.e2e-example }}
 
       - name: create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          profile: ${{matrix.profile}}
-          avd-name: Pixel_API_29_GOOGLE
+          profile: ${{ matrix.profile }}
+          avd-name: Pixel_API_${{ matrix.api-level }}_GOOGLE
           arch: x86_64
           target: google_apis
           force-avd-creation: false
@@ -134,23 +135,25 @@ jobs:
       # End workaround
 
       - name: Bootstrap
-        run: yarn install && yarn e2e install # No need to run bootstrap here since we don't need cocoapods
+        run: yarn install && yarn --cwd examples/${{ matrix.e2e-example }} install # No need to run bootstrap here since we don't need cocoapods
 
       - name: Bundle build
         run: yarn build
 
       - name: Detox - Build
-        run: RCT_NO_LAUNCH_PACKAGER=1 yarn e2e build:android
+        run: RCT_NO_LAUNCH_PACKAGER=1 yarn build:android
+        working-directory: examples/${{ matrix.e2e-example }}
 
       - name: Detox - Test
         continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          profile: ${{matrix.profile}}
-          avd-name: Pixel_API_29_GOOGLE
+          profile: ${{ matrix.profile }}
+          avd-name: Pixel_API_${{ matrix.api-level }}_GOOGLE
           target: google_apis
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: yarn e2e test:android
+          script: yarn test:android
+        working-directory: examples/${{ matrix.e2e-example }}
