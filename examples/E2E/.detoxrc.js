@@ -28,14 +28,14 @@ module.exports = {
       binaryPath:
         'ios/build/Build/Products/Debug-iphonesimulator/AnalyticsReactNativeE2E.app',
       build:
-        'xcodebuild -workspace ios/AnalyticsReactNativeE2E.xcworkspace -scheme AnalyticsReactNativeE2E -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build -destination "platform=iOS Simulator,name=iPhone 16,OS=18.4" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO 2>&1',
+        'xcodebuild -workspace ios/AnalyticsReactNativeE2E.xcworkspace -scheme AnalyticsReactNativeE2E -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build -destination "platform=iOS Simulator,name=iPhone 17,OS=26.1" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO 2>&1',
     },
     'ios.release': {
       type: 'ios.app',
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/AnalyticsReactNativeE2E.app',
       build:
-        'xcodebuild -workspace ios/AnalyticsReactNativeE2E.xcworkspace -scheme AnalyticsReactNativeE2E -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -destination "platform=iOS Simulator,name=iPhone 16,OS=18.4" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO 2>&1',
+        'xcodebuild -workspace ios/AnalyticsReactNativeE2E.xcworkspace -scheme AnalyticsReactNativeE2E -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -destination "platform=iOS Simulator,name=iPhone 17,OS=26.1" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO 2>&1',
     },
     'android.debug': {
       type: 'android.apk',
@@ -55,7 +55,7 @@ module.exports = {
     simulator: {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 14',
+        type: 'iPhone 17',
       },
     },
     attached: {
