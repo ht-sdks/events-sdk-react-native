@@ -146,6 +146,21 @@ If `yarn install --immutable` fails, it means the lockfile changed. Run `yarn in
 
 ## Common Issues When Updating Dependencies
 
+### Upgrading Yarn Itself
+
+The Yarn binary is vendored at `.yarn/releases/yarn-4.1.0.cjs` to avoid intermittent CI failures from Corepack network downloads. To upgrade Yarn:
+
+```bash
+yarn set version <new-version>
+```
+
+This updates three things atomically:
+1. `packageManager` in `package.json`
+2. `yarnPath` in `.yarnrc.yml`
+3. The binary in `.yarn/releases/`
+
+Commit all three changes together. No other maintenance is needed -- the vendored binary only changes when you intentionally bump the Yarn version.
+
 ### Corepack / Yarn Version
 
 This repo requires Yarn 4.1.0 via the `packageManager` field in root `package.json`. Always enable Corepack before running Yarn commands:
