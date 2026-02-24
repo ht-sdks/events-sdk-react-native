@@ -4,19 +4,22 @@ import { defaultConfig } from '../constants';
 import { UtilityPlugin } from '../plugin';
 import { PluginType, HightouchEvent } from '../types';
 
+const DEFAULT_FLUSH_TIMEOUT = 120000; // 2 minutes max for a flush operation
+
 /**
  * This plugin manages a queue where all events get added to after timeline processing.
  * It takes a onFlush callback to trigger any action particular to your destination sending events.
  * It can autotrigger a flush of the queue when it reaches the config flushAt limit.
  */
 export class QueueFlushingPlugin extends UtilityPlugin {
-  // Gets executed last to keep the queue after all timeline processing is done
   type = PluginType.after;
 
   private storeKey: string;
   private isPendingUpload = false;
+  private flushPendingExecution = false;
   private queueStore: Store<{ events: HightouchEvent[] }> | undefined;
   private onFlush: (events: HightouchEvent[]) => Promise<void>;
+  private flushTimeout: ReturnType<typeof setTimeout> | undefined;
 
   /**
    * @param onFlush callback to execute when the queue is flushed (either by reaching the limit or manually) e.g. code to upload events to your destination
@@ -35,7 +38,6 @@ export class QueueFlushingPlugin extends UtilityPlugin {
 
     const config = analytics?.getConfig() ?? defaultConfig;
 
-    // Create its own storage per HightouchDestination instance to support multiple instances
     this.queueStore = createStore(
       { events: [] as HightouchEvent[] },
       {
@@ -57,16 +59,44 @@ export class QueueFlushingPlugin extends UtilityPlugin {
   }
 
   /**
-   * Calls the onFlush callback with the events in the queue
+   * Calls the onFlush callback with the events in the queue.
+   * If a flush is already in progress, marks that another flush should execute after.
    */
   async flush() {
+    if (this.isPendingUpload) {
+      this.flushPendingExecution = true;
+      return;
+    }
+
+    await this.executeFlush();
+  }
+
+  private async executeFlush() {
     const events = (await this.queueStore?.getState(true))?.events ?? [];
-    if (!this.isPendingUpload) {
-      try {
-        this.isPendingUpload = true;
-        await this.onFlush(events);
-      } finally {
+
+    if (events.length === 0) {
+      return;
+    }
+
+    try {
+      this.isPendingUpload = true;
+
+      this.flushTimeout = setTimeout(() => {
         this.isPendingUpload = false;
+        this.flushTimeout = undefined;
+      }, DEFAULT_FLUSH_TIMEOUT);
+
+      await this.onFlush(events);
+    } finally {
+      if (this.flushTimeout !== undefined) {
+        clearTimeout(this.flushTimeout);
+        this.flushTimeout = undefined;
+      }
+      this.isPendingUpload = false;
+
+      if (this.flushPendingExecution) {
+        this.flushPendingExecution = false;
+        void this.executeFlush();
       }
     }
   }

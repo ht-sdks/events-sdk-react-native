@@ -26,7 +26,6 @@ export class HightouchDestination extends DestinationPlugin {
 
   private sendEvents = async (events: HightouchEvent[]): Promise<void> => {
     if (!this.isReady) {
-      // We're not sending events until Hightouch has loaded all settings
       return Promise.resolve();
     }
 
@@ -42,40 +41,42 @@ export class HightouchDestination extends DestinationPlugin {
       MAX_PAYLOAD_SIZE_IN_KB
     );
 
-    let sentEvents: HightouchEvent[] = [];
-    let numFailedEvents = 0;
-
-    await Promise.all(
+    const results = await Promise.allSettled(
       chunkedEvents.map(async (batch: HightouchEvent[]) => {
-        try {
-          const res = await uploadEvents({
-            writeKey: config.writeKey,
-            url: this.getEndpoint(),
-            events: batch,
-          });
-          checkResponseForErrors(res);
-          sentEvents = sentEvents.concat(batch);
-        } catch (e) {
-          this.analytics?.reportInternalError(translateHTTPError(e));
-          this.analytics?.logger.warn(e);
-          numFailedEvents += batch.length;
-        } finally {
-          await this.queuePlugin.dequeue(sentEvents);
-        }
+        const res = await uploadEvents({
+          writeKey: config.writeKey,
+          url: this.getEndpoint(),
+          events: batch,
+        });
+        checkResponseForErrors(res);
+        return batch;
       })
     );
 
-    if (sentEvents.length) {
+    const sentEvents: HightouchEvent[] = [];
+    let numFailedEvents = 0;
+
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        sentEvents.push(...result.value);
+      } else {
+        this.analytics?.reportInternalError(translateHTTPError(result.reason));
+        this.analytics?.logger.warn(result.reason);
+        const failedBatchIndex = results.indexOf(result);
+        numFailedEvents += chunkedEvents[failedBatchIndex]?.length ?? 0;
+      }
+    }
+
+    if (sentEvents.length > 0) {
+      await this.queuePlugin.dequeue(sentEvents);
       if (config.debug === true) {
         this.analytics?.logger.info(`Sent ${sentEvents.length} events`);
       }
     }
 
-    if (numFailedEvents) {
+    if (numFailedEvents > 0) {
       this.analytics?.logger.error(`Failed to send ${numFailedEvents} events.`);
     }
-
-    return Promise.resolve();
   };
 
   private readonly queuePlugin = new QueueFlushingPlugin(this.sendEvents);
