@@ -339,6 +339,39 @@ describe('Sovran', () => {
       expect(mockPesistor.set).toHaveBeenCalledWith(ID, expectedState);
     });
 
+    it('calls onInitialized with default state when persistor.get rejects', async () => {
+      const failingPersistor: Persistor = {
+        get: jest.fn().mockRejectedValue(new Error('Storage corrupted')),
+        set: jest.fn(),
+      };
+
+      const onInitialized = jest.fn();
+
+      createStore<EventStore>(
+        { events: [] },
+        {
+          persist: {
+            storeId: 'persistorTest',
+            persistor: failingPersistor,
+            onInitialized,
+          },
+        }
+      );
+
+      // The store's persistence init is a fire-and-forget promise chain:
+      // persistor.get().then(...).catch(...). Each link in that chain runs
+      // on a separate microtask tick. We need at least 2 ticks for the
+      // rejection to propagate through .then() and into .catch(); the 3rd
+      // is a safety margin.
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(failingPersistor.get).toHaveBeenCalledTimes(1);
+      expect(onInitialized).toHaveBeenCalledTimes(1);
+      expect(onInitialized).toHaveBeenCalledWith({ events: [] });
+    });
+
     it('saves initial state if storage is empty on startup', async () => {
       const ID = 'persistorTest';
       const INTERVAL = 5000;

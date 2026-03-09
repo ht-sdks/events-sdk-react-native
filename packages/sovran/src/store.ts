@@ -135,6 +135,7 @@ export const createStore = <T extends object>(
       })
       .catch((reason) => {
         console.warn(reason);
+        config?.persist?.onInitialized?.(getState());
       });
   }
 
