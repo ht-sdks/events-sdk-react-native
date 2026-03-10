@@ -342,7 +342,8 @@ describe('Sovran', () => {
     });
 
     it('calls onInitialized with default state when persistor.get rejects', async () => {
-      const failingPersistor: Persistor = {
+      const failingPersistor: AsyncPersistor = {
+        type: PersistorType.ASYNC,
         get: jest.fn().mockRejectedValue(new Error('Storage corrupted')),
         set: jest.fn(),
       };
