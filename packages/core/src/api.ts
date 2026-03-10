@@ -1,6 +1,6 @@
 import type { HightouchEvent } from './types';
 
-const DEFAULT_UPLOAD_TIMEOUT_MS = 10_000;
+const DEFAULT_UPLOAD_TIMEOUT_MS = 5_000;
 
 export const uploadEvents = async ({
   writeKey,
