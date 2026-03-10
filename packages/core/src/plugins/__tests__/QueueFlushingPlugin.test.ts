@@ -77,4 +77,34 @@ describe('QueueFlushingPlugin', () => {
     // @ts-ignore
     expect(queuePlugin.queueStore?.getState().events).toHaveLength(0);
   });
+
+  it('should dequeue events after deserialization (different object references)', async () => {
+    const onFlush = jest.fn().mockResolvedValue(undefined);
+    const queuePlugin = setupQueuePlugin(onFlush, 10);
+
+    const event: HightouchEvent = {
+      type: EventType.TrackEvent,
+      event: 'test3',
+      messageId: 'msg-123',
+      properties: {
+        test: 'test3',
+      },
+    };
+
+    await queuePlugin.execute(event);
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    expect(queuePlugin.queueStore?.getState().events).toHaveLength(1);
+
+    // Simulate deserialization: create a new object with the same messageId
+    // but a different reference (as would happen after AsyncStorage restore)
+    const deserializedEvent: HightouchEvent = JSON.parse(JSON.stringify(event));
+    expect(deserializedEvent).not.toBe(event); // different reference
+
+    await queuePlugin.dequeue(deserializedEvent);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    expect(queuePlugin.queueStore?.getState().events).toHaveLength(0);
+  });
 });

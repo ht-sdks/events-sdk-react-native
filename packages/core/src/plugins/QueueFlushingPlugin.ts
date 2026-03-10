@@ -83,8 +83,12 @@ export class QueueFlushingPlugin extends UtilityPlugin {
         return state;
       }
 
-      const setToRemove = new Set(eventsToRemove);
-      const filteredEvents = state.events.filter((e) => !setToRemove.has(e));
+      const idsToRemove = new Set(
+        eventsToRemove.map((e) => e.messageId)
+      );
+      const filteredEvents = state.events.filter(
+        (e) => !idsToRemove.has(e.messageId)
+      );
       return { events: filteredEvents };
     });
   }
