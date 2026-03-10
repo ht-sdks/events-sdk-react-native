@@ -96,6 +96,49 @@ describe('Persistor Types', () => {
       expect(mockPersistor.set).toHaveBeenCalledWith(ID, expectedState);
     });
 
+    it('calls onInitialized with default state when sync persistor.get throws', () => {
+      const ID = 'syncErrorTest';
+
+      const mockPersistor: SyncPersistor = {
+        type: PersistorType.SYNC,
+        get: jest.fn().mockImplementation(() => {
+          throw new Error('Storage corrupted');
+        }),
+        set: jest.fn(),
+      };
+
+      const onInitialized = jest.fn();
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      try {
+        const store = createStore<EventStore>(
+          { events: [] },
+          {
+            persist: {
+              storeId: ID,
+              persistor: mockPersistor,
+              onInitialized,
+            },
+          }
+        );
+
+        // Sync persistor calls onInitialized synchronously
+        expect(mockPersistor.get).toHaveBeenCalledTimes(1);
+        expect(onInitialized).toHaveBeenCalledTimes(1);
+        expect(onInitialized).toHaveBeenCalledWith({ events: [] });
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Sync persistence initialization failed:',
+          expect.any(Error)
+        );
+
+        // Store should still be usable with default state
+        const state = store.getState();
+        expect(state).toEqual({ events: [] });
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    });
+
     it('handles errors in sync set() gracefully', async () => {
       const ID = 'errorTest';
 
