@@ -35,6 +35,7 @@ export const chunk = <T>(array: T[], count: number, maxKB?: number): T[][] => {
         rollingKBSize += sizeOf(item);
         // If we overflow chunk until the previous index, else keep going
         if (rollingKBSize >= maxKB) {
+          rollingKBSize = sizeOf(item);
           chunks[++currentChunk] = [item];
           return chunks;
         }
