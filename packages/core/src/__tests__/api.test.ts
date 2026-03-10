@@ -72,6 +72,7 @@ describe('#sendEvents', () => {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
       },
+      signal: expect.any(AbortSignal),
     });
   }
 
@@ -87,5 +88,46 @@ describe('#sendEvents', () => {
     const writeKey = 'HIGHTOUCH_KEY';
 
     await sendAnEventPer(writeKey, toProxyUrl);
+  });
+
+  it('aborts fetch when timeout expires', async () => {
+    jest.useFakeTimers();
+
+    let fetchSignal: AbortSignal | undefined;
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    global.fetch = jest.fn((_url: string, options?: RequestInit) => {
+      fetchSignal = options?.signal;
+      return new Promise((_resolve, reject) => {
+        // Wire up abort to reject, like a real fetch
+        fetchSignal?.addEventListener('abort', () => {
+          reject(new Error('The operation was aborted.'));
+        });
+      });
+    });
+
+    const event = {
+      anonymousId: 'anon',
+      event: 'Test',
+      type: EventType.TrackEvent,
+      properties: {},
+      timestamp: '2000-01-01T00:00:00.000Z',
+      messageId: 'msg-1',
+    } as TrackEventType;
+
+    const uploadPromise = uploadEvents({
+      writeKey: 'KEY',
+      url: 'https://api.test.io/b',
+      events: [event],
+      timeout: 5000,
+    });
+
+    jest.advanceTimersByTime(5000);
+
+    await expect(uploadPromise).rejects.toThrow('aborted');
+    expect(fetchSignal?.aborted).toBe(true);
+
+    jest.useRealTimers();
   });
 });
