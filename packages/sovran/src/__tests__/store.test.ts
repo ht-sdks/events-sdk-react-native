@@ -1,4 +1,5 @@
-import type { Persistor } from '..';
+import type { AsyncPersistor } from '..';
+import { PersistorType } from '..';
 import { createStore, Store, StoreConfig } from '../store';
 
 interface Event {
@@ -256,10 +257,11 @@ describe('Sovran', () => {
    * Tests the persistence calls of the Store to comply to the interface
    */
   describe('Persistence', () => {
-    const getMockPersistor = <T>(initialState: T): Persistor => {
+    const getMockPersistor = <T>(initialState: T): AsyncPersistor => {
       return {
+        type: PersistorType.ASYNC,
         get: jest.fn().mockResolvedValue(initialState),
-        set: jest.fn(),
+        set: jest.fn().mockResolvedValue(undefined),
       };
     };
 
@@ -296,7 +298,7 @@ describe('Sovran', () => {
 
       const persistedState = { events: [persistedEvent] };
 
-      const mockPesistor: Persistor = getMockPersistor(persistedState);
+      const mockPesistor: AsyncPersistor = getMockPersistor(persistedState);
 
       const sovran = await getAwaitableSovranConstructor<EventStore>(
         { events: [] },
@@ -385,7 +387,7 @@ describe('Sovran', () => {
       };
       const initialState = { events: [sampleEvent] };
 
-      const mockPesistor: Persistor = getMockPersistor(persistedState);
+      const mockPesistor: AsyncPersistor = getMockPersistor(persistedState);
 
       const sovran = await getAwaitableSovranConstructor<EventStore>(
         initialState,

@@ -2927,6 +2927,7 @@ __metadata:
     react-native: "npm:0.82.1"
     react-native-gesture-handler: "npm:2.28.0"
     react-native-get-random-values: "npm:^1.9.0"
+    react-native-mmkv: "npm:^3.0.0"
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.16.0"
     react-test-renderer: "npm:19.1.1"
@@ -8652,6 +8653,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/87d20b900aded7d44c90afb946a7aa03c23a94ca3dd547bdddc2303b85357e4aab22567a57b19f1558d6c8be7058e3dcf34faa1e15182d1604f90974266d9a1d
+  languageName: node
+  linkType: hard
+
+"react-native-mmkv@npm:^3.0.0":
+  version: 3.3.3
+  resolution: "react-native-mmkv@npm:3.3.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/efd7f725674d686ea126a213bd8c4270e8e4e8f306917a1b846a9f7ddf652ad057c7d509a9292d7bbf6a58603d4ab5a18e0c3b0d1b00447df45eeac81cbbd1e1
   languageName: node
   linkType: hard
 

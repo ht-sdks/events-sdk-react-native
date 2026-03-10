@@ -1,4 +1,4 @@
-import type { Persistor } from './persistor';
+import { type AsyncPersistor, PersistorType } from './persistor';
 
 let AsyncStorage: {
   getItem: (key: string) => Promise<string | null>;
@@ -36,7 +36,9 @@ function warnIfMissingPackage() {
 /**
  * Persistor implementation using AsyncStorage
  */
-export const AsyncStoragePersistor: Persistor = {
+export const AsyncStoragePersistor: AsyncPersistor = {
+  type: PersistorType.ASYNC,
+
   get: async <T>(key: string): Promise<T | undefined> => {
     if (warnIfMissingPackage()) {
       return;

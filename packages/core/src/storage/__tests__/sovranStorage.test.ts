@@ -3,7 +3,10 @@ import deepmerge from 'deepmerge';
 import { createCallbackManager as mockCreateCallbackManager } from '../../test-helpers/utils';
 import { SovranStorage } from '../sovranStorage';
 
-import type { Persistor } from '@ht-sdks/sovran-react-native';
+import {
+  type AsyncPersistor,
+  PersistorType,
+} from '@ht-sdks/sovran-react-native';
 import {
   EventType,
   type Context,
@@ -12,6 +15,10 @@ import {
 } from '../../types';
 jest.mock('@ht-sdks/sovran-react-native', () => ({
   registerBridgeStore: jest.fn(),
+  PersistorType: {
+    SYNC: 'sync',
+    ASYNC: 'async',
+  },
   createStore: <T extends object>(initialState: T) => {
     const callbackManager = mockCreateCallbackManager<T>();
 
@@ -117,7 +124,8 @@ describe('sovranStorage', () => {
 
   it('works with custom Persistor', async () => {
     const customStorage: Record<string, unknown> = {};
-    const CustomPersistor: Persistor = {
+    const CustomPersistor: AsyncPersistor = {
+      type: PersistorType.ASYNC,
       get: async <T>(key: string): Promise<T | undefined> => {
         return Promise.resolve(customStorage[key] as T);
       },

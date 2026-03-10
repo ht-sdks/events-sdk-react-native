@@ -1,7 +1,8 @@
 import {
-  AsyncStoragePersistor,
+  createDefaultPersistor,
   PersistenceConfig,
   Persistor,
+  PersistorType,
 } from './persistor';
 import merge from 'deepmerge';
 const DEFAULT_SAVE_STATE_DELAY_IN_MS = 1000;
@@ -92,6 +93,9 @@ export interface StoreConfig {
   persist?: PersistenceConfig;
 }
 
+const copyState = <T>(s: T): T =>
+  Array.isArray(s) ? ([...s] as T) : ({ ...s } as T);
+
 /**
  * Creates a sovran state management store
  * @param initialState initial state of the store
@@ -102,47 +106,82 @@ export const createStore = <T extends object>(
   initialState: T,
   config?: StoreConfig
 ): Store<T> => {
-  let state: T = Array.isArray(initialState)
-    ? ([...initialState] as T)
-    : ({ ...initialState } as T);
   const queue: { call: Action<T>; finally?: (newState: T) => void }[] = [];
   const isPersisted = config?.persist !== undefined;
   let saveTimeout: ReturnType<typeof setTimeout> | undefined;
   const persistor: Persistor =
-    config?.persist?.persistor ?? AsyncStoragePersistor;
+    config?.persist?.persistor ?? createDefaultPersistor();
   const storeId: string = isPersisted
     ? config.persist!.storeId
     : DEFAULT_STORE_NAME;
 
-  if (isPersisted) {
-    persistor
-      .get<T>(storeId)
-      .then(async (persistedState) => {
-        if (
-          persistedState !== undefined &&
-          persistedState !== null &&
-          typeof persistedState === 'object'
-        ) {
-          const restoredState = await dispatch((oldState) => {
-            return merge(oldState, persistedState);
-          });
-          config?.persist?.onInitialized?.(restoredState);
-        } else {
-          const stateToSave = getState();
-          await persistor.set(storeId, stateToSave);
-          config?.persist?.onInitialized?.(stateToSave);
-        }
-      })
-      .catch((reason) => {
-        console.warn(reason);
-        config?.persist?.onInitialized?.(getState());
-      });
+  // For sync persistors, initialize state synchronously BEFORE queue setup.
+  // This eliminates race conditions - the store is fully ready when returned.
+  let state: T;
+  let syncInitialized = false;
+  let syncInitFailed = false;
+
+  if (isPersisted && persistor.type === PersistorType.SYNC) {
+    try {
+      const persistedState = persistor.get<T>(storeId);
+      if (
+        persistedState !== undefined &&
+        persistedState !== null &&
+        typeof persistedState === 'object'
+      ) {
+        state = merge(copyState(initialState), persistedState);
+      } else {
+        state = copyState(initialState);
+        persistor.set(storeId, state);
+      }
+      syncInitialized = true;
+    } catch (error) {
+      console.warn('Sync persistence initialization failed:', error);
+      state = copyState(initialState);
+      syncInitFailed = true;
+    }
+  } else {
+    state = copyState(initialState);
   }
+
+  // Async persistor initialization - runs in background after store is returned.
+  // Returns the initialized state for the caller to pass to onInitialized.
+  const initializeAsyncPersistence = async (): Promise<T> => {
+    const persistedState = await persistor.get<T>(storeId);
+
+    if (
+      persistedState !== undefined &&
+      persistedState !== null &&
+      typeof persistedState === 'object'
+    ) {
+      return await dispatch((oldState) => {
+        return merge(oldState, persistedState);
+      });
+    } else {
+      const stateToSave = getState();
+      await persistor.set(storeId, stateToSave);
+      return stateToSave;
+    }
+  };
 
   const updatePersistor = (state: T) => {
     if (config === undefined) {
       return;
     }
+
+    // Sync persistors always write immediately - no debounce needed.
+    if (persistor.type === PersistorType.SYNC) {
+      try {
+        persistor.set(storeId, state);
+      } catch (error) {
+        console.warn(error);
+      }
+      return;
+    }
+
+    // Async persistors can be debounced via saveDelay.
+    const saveDelay =
+      config.persist?.saveDelay ?? DEFAULT_SAVE_STATE_DELAY_IN_MS;
 
     if (saveTimeout !== undefined) {
       clearTimeout(saveTimeout);
@@ -156,7 +195,7 @@ export const createStore = <T extends object>(
           console.warn(error);
         }
       })();
-    }, config.persist?.saveDelay ?? DEFAULT_SAVE_STATE_DELAY_IN_MS);
+    }, saveDelay);
   };
 
   const observable = createObservable<T>();
@@ -217,6 +256,21 @@ export const createStore = <T extends object>(
   };
 
   queueObserve.subscribe(processQueue);
+
+  // Both SYNC and ASYNC code paths call onInitialized once persistence is ready.
+  // Per fix from master: always call onInitialized even on failure so SDK can recover.
+  if (syncInitialized || syncInitFailed) {
+    config?.persist?.onInitialized?.(state);
+  } else if (isPersisted && persistor.type === PersistorType.ASYNC) {
+    void initializeAsyncPersistence()
+      .then((initializedState) =>
+        config?.persist?.onInitialized?.(initializedState)
+      )
+      .catch((error) => {
+        console.warn(error);
+        config?.persist?.onInitialized?.(getState());
+      });
+  }
 
   const subscribe = (callback: Notify<T>) => {
     const unsubscribe = observable.subscribe(callback);
