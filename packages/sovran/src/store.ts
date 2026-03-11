@@ -151,6 +151,9 @@ export const createStore = <T extends object>(
     // setTimeout schedules a macrotask that may never execute if the OS
     // kills or suspends the app first. Immediate writes ensure critical
     // data (like queued events) reaches disk before potential termination.
+    // Concurrent writes are safe: AsyncStorage 1.x serializes all
+    // operations natively via SerialExecutor (Android) and
+    // DISPATCH_QUEUE_SERIAL (iOS). See PR #18 for details.
     if (saveDelay === 0) {
       void (async () => {
         try {
