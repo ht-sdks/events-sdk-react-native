@@ -396,6 +396,40 @@ describe('HightouchDestination', () => {
       });
     });
 
+    it('drops entire batch on request-scoped 4xx (e.g. 401) without splitting', async () => {
+      const events = [
+        { messageId: 'message-1' },
+        { messageId: 'message-2' },
+        { messageId: 'message-3' },
+      ] as HightouchEvent[];
+
+      const { plugin, sendEventsSpy } = createTestWith({
+        events,
+        config: { ...clientArgs.config, maxBatchSize: 3 },
+      });
+
+      sendEventsSpy.mockRejectedValue(
+        new NetworkError(401, 'Unauthorized')
+      );
+
+      const dequeueSpy = jest.spyOn(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        plugin.queuePlugin,
+        'dequeue'
+      );
+
+      await plugin.flush();
+
+      // All 3 events dropped in one shot — no splitting
+      expect(dequeueSpy).toHaveBeenCalled();
+      const dequeuedEvents = dequeueSpy.mock.calls[0][0] as HightouchEvent[];
+      expect(dequeuedEvents).toHaveLength(3);
+
+      // Only 1 upload attempt — no recursive splitting
+      expect(sendEventsSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('drops a single-event batch on non-retryable HTTP errors (e.g. 400)', async () => {
       const events = [
         { messageId: 'message-1' },

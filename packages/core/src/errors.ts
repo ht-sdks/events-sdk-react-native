@@ -102,6 +102,24 @@ export const isRetryableError = (error: unknown): boolean => {
 };
 
 /**
+ * HTTP status codes that indicate a request-scoped problem (auth, routing)
+ * rather than an event-scoped problem (validation). Splitting a batch won't
+ * help — every sub-batch will fail with the same error.
+ */
+const REQUEST_SCOPED_STATUS_CODES = new Set([401, 403, 404]);
+
+/**
+ * Returns true if the error is a request-scoped 4xx (e.g. bad auth or
+ * invalid write key) where splitting the batch cannot help.
+ */
+export const isRequestScopedError = (error: unknown): boolean => {
+  if (error instanceof NetworkError) {
+    return REQUEST_SCOPED_STATUS_CODES.has(error.statusCode);
+  }
+  return false;
+};
+
+/**
  * Utility method for handling HTTP fetch errors
  * @param response Fetch Response
  * @returns response if status OK, throws NetworkError for everything else

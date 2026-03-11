@@ -13,6 +13,7 @@ import { QueueFlushingPlugin } from './QueueFlushingPlugin';
 import { defaultApiHost } from '../constants';
 import {
   checkResponseForErrors,
+  isRequestScopedError,
   isRetryableError,
   translateHTTPError,
 } from '../errors';
@@ -35,9 +36,10 @@ export class HightouchDestination extends DestinationPlugin {
   private isReady = false;
 
   /**
-   * Uploads a batch of events. On non-retryable errors (4xx), splits the
-   * batch in half and retries each half recursively to isolate the bad
-   * event(s). Single-event batches that hit 4xx are dropped.
+   * Uploads a batch of events. Request-scoped errors (401/403/404) drop the
+   * entire batch immediately. Event-scoped errors (400) trigger a recursive
+   * bisect to isolate the bad event(s). Retryable errors (5xx/429) leave
+   * events in the queue for the next flush cycle.
    */
   private uploadBatch = async (
     batch: HightouchEvent[],
@@ -59,6 +61,17 @@ export class HightouchDestination extends DestinationPlugin {
         return { sent: [], dropped: [], failed: batch.length };
       }
 
+      // Request-scoped errors (401/403/404) affect all events equally —
+      // splitting cannot help, so drop the entire batch immediately.
+      if (isRequestScopedError(e)) {
+        const status =
+          e instanceof Error ? e.message : 'unknown';
+        this.analytics?.logger.error(
+          `Dropped ${batch.length} event(s) due to request-scoped error: ${status}`
+        );
+        return { sent: [], dropped: batch, failed: batch.length };
+      }
+
       if (batch.length === 1) {
         this.analytics?.logger.error(
           `Dropped non-retryable event: ${batch[0]?.messageId}`
@@ -66,7 +79,7 @@ export class HightouchDestination extends DestinationPlugin {
         return { sent: [], dropped: batch, failed: 1 };
       }
 
-      // Split in half to isolate the bad event(s)
+      // Split in half to isolate the bad event(s) — only for 400 (validation)
       const mid = Math.ceil(batch.length / 2);
       const [left, right] = await Promise.all([
         this.uploadBatch(batch.slice(0, mid), writeKey, url),

@@ -1,4 +1,4 @@
-import { NetworkError, isRetryableError } from '../errors';
+import { NetworkError, isRequestScopedError, isRetryableError } from '../errors';
 
 describe('isRetryableError', () => {
   it.each([429, 500, 502, 503, 504])(
@@ -25,5 +25,27 @@ describe('isRetryableError', () => {
   it('returns false for NetworkError with unknown status code', () => {
     const error = new NetworkError(-1, 'Unknown error');
     expect(isRetryableError(error)).toBe(false);
+  });
+});
+
+describe('isRequestScopedError', () => {
+  it.each([401, 403, 404])(
+    'returns true for request-scoped status code %d',
+    (statusCode) => {
+      const error = new NetworkError(statusCode, 'Client error');
+      expect(isRequestScopedError(error)).toBe(true);
+    }
+  );
+
+  it.each([400, 429, 500])(
+    'returns false for non-request-scoped status code %d',
+    (statusCode) => {
+      const error = new NetworkError(statusCode, 'Error');
+      expect(isRequestScopedError(error)).toBe(false);
+    }
+  );
+
+  it('returns false for generic errors', () => {
+    expect(isRequestScopedError(new Error('Network failed'))).toBe(false);
   });
 });
