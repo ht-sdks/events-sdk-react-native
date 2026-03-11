@@ -4,7 +4,7 @@ import {
   Persistor,
 } from './persistor';
 import merge from 'deepmerge';
-const DEFAULT_SAVE_STATE_DELAY_IN_MS = 1000;
+const DEFAULT_SAVE_STATE_DELAY_IN_MS = 0;
 const DEFAULT_STORE_NAME = 'default';
 
 export type Notify<V> = (value: V) => void;
