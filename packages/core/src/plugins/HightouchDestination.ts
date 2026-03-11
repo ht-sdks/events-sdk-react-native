@@ -11,11 +11,16 @@ import { uploadEvents } from '../api';
 import type { HightouchClient } from '../analytics';
 import { QueueFlushingPlugin } from './QueueFlushingPlugin';
 import { defaultApiHost } from '../constants';
-import { checkResponseForErrors, translateHTTPError } from '../errors';
+import {
+  checkResponseForErrors,
+  isRetryableError,
+  translateHTTPError,
+} from '../errors';
 import { defaultConfig } from '../constants';
 
 const MAX_EVENTS_PER_BATCH = 100;
 const MAX_PAYLOAD_SIZE_IN_KB = 500;
+const MAX_RETRIES_PER_EVENT = 3;
 export const HIGHTOUCH_DESTINATION_KEY = 'Hightouch.io';
 
 export class HightouchDestination extends DestinationPlugin {
@@ -23,6 +28,13 @@ export class HightouchDestination extends DestinationPlugin {
   key = HIGHTOUCH_DESTINATION_KEY;
   private apiHost?: string;
   private isReady = false;
+  private retryCounts = new Map<string, number>();
+
+  private clearRetryCounts = (events: HightouchEvent[]) => {
+    for (const event of events) {
+      this.retryCounts.delete(event.messageId ?? '');
+    }
+  };
 
   private sendEvents = async (events: HightouchEvent[]): Promise<void> => {
     if (!this.isReady) {
@@ -47,6 +59,7 @@ export class HightouchDestination extends DestinationPlugin {
 
     await Promise.all(
       chunkedEvents.map(async (batch: HightouchEvent[]) => {
+        let eventsToDequeue: HightouchEvent[] = [];
         try {
           const res = await uploadEvents({
             writeKey: config.writeKey,
@@ -54,12 +67,15 @@ export class HightouchDestination extends DestinationPlugin {
             events: batch,
           });
           checkResponseForErrors(res);
-          sentEvents = sentEvents.concat(batch);
+          eventsToDequeue = batch;
         } catch (e) {
           this.analytics?.reportInternalError(translateHTTPError(e));
           this.analytics?.logger.warn(e);
           numFailedEvents += batch.length;
+          eventsToDequeue = this.getEventsToDropOnError(e, batch);
         } finally {
+          this.clearRetryCounts(eventsToDequeue);
+          sentEvents = sentEvents.concat(eventsToDequeue);
           await this.queuePlugin.dequeue(sentEvents);
         }
       })
@@ -78,7 +94,35 @@ export class HightouchDestination extends DestinationPlugin {
     return Promise.resolve();
   };
 
-  private readonly queuePlugin = new QueueFlushingPlugin(this.sendEvents);
+  private getEventsToDropOnError(
+    error: unknown,
+    batch: HightouchEvent[]
+  ): HightouchEvent[] {
+    if (!isRetryableError(error)) {
+      return batch;
+    }
+
+    const expired = batch.filter((event) => {
+      const id = event.messageId ?? '';
+      const retries = (this.retryCounts.get(id) ?? 0) + 1;
+      this.retryCounts.set(id, retries);
+      return retries >= MAX_RETRIES_PER_EVENT;
+    });
+
+    if (expired.length > 0) {
+      this.analytics?.logger.error(
+        `Dropped ${expired.length} events after ${MAX_RETRIES_PER_EVENT} retries.`
+      );
+    }
+
+    return expired;
+  }
+
+  private readonly queuePlugin = new QueueFlushingPlugin(
+    this.sendEvents,
+    'events',
+    this.clearRetryCounts
+  );
 
   private getEndpoint(): string {
     const config = this.analytics?.getConfig();

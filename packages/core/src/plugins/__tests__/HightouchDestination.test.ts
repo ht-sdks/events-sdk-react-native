@@ -1,6 +1,7 @@
 import { HightouchClient } from '../../analytics';
 import * as api from '../../api';
 import { defaultApiHost } from '../../constants';
+import { NetworkError } from '../../errors';
 import {
   createMockStoreGetter,
   getMockLogger,
@@ -393,6 +394,70 @@ describe('HightouchDestination', () => {
           ...e,
         })),
       });
+    });
+
+    it('drops events immediately on non-retryable HTTP errors (e.g. 400)', async () => {
+      const events = [
+        { messageId: 'message-1' },
+        { messageId: 'message-2' },
+      ] as HightouchEvent[];
+
+      const { plugin } = createTestWith({ events });
+
+      jest.spyOn(api, 'uploadEvents').mockRejectedValue(
+        new NetworkError(400, 'Bad Request')
+      );
+
+      const dequeueSpy = jest.spyOn(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        plugin.queuePlugin,
+        'dequeue'
+      );
+
+      await plugin.flush();
+
+      // Events should be dequeued (dropped) despite the error
+      expect(dequeueSpy).toHaveBeenCalled();
+      const dequeuedEvents = dequeueSpy.mock.calls[0][0] as HightouchEvent[];
+      expect(dequeuedEvents).toHaveLength(2);
+    });
+
+    it('retains events on retryable errors until max retries exceeded', async () => {
+      const events = [
+        { messageId: 'message-1' },
+        { messageId: 'message-2' },
+      ] as HightouchEvent[];
+
+      const { plugin } = createTestWith({ events });
+
+      jest.spyOn(api, 'uploadEvents').mockRejectedValue(
+        new NetworkError(500, 'Internal Server Error')
+      );
+
+      const dequeueSpy = jest.spyOn(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        plugin.queuePlugin,
+        'dequeue'
+      );
+
+      // First flush — retry count goes to 1 (of 3 max)
+      await plugin.flush();
+      const firstDequeuedEvents = dequeueSpy.mock.calls[0][0] as HightouchEvent[];
+      expect(firstDequeuedEvents).toHaveLength(0);
+
+      // Second flush — retry count goes to 2
+      dequeueSpy.mockClear();
+      await plugin.flush();
+      const secondDequeuedEvents = dequeueSpy.mock.calls[0][0] as HightouchEvent[];
+      expect(secondDequeuedEvents).toHaveLength(0);
+
+      // Third flush — retry count hits 3, events should be dropped
+      dequeueSpy.mockClear();
+      await plugin.flush();
+      const thirdDequeuedEvents = dequeueSpy.mock.calls[0][0] as HightouchEvent[];
+      expect(thirdDequeuedEvents).toHaveLength(2);
     });
   });
 });
