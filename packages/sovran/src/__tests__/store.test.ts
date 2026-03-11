@@ -339,6 +339,45 @@ describe('Sovran', () => {
       expect(mockPesistor.set).toHaveBeenCalledWith(ID, expectedState);
     });
 
+    it('persists state immediately when saveDelay is 0', async () => {
+      const ID = 'immediateTest';
+
+      const mockPersistor: Persistor = {
+        get: jest.fn().mockResolvedValue(undefined),
+        set: jest.fn().mockResolvedValue(undefined),
+      };
+
+      const sovran = await getAwaitableSovranConstructor<EventStore>(
+        { events: [] },
+        {
+          persist: {
+            storeId: ID,
+            saveDelay: 0,
+            persistor: mockPersistor,
+          },
+        }
+      );
+
+      const sampleEvent: Event = {
+        id: '1',
+        description: 'test',
+      };
+
+      const expectedState = {
+        events: [sampleEvent],
+      };
+
+      await sovran.dispatch((state) => {
+        return {
+          events: [...state.events, sampleEvent],
+        };
+      });
+
+      // With saveDelay: 0, persistor.set() should be called immediately
+      // without needing to advance timers
+      expect(mockPersistor.set).toHaveBeenCalledWith(ID, expectedState);
+    });
+
     it('calls onInitialized with default state when persistor.get rejects', async () => {
       const failingPersistor: Persistor = {
         get: jest.fn().mockRejectedValue(new Error('Storage corrupted')),
