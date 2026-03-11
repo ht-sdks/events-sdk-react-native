@@ -44,6 +44,10 @@ export class HightouchDestination extends DestinationPlugin {
     writeKey: string,
     url: string
   ): Promise<UploadBatchResult> => {
+    if (batch.length === 0) {
+      return { sent: [], dropped: [], failed: 0 };
+    }
+
     try {
       const res = await uploadEvents({ writeKey, url, events: batch });
       checkResponseForErrors(res);
