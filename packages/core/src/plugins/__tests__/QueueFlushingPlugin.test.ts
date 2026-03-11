@@ -78,30 +78,6 @@ describe('QueueFlushingPlugin', () => {
     expect(queuePlugin.queueStore?.getState().events).toHaveLength(0);
   });
 
-  it('should cap the queue at 1000 events, dropping oldest first', async () => {
-    const onFlush = jest.fn();
-    const queuePlugin = setupQueuePlugin(onFlush, 10);
-
-    // Add 1001 events
-    for (let i = 0; i < 1001; i++) {
-      await queuePlugin.execute({
-        type: EventType.TrackEvent,
-        event: `test-${i}`,
-        messageId: `msg-${i}`,
-        properties: {},
-      } as HightouchEvent);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const events = queuePlugin.queueStore?.getState().events ?? [];
-    expect(events).toHaveLength(1000);
-    // Oldest event (msg-0) should have been dropped
-    expect(events[0]!.messageId).toBe('msg-1');
-    // Newest event should be the last one added
-    expect(events[events.length - 1]!.messageId).toBe('msg-1000');
-  });
-
   it('should dequeue events after deserialization (different object references)', async () => {
     const onFlush = jest.fn().mockResolvedValue(undefined);
     const queuePlugin = setupQueuePlugin(onFlush, 10);

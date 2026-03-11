@@ -4,8 +4,6 @@ import { defaultConfig } from '../constants';
 import { UtilityPlugin } from '../plugin';
 import { PluginType, HightouchEvent } from '../types';
 
-const MAX_QUEUE_SIZE = 1000;
-
 /**
  * This plugin manages a queue where all events get added to after timeline processing.
  * It takes a onFlush callback to trigger any action particular to your destination sending events.
@@ -20,22 +18,16 @@ export class QueueFlushingPlugin extends UtilityPlugin {
   private queueStore: Store<{ events: HightouchEvent[] }> | undefined;
   private onFlush: (events: HightouchEvent[]) => Promise<void>;
 
-  private onQueueOverflow?: (droppedEvents: HightouchEvent[]) => void;
-
   /**
    * @param onFlush callback to execute when the queue is flushed (either by reaching the limit or manually) e.g. code to upload events to your destination
-   * @param storeKey key used for persisting the queue
-   * @param onQueueOverflow optional callback invoked with events dropped when the queue exceeds its size cap
    */
   constructor(
     onFlush: (events: HightouchEvent[]) => Promise<void>,
-    storeKey = 'events',
-    onQueueOverflow?: (droppedEvents: HightouchEvent[]) => void
+    storeKey = 'events'
   ) {
     super();
     this.onFlush = onFlush;
     this.storeKey = storeKey;
-    this.onQueueOverflow = onQueueOverflow;
   }
 
   configure(analytics: HightouchClient): void {
@@ -59,11 +51,6 @@ export class QueueFlushingPlugin extends UtilityPlugin {
   async execute(event: HightouchEvent): Promise<HightouchEvent | undefined> {
     await this.queueStore?.dispatch((state) => {
       const events = [...state.events, event];
-      if (events.length > MAX_QUEUE_SIZE) {
-        const dropped = events.slice(0, events.length - MAX_QUEUE_SIZE);
-        this.onQueueOverflow?.(dropped);
-        return { events: events.slice(events.length - MAX_QUEUE_SIZE) };
-      }
       return { events };
     });
     return event;
