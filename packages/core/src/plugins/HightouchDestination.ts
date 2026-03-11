@@ -36,10 +36,15 @@ export class HightouchDestination extends DestinationPlugin {
   private isReady = false;
 
   /**
-   * Uploads a batch of events. Request-scoped errors (401/403/404) drop the
-   * entire batch immediately. Event-scoped errors (400) trigger a recursive
-   * bisect to isolate the bad event(s). Retryable errors (5xx/429) leave
-   * events in the queue for the next flush cycle.
+   * Uploads a batch of events with error-aware handling:
+   *
+   *  Error type                     | Action                  | Splits?
+   *  -------------------------------|-------------------------|--------
+   *  Success (2xx)                  | Return sent             | No
+   *  Retryable (429, 5xx, network)  | Leave in queue          | No
+   *  Request-scoped (401/403/404)   | Drop entire batch       | No
+   *  Event-scoped (400), single     | Drop the event          | No
+   *  Event-scoped (400), multi      | Bisect to isolate       | Yes
    */
   private uploadBatch = async (
     batch: HightouchEvent[],
