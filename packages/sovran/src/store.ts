@@ -144,6 +144,25 @@ export const createStore = <T extends object>(
       return;
     }
 
+    const saveDelay =
+      config.persist?.saveDelay ?? DEFAULT_SAVE_STATE_DELAY_IN_MS;
+
+    // When saveDelay is 0, write immediately without setTimeout.
+    // setTimeout schedules a macrotask that may never execute if the OS
+    // kills or suspends the app first. Immediate writes ensure critical
+    // data (like queued events) reaches disk before potential termination.
+    if (saveDelay === 0) {
+      void (async () => {
+        try {
+          await persistor.set(storeId, state);
+        } catch (error) {
+          console.warn(error);
+        }
+      })();
+      return;
+    }
+
+    // For non-zero saveDelay, debounce writes to avoid excessive I/O
     if (saveTimeout !== undefined) {
       clearTimeout(saveTimeout);
     }
@@ -156,7 +175,7 @@ export const createStore = <T extends object>(
           console.warn(error);
         }
       })();
-    }, config.persist?.saveDelay ?? DEFAULT_SAVE_STATE_DELAY_IN_MS);
+    }, saveDelay);
   };
 
   const observable = createObservable<T>();
