@@ -11,12 +11,23 @@ import { uploadEvents } from '../api';
 import type { HightouchClient } from '../analytics';
 import { QueueFlushingPlugin } from './QueueFlushingPlugin';
 import { defaultApiHost } from '../constants';
-import { checkResponseForErrors, translateHTTPError } from '../errors';
+import {
+  checkResponseForErrors,
+  isRequestScopedError,
+  isRetryableError,
+  translateHTTPError,
+} from '../errors';
 import { defaultConfig } from '../constants';
 
 const MAX_EVENTS_PER_BATCH = 100;
 const MAX_PAYLOAD_SIZE_IN_KB = 500;
 export const HIGHTOUCH_DESTINATION_KEY = 'Hightouch.io';
+
+interface UploadBatchResult {
+  sent: HightouchEvent[];
+  dropped: HightouchEvent[];
+  failed: number;
+}
 
 export class HightouchDestination extends DestinationPlugin {
   type = PluginType.destination;
@@ -24,9 +35,72 @@ export class HightouchDestination extends DestinationPlugin {
   private apiHost?: string;
   private isReady = false;
 
+  /**
+   * Uploads a batch of events with error-aware handling:
+   *
+   *  Error type                     | Action                  | Splits?
+   *  -------------------------------|-------------------------|--------
+   *  Success (2xx)                  | Return sent             | No
+   *  Retryable (429, 5xx, network)  | Leave in queue          | No
+   *  Request-scoped (401/403/404)   | Drop entire batch       | No
+   *  Event-scoped (400), single     | Drop the event          | No
+   *  Event-scoped (400), multi      | Bisect to isolate       | Yes
+   */
+  private uploadBatch = async (
+    batch: HightouchEvent[],
+    writeKey: string,
+    url: string
+  ): Promise<UploadBatchResult> => {
+    if (batch.length === 0) {
+      return { sent: [], dropped: [], failed: 0 };
+    }
+
+    try {
+      const res = await uploadEvents({ writeKey, url, events: batch });
+      checkResponseForErrors(res);
+      return { sent: batch, dropped: [], failed: 0 };
+    } catch (e) {
+      this.analytics?.reportInternalError(translateHTTPError(e));
+
+      if (isRetryableError(e)) {
+        return { sent: [], dropped: [], failed: batch.length };
+      }
+
+      // Request-scoped errors (401/403/404) affect all events equally —
+      // splitting cannot help, so drop the entire batch immediately.
+      if (isRequestScopedError(e)) {
+        const status =
+          e instanceof Error ? e.message : 'unknown';
+        this.analytics?.logger.error(
+          `Dropped ${batch.length} event(s) due to request-scoped error: ${status}`
+        );
+        return { sent: [], dropped: batch, failed: batch.length };
+      }
+
+      if (batch.length === 1) {
+        this.analytics?.logger.error(
+          `Dropped non-retryable event: ${batch[0]?.messageId}`
+        );
+        return { sent: [], dropped: batch, failed: 1 };
+      }
+
+      // Split in half to isolate the bad event(s) — only for 400 (validation)
+      const mid = Math.ceil(batch.length / 2);
+      const [left, right] = await Promise.all([
+        this.uploadBatch(batch.slice(0, mid), writeKey, url),
+        this.uploadBatch(batch.slice(mid), writeKey, url),
+      ]);
+
+      return {
+        sent: [...left.sent, ...right.sent],
+        dropped: [...left.dropped, ...right.dropped],
+        failed: left.failed + right.failed,
+      };
+    }
+  };
+
   private sendEvents = async (events: HightouchEvent[]): Promise<void> => {
     if (!this.isReady) {
-      // We're not sending events until Hightouch has loaded all settings
       return Promise.resolve();
     }
 
@@ -35,6 +109,8 @@ export class HightouchDestination extends DestinationPlugin {
     }
 
     const config = this.analytics?.getConfig() ?? defaultConfig;
+    const writeKey = config.writeKey;
+    const url = this.getEndpoint();
 
     const chunkedEvents: HightouchEvent[][] = chunk(
       events,
@@ -42,40 +118,37 @@ export class HightouchDestination extends DestinationPlugin {
       MAX_PAYLOAD_SIZE_IN_KB
     );
 
-    let sentEvents: HightouchEvent[] = [];
-    let numFailedEvents = 0;
+    let dequeuedEvents: HightouchEvent[] = [];
+    let numSent = 0;
+    let numDropped = 0;
+    let numFailed = 0;
 
     await Promise.all(
       chunkedEvents.map(async (batch: HightouchEvent[]) => {
-        try {
-          const res = await uploadEvents({
-            writeKey: config.writeKey,
-            url: this.getEndpoint(),
-            events: batch,
-          });
-          checkResponseForErrors(res);
-          sentEvents = sentEvents.concat(batch);
-        } catch (e) {
-          this.analytics?.reportInternalError(translateHTTPError(e));
-          this.analytics?.logger.warn(e);
-          numFailedEvents += batch.length;
-        } finally {
-          await this.queuePlugin.dequeue(sentEvents);
-        }
+        const result = await this.uploadBatch(batch, writeKey, url);
+        numSent += result.sent.length;
+        numDropped += result.dropped.length;
+        numFailed += result.failed;
+        dequeuedEvents = dequeuedEvents.concat(result.sent, result.dropped);
+        await this.queuePlugin.dequeue(dequeuedEvents);
       })
     );
 
-    if (sentEvents.length) {
-      if (config.debug === true) {
-        this.analytics?.logger.info(`Sent ${sentEvents.length} events`);
-      }
+    if (config.debug === true && numSent > 0) {
+      this.analytics?.logger.info(`Sent ${numSent} events`);
     }
 
-    if (numFailedEvents) {
-      this.analytics?.logger.error(`Failed to send ${numFailedEvents} events.`);
+    if (numDropped > 0) {
+      this.analytics?.logger.error(
+        `Dropped ${numDropped} non-retryable events.`
+      );
     }
 
-    return Promise.resolve();
+    if (numFailed > numDropped) {
+      this.analytics?.logger.error(
+        `Failed to send ${numFailed - numDropped} events.`
+      );
+    }
   };
 
   private readonly queuePlugin = new QueueFlushingPlugin(this.sendEvents);
