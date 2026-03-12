@@ -121,7 +121,6 @@ describe('init() resilience', () => {
     });
   });
 
-
   describe('onReady fault tolerance', () => {
     it('continues adding plugins when one fails to configure', async () => {
       const store = new MockHightouchStore();
