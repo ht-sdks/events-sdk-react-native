@@ -17,6 +17,19 @@ const currentContext = {
   },
 } as Context;
 
+async function flushMicrotasks(count = 20) {
+  for (let i = 0; i < count; i++) {
+    await Promise.resolve();
+  }
+}
+
+async function drainTimersAndMicrotasks(rounds = 15, ms = 5000) {
+  for (let i = 0; i < rounds; i++) {
+    jest.advanceTimersByTime(ms);
+    await flushMicrotasks();
+  }
+}
+
 describe('init() resilience', () => {
   beforeEach(() => {
     jest.spyOn(context, 'getContext').mockResolvedValue(currentContext);
@@ -49,13 +62,7 @@ describe('init() resilience', () => {
 
       const initPromise = client.init();
 
-      // Advance past storageReady timeout + any retry backoffs
-      for (let i = 0; i < 15; i++) {
-        jest.advanceTimersByTime(5000);
-        for (let j = 0; j < 20; j++) {
-          await Promise.resolve();
-        }
-      }
+      await drainTimersAndMicrotasks();
 
       await initPromise;
 
@@ -118,18 +125,9 @@ describe('init() resilience', () => {
 
       const initPromise = client.init();
 
-      // Flush microtasks to let first attempt fail and reach backoff setTimeout
-      for (let i = 0; i < 20; i++) {
-        await Promise.resolve();
-      }
-
-      // Advance past backoff delay (1s for first retry)
+      await flushMicrotasks();
       jest.advanceTimersByTime(2000);
-
-      // Flush microtasks for second attempt to complete
-      for (let i = 0; i < 20; i++) {
-        await Promise.resolve();
-      }
+      await flushMicrotasks();
 
       await initPromise;
 
@@ -158,13 +156,7 @@ describe('init() resilience', () => {
 
       const initPromise = client.init();
 
-      // Each retry needs: microtask flush (for attempt to fail) + timer advance (for backoff)
-      for (let i = 0; i < 15; i++) {
-        for (let j = 0; j < 20; j++) {
-          await Promise.resolve();
-        }
-        jest.advanceTimersByTime(5000);
-      }
+      await drainTimersAndMicrotasks();
 
       await initPromise;
 
@@ -298,16 +290,7 @@ describe('init() resilience', () => {
 
       const initPromise = client.init();
 
-      // Advance past storageReady timeout
-      jest.advanceTimersByTime(5000);
-      for (let i = 0; i < 20; i++) {
-        await Promise.resolve();
-      }
-      // Advance past any retry backoffs if needed
-      jest.advanceTimersByTime(10000);
-      for (let i = 0; i < 20; i++) {
-        await Promise.resolve();
-      }
+      await drainTimersAndMicrotasks();
 
       await initPromise;
 
@@ -357,14 +340,7 @@ describe('init() resilience', () => {
 
       const initPromise = client.init();
 
-      jest.advanceTimersByTime(5000);
-      for (let i = 0; i < 20; i++) {
-        await Promise.resolve();
-      }
-      jest.advanceTimersByTime(10000);
-      for (let i = 0; i < 20; i++) {
-        await Promise.resolve();
-      }
+      await drainTimersAndMicrotasks();
 
       await initPromise;
 
