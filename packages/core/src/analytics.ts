@@ -78,6 +78,9 @@ export class HightouchClient {
   // whether the user has called cleanup
   private destroyed = false;
 
+  private storageReadyTimeoutId?: ReturnType<typeof setTimeout>;
+  private storageReadyUnsubscribe?: () => void;
+
   private isAddingPlugins = false;
 
   private timeline: Timeline;
@@ -242,7 +245,10 @@ export class HightouchClient {
     timeout: number;
   }): Promise<boolean> {
     return new Promise((resolve) => {
-      const timer = setTimeout(() => {
+      this.storageReadyTimeoutId = setTimeout(() => {
+        this.storageReadyUnsubscribe?.();
+        this.storageReadyTimeoutId = undefined;
+        this.storageReadyUnsubscribe = undefined;
         this.store.cancelRestore?.();
         this.reportInternalError(
           new HightouchError(
@@ -253,8 +259,10 @@ export class HightouchClient {
         resolve(false);
       }, timeout);
 
-      this.store.isReady.onChange((value) => {
-        clearTimeout(timer);
+      this.storageReadyUnsubscribe = this.store.isReady.onChange((value) => {
+        clearTimeout(this.storageReadyTimeoutId);
+        this.storageReadyTimeoutId = undefined;
+        this.storageReadyUnsubscribe = undefined;
         resolve(value);
       });
     });
@@ -391,6 +399,8 @@ export class HightouchClient {
    * it gets approved: https://github.com/tc39/proposal-weakrefs#finalizers
    */
   cleanup() {
+    clearTimeout(this.storageReadyTimeoutId);
+    this.storageReadyUnsubscribe?.();
     this.flushPolicyExecuter.cleanup();
     this.appStateSubscription?.remove();
 
