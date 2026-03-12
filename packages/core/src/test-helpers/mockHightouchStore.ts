@@ -63,6 +63,7 @@ export function createMockStoreGetter<T>(fn: () => T) {
 export class MockHightouchStore implements Storage {
   private data: StoreData;
   private initialData: StoreData;
+  private isReadyCallback?: (value: boolean) => void;
 
   reset = () => {
     this.data = JSON.parse(JSON.stringify(this.initialData)) as StoreData;
@@ -73,6 +74,12 @@ export class MockHightouchStore implements Storage {
     this.initialData = JSON.parse(
       JSON.stringify({ ...INITIAL_VALUES, ...initialData })
     ) as StoreData;
+  }
+
+  simulateStorageReady() {
+    this.data.isReady = true;
+    this.isReadyCallback?.(true);
+    this.isReadyCallback = undefined;
   }
 
   private callbacks = {
@@ -94,9 +101,11 @@ export class MockHightouchStore implements Storage {
     onChange: (callback: (value: boolean) => void) => {
       if (this.data.isReady) {
         callback(true);
+      } else {
+        this.isReadyCallback = callback;
       }
       return () => {
-        return;
+        this.isReadyCallback = undefined;
       };
     },
   };

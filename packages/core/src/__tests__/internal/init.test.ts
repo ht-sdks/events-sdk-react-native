@@ -90,6 +90,35 @@ describe('init() resilience', () => {
 
       client.cleanup();
     });
+
+    it('completes init when storage becomes ready before timeout', async () => {
+      const store = new MockHightouchStore({ isReady: false });
+      const logger = getMockLogger();
+      const client = new HightouchClient({
+        config: {
+          writeKey: 'test-key',
+          trackAppLifecycleEvents: false,
+        },
+        logger,
+        store,
+      });
+
+      const initPromise = client.init();
+
+      // Advance well under the 5s timeout, then signal readiness
+      jest.advanceTimersByTime(500);
+      await flushMicrotasks();
+
+      store.simulateStorageReady();
+      await flushMicrotasks();
+
+      await initPromise;
+
+      expect(client.isReady.value).toBe(true);
+      expect(store.cancelRestore).not.toHaveBeenCalled();
+
+      client.cleanup();
+    });
   });
 
 
