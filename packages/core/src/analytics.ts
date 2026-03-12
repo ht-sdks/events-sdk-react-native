@@ -4,7 +4,12 @@ import {
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import { defaultFlushInterval, defaultFlushAt } from './constants';
+import {
+  defaultFlushInterval,
+  defaultFlushAt,
+  STORAGE_READY_TIMEOUT_MS,
+  MAX_INIT_RETRIES,
+} from './constants';
 import { getContext } from './context';
 import {
   createAliasEvent,
@@ -232,10 +237,23 @@ export class HightouchClient {
     this.setupLifecycleEvents();
   }
 
-  // Watch for isReady so that we can handle any pending events
-  private async storageReady(): Promise<boolean> {
+  private async storageReady(
+    timeout = STORAGE_READY_TIMEOUT_MS
+  ): Promise<boolean> {
     return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        this.store.cancelRestore?.();
+        this.reportInternalError(
+          new HightouchError(
+            ErrorType.InitializationError,
+            'Storage readiness timed out, proceeding with defaults'
+          )
+        );
+        resolve(false);
+      }, timeout);
+
       this.store.isReady.onChange((value) => {
+        clearTimeout(timer);
         resolve(value);
       });
     });
@@ -246,42 +264,54 @@ export class HightouchClient {
    * Can only be called once.
    */
   async init() {
-    try {
-      if (this.isReady.value) {
-        this.logger.warn('HightouchClient already initialized');
-        return;
-      }
-
-      if ((await this.store.isReady.get(true)) === false) {
-        await this.storageReady();
-      }
-
-      // Get new settings from hightouch
-      // It's important to run this before checkInstalledVersion and trackDeeplinks to give time for destination plugins
-      // which make use of the settings object to initialize
-      await this.fetchSettings();
-
-      await allSettled([
-        // save the current installed version
-        this.checkInstalledVersion(),
-        // check if the app was opened from a deep link
-        this.trackDeepLinks(),
-      ]);
-
-      await this.onReady();
-      this.isReady.value = true;
-
-      // flush any stored events
-      this.flushPolicyExecuter.manualFlush();
-    } catch (error) {
-      this.reportInternalError(
-        new HightouchError(
-          ErrorType.InitializationError,
-          'Client did not initialize correctly',
-          error
-        )
-      );
+    if (this.isReady.value) {
+      this.logger.warn('HightouchClient already initialized');
+      return;
     }
+
+    for (let attempt = 1; attempt <= MAX_INIT_RETRIES; attempt++) {
+      try {
+        if ((await this.store.isReady.get(true)) === false) {
+          await this.storageReady();
+        }
+
+        await this.fetchSettings();
+
+        await allSettled([this.checkInstalledVersion(), this.trackDeepLinks()]);
+
+        await this.onReady();
+        this.isReady.value = true;
+        this.flushPolicyExecuter.manualFlush();
+        return;
+      } catch (error) {
+        this.reportInternalError(
+          new HightouchError(
+            ErrorType.InitializationError,
+            `Init attempt ${attempt}/${MAX_INIT_RETRIES} failed`,
+            error
+          )
+        );
+        if (attempt < MAX_INIT_RETRIES) {
+          await new Promise<void>((r) =>
+            setTimeout(r, Math.min(1000 * 2 ** (attempt - 1), 5000))
+          );
+        }
+      }
+    }
+
+    this.reportInternalError(
+      new HightouchError(
+        ErrorType.InitializationError,
+        'All init retries exhausted, forcing ready state'
+      )
+    );
+    try {
+      await this.onReady();
+    } catch {
+      // onReady is already fault-tolerant; this catch is a final safety net
+    }
+    this.isReady.value = true;
+    this.flushPolicyExecuter.manualFlush();
   }
 
   /*
@@ -483,30 +513,43 @@ export class HightouchClient {
    * @param isReady
    */
   private async onReady() {
-    // Add all plugins awaiting store
     if (this.pluginsToAdd.length > 0 && !this.isAddingPlugins) {
       this.isAddingPlugins = true;
       try {
-        // start by adding the plugins
-        this.pluginsToAdd.forEach((plugin) => {
-          this.addPlugin(plugin);
-        });
-
-        // now that they're all added, clear the cache
-        // this prevents this block running for every update
+        for (const plugin of this.pluginsToAdd) {
+          try {
+            this.addPlugin(plugin);
+          } catch (error) {
+            this.reportInternalError(
+              new HightouchError(
+                ErrorType.PluginError,
+                'Failed to add plugin during onReady',
+                error
+              )
+            );
+          }
+        }
         this.pluginsToAdd = [];
       } finally {
         this.isAddingPlugins = false;
       }
     }
 
-    // Send all events in the queue
     const pending = await this.store.pendingEvents.get(true);
     for (const e of pending) {
-      await this.startTimelineProcessing(e);
+      try {
+        await this.startTimelineProcessing(e);
+      } catch (error) {
+        this.reportInternalError(
+          new HightouchError(
+            ErrorType.InitializationError,
+            'Failed to replay pending event during onReady',
+            error
+          )
+        );
+      }
       await this.store.pendingEvents.remove(e);
     }
-    // this.store.pendingEvents.set([]);
   }
 
   async flush(): Promise<void> {
