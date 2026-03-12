@@ -15,4 +15,3 @@ export const defaultFlushAt = 20;
 export const defaultFlushInterval = 30;
 
 export const STORAGE_READY_TIMEOUT_MS = 5_000;
-export const MAX_INIT_RETRIES = 3;
