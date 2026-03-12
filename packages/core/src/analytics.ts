@@ -237,7 +237,7 @@ export class HightouchClient {
     this.setupLifecycleEvents();
   }
 
-  private async storageReady(
+  private async waitForStorageReady(
     timeout = STORAGE_READY_TIMEOUT_MS
   ): Promise<boolean> {
     return new Promise((resolve) => {
@@ -271,13 +271,26 @@ export class HightouchClient {
 
     for (let attempt = 1; attempt <= MAX_INIT_RETRIES; attempt++) {
       try {
-        if ((await this.store.isReady.get(true)) === false) {
-          await this.storageReady();
+        // store.isReady tracks whether the *storage layer* has finished restoring
+        // persisted data from AsyncStorage. On retries, storage may have resolved
+        // between attempts, so we skip the wait if it's already ready.
+        const storageRestored = await this.store.isReady.get(true);
+        if (!storageRestored) {
+          await this.waitForStorageReady();
         }
 
+        // Get new settings from hightouch
+        // It's important to run this before checkInstalledVersion and
+        // trackDeepLinks to give time for destination plugins which make
+        // use of the settings object to initialize
         await this.fetchSettings();
 
-        await allSettled([this.checkInstalledVersion(), this.trackDeepLinks()]);
+        await allSettled([
+          // save the current installed version
+          this.checkInstalledVersion(),
+          // check if the app was opened from a deep link
+          this.trackDeepLinks(),
+        ]);
 
         await this.onReady();
         this.isReady.value = true;
@@ -299,6 +312,8 @@ export class HightouchClient {
       }
     }
 
+    // All retries failed — force the client into a ready state so events
+    // flow through the timeline rather than queuing in pendingEvents forever.
     this.reportInternalError(
       new HightouchError(
         ErrorType.InitializationError,
