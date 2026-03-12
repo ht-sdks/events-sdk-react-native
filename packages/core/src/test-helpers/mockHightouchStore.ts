@@ -91,12 +91,17 @@ export class MockHightouchStore implements Storage {
     get: createMockStoreGetter(() => {
       return this.data.isReady;
     }),
-    onChange: (_callback: (value: boolean) => void) => {
+    onChange: (callback: (value: boolean) => void) => {
+      if (this.data.isReady) {
+        callback(true);
+      }
       return () => {
         return;
       };
     },
   };
+
+  cancelRestore = jest.fn();
 
   readonly context: Watchable<DeepPartial<Context> | undefined> &
     Settable<DeepPartial<Context>> = {
