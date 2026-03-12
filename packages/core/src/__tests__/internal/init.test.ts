@@ -6,10 +6,6 @@ import { UtilityPlugin } from '../../plugin';
 
 jest.mock('uuid');
 
-jest
-  .spyOn(Date.prototype, 'toISOString')
-  .mockReturnValue('2010-01-01T00:00:00.000Z');
-
 const currentContext = {
   app: {
     version: '1.0',
@@ -32,6 +28,9 @@ async function drainTimersAndMicrotasks(rounds = 15, ms = 5000) {
 
 describe('init() resilience', () => {
   beforeEach(() => {
+    jest
+      .spyOn(Date.prototype, 'toISOString')
+      .mockReturnValue('2010-01-01T00:00:00.000Z');
     jest.spyOn(context, 'getContext').mockResolvedValue(currentContext);
   });
 
@@ -253,6 +252,10 @@ describe('init() resilience', () => {
       await client.init();
 
       expect(client.isReady.value).toBe(true);
+      // @ts-ignore
+      expect(client.startTimelineProcessing).toHaveBeenCalledWith(
+        expect.objectContaining({ messageId: 'good-event' })
+      );
       expect(store.pendingEvents.get().length).toBe(0);
 
       client.cleanup();
