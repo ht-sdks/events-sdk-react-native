@@ -444,6 +444,15 @@ export class SovranStorage implements Storage {
     this.fixAnonymousId();
   }
 
+  cancelRestore = () => {
+    this.contextStore.cancelRestore?.();
+    this.settingsStore.cancelRestore?.();
+    this.consentSettingsStore.cancelRestore?.();
+    this.userInfoStore.cancelRestore?.();
+    this.filtersStore.cancelRestore?.();
+    this.pendingStore.cancelRestore?.();
+  };
+
   /**
    * This is a fix for users that have started the app with the anonymousId set to 'anonymousId' bug
    */

@@ -411,6 +411,95 @@ describe('Sovran', () => {
       expect(onInitialized).toHaveBeenCalledWith({ events: [] });
     });
 
+    it('cancelRestore prevents persisted state from merging', async () => {
+      const persistedState = { events: [{ id: '1', description: 'persisted' }] };
+      let resolveGet: (value: EventStore) => void;
+      const delayedGet = <T>(_key: string): Promise<T | undefined> =>
+        new Promise((resolve) => {
+          resolveGet = resolve as unknown as (value: EventStore) => void;
+        });
+      const delayedPersistor: Persistor = {
+        get: jest.fn().mockImplementation(delayedGet),
+        set: jest.fn(),
+      };
+
+      const onInitialized = jest.fn();
+      const sovran = createStore<EventStore>(
+        { events: [] },
+        {
+          persist: {
+            storeId: 'cancelTest',
+            persistor: delayedPersistor,
+            onInitialized,
+          },
+        }
+      );
+
+      sovran.cancelRestore?.();
+
+      resolveGet!(persistedState);
+
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(onInitialized).toHaveBeenCalledTimes(1);
+      expect(onInitialized).toHaveBeenCalledWith({ events: [] });
+      expect(sovran.getState()).toEqual({ events: [] });
+    });
+
+    it('cancelRestore is idempotent', () => {
+      const sovran = createStore<EventStore>(
+        { events: [] },
+        {
+          persist: {
+            storeId: 'idempotentTest',
+            persistor: {
+              get: jest.fn().mockResolvedValue(undefined),
+              set: jest.fn(),
+            },
+          },
+        }
+      );
+
+      expect(() => {
+        sovran.cancelRestore?.();
+        sovran.cancelRestore?.();
+        sovran.cancelRestore?.();
+      }).not.toThrow();
+    });
+
+    it('normal persistence still works after cancelRestore', async () => {
+      const ID = 'persistAfterCancelTest';
+      const mockPersistor: Persistor = {
+        get: jest.fn().mockResolvedValue(undefined),
+        set: jest.fn().mockResolvedValue(undefined),
+      };
+
+      const sovran = await getAwaitableSovranConstructor<EventStore>(
+        { events: [] },
+        {
+          persist: {
+            storeId: ID,
+            saveDelay: 0,
+            persistor: mockPersistor,
+          },
+        }
+      );
+
+      sovran.cancelRestore?.();
+
+      const newEvent = { id: '1', description: 'new' };
+      await sovran.dispatch((state) => ({
+        events: [...state.events, newEvent],
+      }));
+
+      expect(mockPersistor.set).toHaveBeenCalledWith(ID, {
+        events: [newEvent],
+      });
+    });
+
     it('saves initial state if storage is empty on startup', async () => {
       const ID = 'persistorTest';
       const INTERVAL = 5000;

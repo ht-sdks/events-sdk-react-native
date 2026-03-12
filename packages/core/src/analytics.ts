@@ -4,7 +4,11 @@ import {
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import { defaultFlushInterval, defaultFlushAt } from './constants';
+import {
+  defaultFlushInterval,
+  defaultFlushAt,
+  STORAGE_READY_TIMEOUT_MS,
+} from './constants';
 import { getContext } from './context';
 import {
   createAliasEvent,
@@ -73,6 +77,9 @@ export class HightouchClient {
 
   // whether the user has called cleanup
   private destroyed = false;
+
+  private storageReadyTimeoutId?: ReturnType<typeof setTimeout>;
+  private storageReadyUnsubscribe?: () => void;
 
   private isAddingPlugins = false;
 
@@ -232,10 +239,30 @@ export class HightouchClient {
     this.setupLifecycleEvents();
   }
 
-  // Watch for isReady so that we can handle any pending events
-  private async storageReady(): Promise<boolean> {
+  private async waitForStorageReady({
+    timeout,
+  }: {
+    timeout: number;
+  }): Promise<boolean> {
     return new Promise((resolve) => {
-      this.store.isReady.onChange((value) => {
+      this.storageReadyTimeoutId = setTimeout(() => {
+        this.storageReadyUnsubscribe?.();
+        this.storageReadyTimeoutId = undefined;
+        this.storageReadyUnsubscribe = undefined;
+        this.store.cancelRestore?.();
+        this.reportInternalError(
+          new HightouchError(
+            ErrorType.InitializationError,
+            'Storage readiness timed out, proceeding with defaults'
+          )
+        );
+        resolve(false);
+      }, timeout);
+
+      this.storageReadyUnsubscribe = this.store.isReady.onChange((value) => {
+        clearTimeout(this.storageReadyTimeoutId);
+        this.storageReadyTimeoutId = undefined;
+        this.storageReadyUnsubscribe = undefined;
         resolve(value);
       });
     });
@@ -246,19 +273,20 @@ export class HightouchClient {
    * Can only be called once.
    */
   async init() {
+    if (this.isReady.value) {
+      this.logger.warn('HightouchClient already initialized');
+      return;
+    }
+
     try {
-      if (this.isReady.value) {
-        this.logger.warn('HightouchClient already initialized');
-        return;
+      // store.isReady tracks whether the *storage layer* has finished restoring
+      // persisted data from AsyncStorage.
+      const storageRestored = await this.store.isReady.get(true);
+      if (!storageRestored) {
+        await this.waitForStorageReady({ timeout: STORAGE_READY_TIMEOUT_MS });
       }
 
-      if ((await this.store.isReady.get(true)) === false) {
-        await this.storageReady();
-      }
-
-      // Get new settings from hightouch
-      // It's important to run this before checkInstalledVersion and trackDeeplinks to give time for destination plugins
-      // which make use of the settings object to initialize
+      // Sets up the default Hightouch destination
       await this.fetchSettings();
 
       await allSettled([
@@ -267,21 +295,34 @@ export class HightouchClient {
         // check if the app was opened from a deep link
         this.trackDeepLinks(),
       ]);
-
-      await this.onReady();
-      this.isReady.value = true;
-
-      // flush any stored events
-      this.flushPolicyExecuter.manualFlush();
     } catch (error) {
       this.reportInternalError(
         new HightouchError(
           ErrorType.InitializationError,
-          'Client did not initialize correctly',
+          'init failed, continuing to set ready state',
           error
         )
       );
     }
+
+    // onReady registers queued plugins (including HightouchDestination) into the
+    // timeline. It gets its own try/catch so that a failure above (e.g. in
+    // fetchSettings) doesn't prevent plugin registration — without destination
+    // plugins, events would flow through the timeline and go nowhere.
+    try {
+      await this.onReady();
+    } catch (error) {
+      this.reportInternalError(
+        new HightouchError(
+          ErrorType.InitializationError,
+          'onReady failed, continuing to set ready state',
+          error
+        )
+      );
+    }
+
+    this.isReady.value = true;
+    this.flushPolicyExecuter.manualFlush();
   }
 
   /*
@@ -358,6 +399,8 @@ export class HightouchClient {
    * it gets approved: https://github.com/tc39/proposal-weakrefs#finalizers
    */
   cleanup() {
+    clearTimeout(this.storageReadyTimeoutId);
+    this.storageReadyUnsubscribe?.();
     this.flushPolicyExecuter.cleanup();
     this.appStateSubscription?.remove();
 
@@ -483,30 +526,43 @@ export class HightouchClient {
    * @param isReady
    */
   private async onReady() {
-    // Add all plugins awaiting store
     if (this.pluginsToAdd.length > 0 && !this.isAddingPlugins) {
       this.isAddingPlugins = true;
       try {
-        // start by adding the plugins
-        this.pluginsToAdd.forEach((plugin) => {
-          this.addPlugin(plugin);
-        });
-
-        // now that they're all added, clear the cache
-        // this prevents this block running for every update
+        for (const plugin of this.pluginsToAdd) {
+          try {
+            this.addPlugin(plugin);
+          } catch (error) {
+            this.reportInternalError(
+              new HightouchError(
+                ErrorType.PluginError,
+                'Failed to add plugin during onReady',
+                error
+              )
+            );
+          }
+        }
         this.pluginsToAdd = [];
       } finally {
         this.isAddingPlugins = false;
       }
     }
 
-    // Send all events in the queue
     const pending = await this.store.pendingEvents.get(true);
     for (const e of pending) {
-      await this.startTimelineProcessing(e);
+      try {
+        await this.startTimelineProcessing(e);
+      } catch (error) {
+        this.reportInternalError(
+          new HightouchError(
+            ErrorType.InitializationError,
+            'Failed to replay pending event during onReady',
+            error
+          )
+        );
+      }
       await this.store.pendingEvents.remove(e);
     }
-    // this.store.pendingEvents.set([]);
   }
 
   async flush(): Promise<void> {

@@ -76,6 +76,12 @@ export interface Store<T extends object> {
    * @returns {T | Promise<T>} state, or a promise for the state if executed async in the queue
    */
   getState: getStateFunc<T>;
+  /**
+   * Cancel any in-flight persistence restoration. Prevents late-arriving
+   * persisted state from merging into the store after a timeout.
+   * Normal persistence (writes on state change) is unaffected.
+   */
+  cancelRestore?: () => void;
 }
 
 /**
@@ -114,10 +120,16 @@ export const createStore = <T extends object>(
     ? config.persist!.storeId
     : DEFAULT_STORE_NAME;
 
+  let restorationCancelled = false;
+
   if (isPersisted) {
     persistor
       .get<T>(storeId)
       .then(async (persistedState) => {
+        if (restorationCancelled) {
+          config?.persist?.onInitialized?.(getState());
+          return;
+        }
         if (
           persistedState !== undefined &&
           persistedState !== null &&
@@ -138,6 +150,10 @@ export const createStore = <T extends object>(
         config?.persist?.onInitialized?.(getState());
       });
   }
+
+  const cancelRestore = () => {
+    restorationCancelled = true;
+  };
 
   const updatePersistor = (state: T) => {
     if (config === undefined) {
@@ -251,5 +267,6 @@ export const createStore = <T extends object>(
     subscribe,
     dispatch,
     getState,
+    cancelRestore,
   };
 };

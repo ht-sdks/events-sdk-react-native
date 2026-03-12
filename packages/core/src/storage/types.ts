@@ -88,6 +88,8 @@ export interface Storage {
   readonly pendingEvents: Watchable<HightouchEvent[]> &
     Settable<HightouchEvent[]> &
     Queue<HightouchEvent, HightouchEvent[]>;
+
+  cancelRestore?: () => void;
 }
 export type DeepLinkData = {
   referring_application: string;
