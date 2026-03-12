@@ -63,4 +63,5 @@ jobs:
           git add examples/E2E/yarn.lock
           git add examples/AnalyticsReactNativeExample/yarn.lock
           git commit -m "chore(release): update lockfiles [skip ci]" --no-verify
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push
