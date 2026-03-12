@@ -57,6 +57,8 @@ jobs:
 
       - name: Commit Updated App Locks
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add yarn.lock
           git add examples/E2E/yarn.lock
           git add examples/AnalyticsReactNativeExample/yarn.lock
