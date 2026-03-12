@@ -8,7 +8,6 @@ import {
   defaultFlushInterval,
   defaultFlushAt,
   STORAGE_READY_TIMEOUT_MS,
-  MAX_INIT_RETRIES,
 } from './constants';
 import { getContext } from './context';
 import {
@@ -237,9 +236,11 @@ export class HightouchClient {
     this.setupLifecycleEvents();
   }
 
-  private async waitForStorageReady(
-    timeout = STORAGE_READY_TIMEOUT_MS
-  ): Promise<boolean> {
+  private async waitForStorageReady({
+    timeout,
+  }: {
+    timeout: number;
+  }): Promise<boolean> {
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
         this.store.cancelRestore?.();
@@ -269,62 +270,49 @@ export class HightouchClient {
       return;
     }
 
-    for (let attempt = 1; attempt <= MAX_INIT_RETRIES; attempt++) {
-      try {
-        // store.isReady tracks whether the *storage layer* has finished restoring
-        // persisted data from AsyncStorage. On retries, storage may have resolved
-        // between attempts, so we skip the wait if it's already ready.
-        const storageRestored = await this.store.isReady.get(true);
-        if (!storageRestored) {
-          await this.waitForStorageReady();
-        }
-
-        // Get new settings from hightouch
-        // It's important to run this before checkInstalledVersion and
-        // trackDeepLinks to give time for destination plugins which make
-        // use of the settings object to initialize
-        await this.fetchSettings();
-
-        await allSettled([
-          // save the current installed version
-          this.checkInstalledVersion(),
-          // check if the app was opened from a deep link
-          this.trackDeepLinks(),
-        ]);
-
-        await this.onReady();
-        this.isReady.value = true;
-        this.flushPolicyExecuter.manualFlush();
-        return;
-      } catch (error) {
-        this.reportInternalError(
-          new HightouchError(
-            ErrorType.InitializationError,
-            `Init attempt ${attempt}/${MAX_INIT_RETRIES} failed`,
-            error
-          )
-        );
-        if (attempt < MAX_INIT_RETRIES) {
-          await new Promise<void>((r) =>
-            setTimeout(r, Math.min(1000 * 2 ** (attempt - 1), 5000))
-          );
-        }
+    try {
+      // store.isReady tracks whether the *storage layer* has finished restoring
+      // persisted data from AsyncStorage.
+      const storageRestored = await this.store.isReady.get(true);
+      if (!storageRestored) {
+        await this.waitForStorageReady({ timeout: STORAGE_READY_TIMEOUT_MS });
       }
+
+      // Sets up the default Hightouch destination
+      await this.fetchSettings();
+
+      await allSettled([
+        // save the current installed version
+        this.checkInstalledVersion(),
+        // check if the app was opened from a deep link
+        this.trackDeepLinks(),
+      ]);
+    } catch (error) {
+      this.reportInternalError(
+        new HightouchError(
+          ErrorType.InitializationError,
+          'init failed, continuing to set ready state',
+          error
+        )
+      );
     }
 
-    // All retries failed — force the client into a ready state so events
-    // flow through the timeline rather than queuing in pendingEvents forever.
-    this.reportInternalError(
-      new HightouchError(
-        ErrorType.InitializationError,
-        'All init retries exhausted, forcing ready state'
-      )
-    );
+    // onReady registers queued plugins (including HightouchDestination) into the
+    // timeline. It gets its own try/catch so that a failure above (e.g. in
+    // fetchSettings) doesn't prevent plugin registration — without destination
+    // plugins, events would flow through the timeline and go nowhere.
     try {
       await this.onReady();
-    } catch {
-      // onReady is already fault-tolerant; this catch is a final safety net
+    } catch (error) {
+      this.reportInternalError(
+        new HightouchError(
+          ErrorType.InitializationError,
+          'onReady failed, continuing to set ready state',
+          error
+        )
+      );
     }
+
     this.isReady.value = true;
     this.flushPolicyExecuter.manualFlush();
   }
