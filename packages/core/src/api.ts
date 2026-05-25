@@ -18,6 +18,10 @@ export const uploadEvents = async ({
   try {
     return await fetch(url, {
       method: 'POST',
+      // In theory, keepalive lets the runtime finish the request even if the app backgrounds.
+      // In practice, react-native's fetch implementation does not support keepalive.
+      // Doesn't hurt though in case that changes.
+      keepalive: true,
       body: JSON.stringify({
         batch: events,
         sentAt: new Date().toISOString(),

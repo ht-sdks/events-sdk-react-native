@@ -1,10 +1,13 @@
 import { HightouchClient } from '../../analytics';
 import * as context from '../../context';
-import { getMockLogger, MockHightouchStore } from '../../test-helpers';
+import { getMockLogger } from '../../test-helpers/mockLogger';
+import { MockHightouchStore } from '../../test-helpers/mockHightouchStore';
 import { PluginType, Context, EventType } from '../../types';
 import { UtilityPlugin } from '../../plugin';
 
 jest.mock('uuid');
+
+const nowIso = Date.prototype.toISOString.bind(new Date());
 
 const currentContext = {
   app: {
@@ -164,21 +167,22 @@ describe('init() resilience', () => {
       client.cleanup();
     });
 
-    it('continues replaying events when one fails', async () => {
+    it('preserves failed pending events while continuing to replay later events', async () => {
+      const freshTimestamp = nowIso();
       const store = new MockHightouchStore({
         pendingEvents: [
           {
             messageId: 'bad-event',
             type: EventType.TrackEvent,
             event: 'Bad Event',
-            timestamp: '2010-01-01T00:00:00.000Z',
+            timestamp: freshTimestamp,
             integrations: {},
           },
           {
             messageId: 'good-event',
             type: EventType.TrackEvent,
             event: 'Good Event',
-            timestamp: '2010-01-01T00:00:00.000Z',
+            timestamp: freshTimestamp,
             integrations: {},
           },
         ],
@@ -212,7 +216,60 @@ describe('init() resilience', () => {
       expect(client.startTimelineProcessing).toHaveBeenCalledWith(
         expect.objectContaining({ messageId: 'good-event' })
       );
-      expect(store.pendingEvents.get().length).toBe(0);
+      expect(store.pendingEvents.get()).toEqual([
+        expect.objectContaining({ messageId: 'bad-event' }),
+      ]);
+
+      client.cleanup();
+    });
+
+    it('drops pending events older than the max retention window', async () => {
+      const staleTimestamp = new Date(
+        Date.now() - 8 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      const freshTimestamp = nowIso();
+      const store = new MockHightouchStore({
+        pendingEvents: [
+          {
+            messageId: 'stale-event',
+            type: EventType.TrackEvent,
+            event: 'Stale Event',
+            timestamp: staleTimestamp,
+            integrations: {},
+          },
+          {
+            messageId: 'fresh-event',
+            type: EventType.TrackEvent,
+            event: 'Fresh Event',
+            timestamp: freshTimestamp,
+            integrations: {},
+          },
+        ],
+      });
+      const client = new HightouchClient({
+        config: {
+          writeKey: 'test-key',
+          trackAppLifecycleEvents: false,
+          autoAddHightouchDestination: false,
+        },
+        logger: getMockLogger(),
+        store,
+      });
+
+      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      client.startTimelineProcessing = jest.fn(async (event: any) => event);
+
+      await client.init();
+
+      // Stale event removed without being replayed; fresh event replayed and removed.
+      expect(store.pendingEvents.get()).toEqual([]);
+      // @ts-ignore
+      expect(client.startTimelineProcessing).toHaveBeenCalledTimes(1);
+      // @ts-ignore
+      expect(client.startTimelineProcessing).toHaveBeenCalledWith(
+        expect.objectContaining({ messageId: 'fresh-event' })
+      );
 
       client.cleanup();
     });
