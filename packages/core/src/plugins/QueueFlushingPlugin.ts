@@ -17,7 +17,9 @@ class ReadySignal {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     this.opened = new Promise<void>((resolve, reject) => {
       this.resolveOpened = () => {
-        if (timeoutId !== undefined) clearTimeout(timeoutId);
+        if (timeoutId !== undefined) {
+          clearTimeout(timeoutId);
+        }
         resolve();
       };
       if (timeoutMs !== undefined) {
@@ -28,7 +30,7 @@ class ReadySignal {
       }
     });
     // Swallow unhandled-rejection from the timeout; wait() observes it.
-    this.opened.catch(() => {});
+    this.opened.catch(() => undefined);
   }
 
   /** Marks the signal as ready, releasing all current and future waiters. */
