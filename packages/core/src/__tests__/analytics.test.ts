@@ -204,7 +204,7 @@ describe('HightouchClient', () => {
       expect(flushPolicies.length).toBe(1);
     });
 
-    it('setting flushAt/Interval to 0 keeps only the lifecycle defaults', () => {
+    it('setting flushAt/Interval to 0 opts out of auto-flush entirely', () => {
       client = new HightouchClient({
         ...clientArgs,
         config: {
@@ -214,8 +214,8 @@ describe('HightouchClient', () => {
         },
       });
       const flushPolicies = client.getFlushPolicies();
-      // Startup + Background; pass `flushPolicies: []` to opt out entirely.
-      expect(flushPolicies.length).toBe(2);
+      // Disabling both Count and Timer skips the lifecycle defaults too.
+      expect(flushPolicies.length).toBe(0);
     });
 
     it('setting an empty array of policies should make the client have no uploads', () => {

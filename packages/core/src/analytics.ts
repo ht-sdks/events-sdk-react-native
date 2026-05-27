@@ -885,6 +885,9 @@ export class HightouchClient {
    *   - TimerFlushPolicy(flushInterval ?? defaultFlushInterval) for idle flushing
    *   - StartupFlushPolicy() to re-deliver events persisted from a prior session
    *   - BackgroundFlushPolicy() to flush before the OS suspends the app
+   *
+   * If the caller explicitly disables both flushAt and flushInterval (e.g. set both to 0),
+   * we treat that as an opt-out of auto-flush entirely and skip the lifecycle defaults too.
    */
   private setupFlushPolicies() {
     const flushPolicies: FlushPolicy[] = [];
@@ -912,8 +915,13 @@ export class HightouchClient {
         );
       }
 
-      flushPolicies.push(new StartupFlushPolicy());
-      flushPolicies.push(new BackgroundFlushPolicy());
+      // Only layer on the lifecycle defaults if the caller hasn't explicitly
+      // disabled both Count and Timer — otherwise they've opted out of
+      // auto-flush and we shouldn't sneak flushes back in via lifecycle hooks.
+      if (flushPolicies.length > 0) {
+        flushPolicies.push(new StartupFlushPolicy());
+        flushPolicies.push(new BackgroundFlushPolicy());
+      }
     }
 
     this.flushPolicyExecuter = new FlushPolicyExecuter(flushPolicies, () => {
