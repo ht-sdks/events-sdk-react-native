@@ -7,46 +7,62 @@ import { PluginType, HightouchEvent } from '../types';
 
 const DEFAULT_RESTORE_TIMEOUT_MS = 1000;
 
-/** A one-shot readiness signal you can wait on, with an optional timeout. */
+/** A one-shot readiness signal you can wait on, with a timeout. */
 class ReadySignal {
   private readonly opened: Promise<void>;
   private resolveOpened!: () => void;
-  private errorReported = false;
+  private isOpen = false;
+  private timeoutPromise?: Promise<void>;
+  private timeoutId?: ReturnType<typeof setTimeout>;
+  private timeoutReported = false;
 
-  constructor(timeoutMs?: number) {
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    this.opened = new Promise<void>((resolve, reject) => {
-      this.resolveOpened = () => {
-        if (timeoutId !== undefined) {
-          clearTimeout(timeoutId);
-        }
-        resolve();
-      };
-      if (timeoutMs !== undefined) {
-        timeoutId = setTimeout(
-          () => reject(new Error(`ReadySignal timed out after ${timeoutMs}ms`)),
-          timeoutMs
-        );
-      }
+  constructor(private readonly timeoutMs: number) {
+    this.opened = new Promise<void>((resolve) => {
+      this.resolveOpened = resolve;
     });
-    // Swallow unhandled-rejection from the timeout; wait() observes it.
-    this.opened.catch(() => undefined);
   }
 
   /** Marks the signal as ready, releasing all current and future waiters. */
   open(): void {
+    if (this.isOpen) {
+      return;
+    }
+    this.isOpen = true;
+    if (this.timeoutId !== undefined) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = undefined;
+    }
     this.resolveOpened();
   }
 
-  /** Resolves when opened, or runs onError (at most once) if the timeout fires first. */
-  async wait(onError?: (e: unknown) => void): Promise<void> {
+  /**
+   * Resolves when opened, or when the timeout fires.
+   * Invokes onTimeout (at most once across all waiters) if the timeout wins.
+   * Errors thrown by onTimeout are swallowed; wait() never rejects.
+   */
+  async wait(onTimeout?: (e: Error) => void): Promise<void> {
+    if (this.isOpen) {
+      return;
+    }
+
+    this.timeoutPromise ??= new Promise<void>((resolve) => {
+      this.timeoutId = setTimeout(() => {
+        this.timeoutId = undefined;
+        resolve();
+      }, this.timeoutMs);
+    });
+
+    await Promise.race([this.opened, this.timeoutPromise]);
+
+    if (this.isOpen || this.timeoutReported) {
+      return;
+    }
+
+    this.timeoutReported = true;
     try {
-      await this.opened;
-    } catch (e) {
-      if (onError !== undefined && !this.errorReported) {
-        this.errorReported = true;
-        onError(e);
-      }
+      onTimeout?.(new Error(`ReadySignal timed out after ${this.timeoutMs}ms`));
+    } catch {
+      // best-effort: don't let timeout reporting fail the wait
     }
   }
 }

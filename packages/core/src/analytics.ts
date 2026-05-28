@@ -915,9 +915,8 @@ export class HightouchClient {
         );
       }
 
-      // Only layer on the lifecycle defaults if the caller hasn't explicitly
-      // disabled both Count and Timer — otherwise they've opted out of
-      // auto-flush and we shouldn't sneak flushes back in via lifecycle hooks.
+      // If the caller explicitly disables both flushAt and flushInterval (e.g. set both to 0),
+      // we treat that as an opt-out of auto-flush entirely and skip the lifecycle defaults too.
       if (flushPolicies.length > 0) {
         flushPolicies.push(new StartupFlushPolicy());
         flushPolicies.push(new BackgroundFlushPolicy());
