@@ -918,6 +918,8 @@ export class HightouchClient {
       // If the caller explicitly disables both flushAt and flushInterval (e.g. set both to 0),
       // we treat that as an opt-out of auto-flush entirely and skip the lifecycle defaults too.
       if (flushPolicies.length > 0) {
+        // Enabled by default: flush on app startup and when backgrounded so queued
+        // events aren't stranded across launches or when the app loses foreground.
         flushPolicies.push(new StartupFlushPolicy());
         flushPolicies.push(new BackgroundFlushPolicy());
       }
