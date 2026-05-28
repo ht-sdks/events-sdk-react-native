@@ -7,6 +7,7 @@ import {
 import {
   defaultFlushInterval,
   defaultFlushAt,
+  MAX_PENDING_EVENT_AGE_MS,
   STORAGE_READY_TIMEOUT_MS,
 } from './constants';
 import { getContext } from './context';
@@ -18,8 +19,10 @@ import {
   createTrackEvent,
 } from './events';
 import {
+  BackgroundFlushPolicy,
   CountFlushPolicy,
   Observable,
+  StartupFlushPolicy,
   TimerFlushPolicy,
 } from './flushPolicies';
 import { FlushPolicyExecuter } from './flushPolicies/flush-policy-executer';
@@ -81,11 +84,19 @@ export class HightouchClient {
   private storageReadyTimeoutId?: ReturnType<typeof setTimeout>;
   private storageReadyUnsubscribe?: () => void;
 
+  private initPromise?: Promise<void>;
+
   private isAddingPlugins = false;
 
   private timeline: Timeline;
 
   private pluginsToAdd: Plugin[] = [];
+
+  // Number of active process() calls to allow draining the queue before flushing.
+  // Otherwise `void track(...); void flush();` would snapshot the queue before the track has dispatched.
+  // Same for CountFlushPolicy() on the final event.
+  private inFlightProcessCount = 0;
+  private inFlightProcessObservers: Array<() => void> = [];
 
   private flushPolicyExecuter!: FlushPolicyExecuter;
 
@@ -143,15 +154,13 @@ export class HightouchClient {
     if (ofType !== undefined) {
       return [...(plugins[ofType] ?? [])];
     }
-    return (
-      [
-        ...this.getPlugins(PluginType.before),
-        ...this.getPlugins(PluginType.enrichment),
-        ...this.getPlugins(PluginType.utility),
-        ...this.getPlugins(PluginType.destination),
-        ...this.getPlugins(PluginType.after),
-      ] ?? []
-    );
+    return [
+      ...this.getPlugins(PluginType.before),
+      ...this.getPlugins(PluginType.enrichment),
+      ...this.getPlugins(PluginType.utility),
+      ...this.getPlugins(PluginType.destination),
+      ...this.getPlugins(PluginType.after),
+    ];
   }
 
   /**
@@ -270,9 +279,18 @@ export class HightouchClient {
 
   /**
    * Initializes the client plugins, settings and subscribers.
-   * Can only be called once.
+   * Multiple calls to init() are ignored and return the same promise.
    */
-  async init() {
+  async init(): Promise<void> {
+    if (this.initPromise !== undefined) {
+      return this.initPromise;
+    }
+
+    this.initPromise = this.runInit();
+    return this.initPromise;
+  }
+
+  private async runInit(): Promise<void> {
     if (this.isReady.value) {
       this.logger.warn('HightouchClient already initialized');
       return;
@@ -321,8 +339,20 @@ export class HightouchClient {
       );
     }
 
-    this.isReady.value = true;
-    this.flushPolicyExecuter.manualFlush();
+    try {
+      this.isReady.value = true;
+      await this.waitForInFlightProcesses();
+      await this.processPendingEvents();
+      this.flushPolicyExecuter.manualFlush();
+    } catch (error) {
+      this.reportInternalError(
+        new HightouchError(
+          ErrorType.InitializationError,
+          'post-ready init failed, continuing without throwing',
+          error
+        )
+      );
+    }
   }
 
   /*
@@ -473,14 +503,48 @@ export class HightouchClient {
   }
 
   async process(incomingEvent: HightouchEvent) {
-    const event = this.applyRawEventData(incomingEvent);
+    return this.runProcess(async () => {
+      const event = this.applyRawEventData(incomingEvent);
 
-    if (this.isReady.value) {
-      return this.startTimelineProcessing(event);
-    } else {
-      this.store.pendingEvents.add(event);
-      return event;
+      if (this.isReady.value) {
+        return await this.startTimelineProcessing(event);
+      } else {
+        await this.store.pendingEvents.add(event);
+        return event;
+      }
+    });
+  }
+
+  /**
+   * Processes a work item while tracking it as in-flight, so a concurrent
+   * flush() can wait for the dispatch to land in the queue before snapshotting.
+   * This is to handle sequences like `void track(...); void flush();` which would otherwise
+   * snapshot the queue before the track has been added to it, making the flush a no-op.
+   */
+  private async runProcess<T>(work: () => Promise<T>): Promise<T> {
+    this.inFlightProcessCount++;
+    try {
+      return await work();
+    } finally {
+      this.inFlightProcessCount--;
+      if (this.inFlightProcessCount === 0) {
+        const observers = this.inFlightProcessObservers;
+        this.inFlightProcessObservers = [];
+        observers.forEach((notify) => notify());
+      }
     }
+  }
+
+  /**
+   * Resolves once there are no in-flight process() calls.
+   */
+  private waitForInFlightProcesses(): Promise<void> {
+    if (this.inFlightProcessCount === 0) {
+      return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => {
+      this.inFlightProcessObservers.push(resolve);
+    });
   }
 
   /**
@@ -547,11 +611,25 @@ export class HightouchClient {
         this.isAddingPlugins = false;
       }
     }
+  }
 
+  private async processPendingEvents() {
     const pending = await this.store.pendingEvents.get(true);
     for (const e of pending) {
+      if (
+        e.timestamp !== undefined &&
+        Date.now() - Date.parse(e.timestamp) > MAX_PENDING_EVENT_AGE_MS
+      ) {
+        // Past the API's accepted age window; drop instead of retrying forever.
+        await this.store.pendingEvents.remove(e);
+        continue;
+      }
       try {
-        await this.startTimelineProcessing(e);
+        await this.runProcess(() => this.startTimelineProcessing(e));
+        // Only remove the event from durable storage on successful replay.
+        // If replay throws, the event stays in pendingEvents so a future
+        // session has a chance to deliver it.
+        await this.store.pendingEvents.remove(e);
       } catch (error) {
         this.reportInternalError(
           new HightouchError(
@@ -561,7 +639,6 @@ export class HightouchClient {
           )
         );
       }
-      await this.store.pendingEvents.remove(e);
     }
   }
 
@@ -570,6 +647,18 @@ export class HightouchClient {
       if (this.destroyed) {
         return;
       }
+
+      // Wait for init to fully complete (including pending-event replay) before snapshotting.
+      // Otherwise customers that send events on startup without awaiting the init might see a stale queue snapshot.
+      if (this.initPromise !== undefined) {
+        await this.initPromise;
+      }
+
+      // Wait for any in-flight process() calls so their events land in the
+      // destination queue before we snapshot it. Without this, a caller that
+      // fires track() and immediately flushes (without awaiting track) would
+      // see the flush snapshot the queue before the track has dispatched.
+      await this.waitForInFlightProcesses();
 
       this.flushPolicyExecuter.reset();
 
@@ -789,13 +878,20 @@ export class HightouchClient {
   }
 
   /**
-   * Initializes the flush policies from config and subscribes to updates to
-   * trigger flush
+   * Initializes the flush policies from config and subscribes to updates to trigger flush.
+   *
+   * When the caller does not supply an explicit `flushPolicies` array, we apply:
+   *   - CountFlushPolicy(flushAt ?? defaultFlushAt) for in-session batching
+   *   - TimerFlushPolicy(flushInterval ?? defaultFlushInterval) for idle flushing
+   *   - StartupFlushPolicy() to re-deliver events persisted from a prior session
+   *   - BackgroundFlushPolicy() to flush before the OS suspends the app
+   *
+   * If the caller explicitly disables both flushAt and flushInterval (e.g. set both to 0),
+   * we treat that as an opt-out of auto-flush entirely and skip the lifecycle defaults too.
    */
   private setupFlushPolicies() {
-    const flushPolicies = [];
+    const flushPolicies: FlushPolicy[] = [];
 
-    // If there are zero policies or flushAt/flushInterval use the defaults:
     if (this.config.flushPolicies !== undefined) {
       flushPolicies.push(...this.config.flushPolicies);
     } else {
@@ -817,6 +913,13 @@ export class HightouchClient {
             (this.config.flushInterval ?? defaultFlushInterval) * 1000
           )
         );
+      }
+
+      // If the caller explicitly disables both flushAt and flushInterval (e.g. set both to 0),
+      // we treat that as an opt-out of auto-flush entirely and skip the lifecycle defaults too.
+      if (flushPolicies.length > 0) {
+        flushPolicies.push(new StartupFlushPolicy());
+        flushPolicies.push(new BackgroundFlushPolicy());
       }
     }
 

@@ -15,6 +15,8 @@ import {
   // StartupFlushPolicy,
   // @ts-ignore unused for e2e tests
   // TimerFlushPolicy,
+  // @ts-ignore unused for e2e tests
+  // BackgroundFlushPolicy,
 } from '@ht-sdks/events-sdk-react-native';
 import Home from './Home';
 import SecondPage from './SecondPage';
@@ -42,6 +44,7 @@ const hightouchClient = createClient({
     // These are disabled for E2E tests
     // new TimerFlushPolicy(1000),
     // new StartupFlushPolicy(),
+    // new BackgroundFlushPolicy(),
   ],
 });
 

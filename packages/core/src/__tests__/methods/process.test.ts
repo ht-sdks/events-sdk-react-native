@@ -6,7 +6,7 @@ jest.mock('uuid');
 
 jest
   .spyOn(Date.prototype, 'toISOString')
-  .mockReturnValue('2010-01-01T00:00:00.000Z');
+  .mockReturnValue('2999-01-01T00:00:00.000Z');
 
 describe('process', () => {
   const store = new MockHightouchStore({
@@ -68,6 +68,8 @@ describe('process', () => {
     jest.spyOn(client.isReady, 'value', 'get').mockReturnValue(true);
     // @ts-ignore
     await client.onReady();
+    // @ts-ignore
+    await client.processPendingEvents();
     expectedEvent = {
       ...expectedEvent,
       context: { ...store.context.get() },

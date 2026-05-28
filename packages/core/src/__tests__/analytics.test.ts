@@ -76,7 +76,13 @@ describe('HightouchClient', () => {
           return { remove: jest.fn() };
         });
 
-      client = new HightouchClient(clientArgs);
+      client = new HightouchClient({
+        ...clientArgs,
+        config: {
+          ...clientArgs.config,
+          flushPolicies: [],
+        },
+      });
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -180,7 +186,8 @@ describe('HightouchClient', () => {
         },
       });
       const flushPolicies = client.getFlushPolicies();
-      expect(flushPolicies.length).toBe(2);
+      // Count + Timer + Startup + Background
+      expect(flushPolicies.length).toBe(4);
     });
 
     it('setting flush policies is mutually exclusive with flushAt/Interval', () => {
@@ -197,7 +204,7 @@ describe('HightouchClient', () => {
       expect(flushPolicies.length).toBe(1);
     });
 
-    it('setting flushAt/Interval to 0 should make the client have no uploads', () => {
+    it('setting flushAt/Interval to 0 opts out of auto-flush entirely', () => {
       client = new HightouchClient({
         ...clientArgs,
         config: {
@@ -207,6 +214,7 @@ describe('HightouchClient', () => {
         },
       });
       const flushPolicies = client.getFlushPolicies();
+      // Disabling both Count and Timer skips the lifecycle defaults too.
       expect(flushPolicies.length).toBe(0);
     });
 
