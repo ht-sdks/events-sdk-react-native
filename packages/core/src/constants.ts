@@ -7,6 +7,8 @@ export const defaultConfig: Config = {
   maxBatchSize: 1000,
   trackDeepLinks: false,
   trackAppLifecycleEvents: false,
+  foregroundSessionTimeout: 30 * 60 * 1000,
+  backgroundSessionTimeout: 30 * 60 * 1000,
 };
 
 export const workspaceDestinationFilterKey = '';

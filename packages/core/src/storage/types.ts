@@ -8,6 +8,7 @@ import type {
   RoutingRule,
   HightouchAPIIntegrations,
   HightouchEvent,
+  SessionState,
   UserInfoState,
 } from '../types';
 
@@ -59,6 +60,7 @@ export interface ReadinessStore {
   hasRestoredUserInfo: boolean;
   hasRestoredFilters: boolean;
   hasRestoredPendingEvents: boolean;
+  hasRestoredSessionState: boolean;
 }
 
 /**
@@ -82,6 +84,9 @@ export interface Storage {
     Dictionary<string, RoutingRule, DestinationFilters>;
 
   readonly userInfo: Watchable<UserInfoState> & Settable<UserInfoState>;
+
+  readonly sessionState: Watchable<SessionState | undefined> &
+    Settable<SessionState | undefined>;
 
   readonly deepLinkData: Watchable<DeepLinkData>;
 

@@ -12,6 +12,7 @@ import type {
   DeepPartial,
   Context,
   UserInfoState,
+  SessionState,
   RoutingRule,
   DestinationFilters,
   HightouchAPIConsentSettings,
@@ -36,6 +37,7 @@ type Data = {
   settings: HightouchAPIIntegrations;
   consentSettings: HightouchAPIConsentSettings | undefined;
   userInfo: UserInfoState;
+  sessionState: SessionState | undefined;
   filters: DestinationFilters;
   pendingEvents: HightouchEvent[];
 };
@@ -50,6 +52,7 @@ const INITIAL_VALUES: Data = {
     userId: undefined,
     traits: undefined,
   },
+  sessionState: undefined,
   pendingEvents: [],
 };
 
@@ -148,6 +151,7 @@ export class SovranStorage implements Storage {
   }>;
   private settingsStore: Store<{ settings: HightouchAPIIntegrations }>;
   private userInfoStore: Store<{ userInfo: UserInfoState }>;
+  private sessionStateStore: Store<{ sessionState: SessionState | undefined }>;
   private deepLinkStore: Store<DeepLinkData> = deepLinkStore;
   private filtersStore: Store<DestinationFilters>;
   private pendingStore: Store<HightouchEvent[]>;
@@ -170,6 +174,9 @@ export class SovranStorage implements Storage {
 
   readonly userInfo: Watchable<UserInfoState> & Settable<UserInfoState>;
 
+  readonly sessionState: Watchable<SessionState | undefined> &
+    Settable<SessionState | undefined>;
+
   readonly deepLinkData: Watchable<DeepLinkData>;
 
   readonly pendingEvents: Watchable<HightouchEvent[]> &
@@ -186,6 +193,7 @@ export class SovranStorage implements Storage {
       hasRestoredUserInfo: false,
       hasRestoredFilters: false,
       hasRestoredPendingEvents: false,
+      hasRestoredSessionState: false,
     });
 
     const markAsReadyGenerator = (key: keyof ReadinessStore) => () => {
@@ -390,6 +398,42 @@ export class SovranStorage implements Storage {
       },
     };
 
+    // Session State
+
+    this.sessionStateStore = createStore(
+      { sessionState: INITIAL_VALUES.sessionState },
+      {
+        persist: {
+          storeId: `${this.storeId}-session`,
+          persistor: this.storePersistor,
+          saveDelay: this.storePersistorSaveDelay,
+          onInitialized: markAsReadyGenerator('hasRestoredSessionState'),
+        },
+      }
+    );
+
+    this.sessionState = {
+      get: createStoreGetter(this.sessionStateStore, 'sessionState'),
+      onChange: (callback: (value: SessionState | undefined) => void) =>
+        this.sessionStateStore.subscribe((store) =>
+          callback(store.sessionState)
+        ),
+      set: async (value) => {
+        const { sessionState } = await this.sessionStateStore.dispatch(
+          (state) => {
+            const newState =
+              value instanceof Function
+                ? value(state.sessionState)
+                : value === undefined
+                ? undefined
+                : { ...value };
+            return { sessionState: newState };
+          }
+        );
+        return sessionState;
+      },
+    };
+
     // Pending Events
     this.pendingStore = createStore<HightouchEvent[]>(
       INITIAL_VALUES.pendingEvents,
@@ -449,6 +493,7 @@ export class SovranStorage implements Storage {
     this.settingsStore.cancelRestore?.();
     this.consentSettingsStore.cancelRestore?.();
     this.userInfoStore.cancelRestore?.();
+    this.sessionStateStore.cancelRestore?.();
     this.filtersStore.cancelRestore?.();
     this.pendingStore.cancelRestore?.();
   };

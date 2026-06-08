@@ -14,6 +14,7 @@ export {
 } from './util';
 export { HightouchClient } from './analytics';
 export { HightouchDestination } from './plugins/HightouchDestination';
+export { SessionPlugin } from './plugins/session/SessionPlugin';
 export {
   type CategoryConsentStatusProvider,
   ConsentPlugin,
