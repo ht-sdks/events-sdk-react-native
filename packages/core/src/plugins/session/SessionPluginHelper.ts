@@ -11,6 +11,25 @@ export type EnrichedSessionEvent = {
 };
 
 export const SessionPluginHelper = {
+  validateSessionTimeouts(config: TimeoutConfig): void {
+    if (
+      config.foregroundSessionTimeout !== undefined &&
+      config.foregroundSessionTimeout < 0
+    ) {
+      throw new Error(
+        'foregroundSessionTimeout must be greater than or equal to zero.'
+      );
+    }
+    if (
+      config.backgroundSessionTimeout !== undefined &&
+      config.backgroundSessionTimeout < 0
+    ) {
+      throw new Error(
+        'backgroundSessionTimeout must be greater than or equal to zero.'
+      );
+    }
+  },
+
   isEnabled(config: TimeoutConfig): boolean {
     return !(
       config.foregroundSessionTimeout === 0 &&

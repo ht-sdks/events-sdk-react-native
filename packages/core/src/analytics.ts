@@ -243,12 +243,14 @@ export class HightouchClient {
       onChange: this.store.deepLinkData.onChange,
     };
 
+    SessionPluginHelper.validateSessionTimeouts(this.config);
+
     if (
       (this.config.foregroundSessionTimeout !== undefined ||
         this.config.backgroundSessionTimeout !== undefined) &&
       SessionPluginHelper.isEnabled(this.config)
-    ) {
-      this.add({ plugin: new SessionPlugin() });
+    ) {   
+         this.add({ plugin: new SessionPlugin() });
     }
 
     // add hightouch destination plugin unless

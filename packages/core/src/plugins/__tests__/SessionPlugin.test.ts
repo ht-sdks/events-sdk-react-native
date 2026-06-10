@@ -195,6 +195,23 @@ describe('SessionPlugin', () => {
     );
   });
 
+  it('rejects negative session timeouts', () => {
+    expect(
+      () =>
+        new HightouchClient({
+          config: {
+            writeKey: 'negative-timeout',
+            foregroundSessionTimeout: -1,
+            backgroundSessionTimeout: 2000,
+          },
+          logger: getMockLogger(),
+          store: new MockHightouchStore({ isReady: true }),
+        })
+    ).toThrow(
+      'foregroundSessionTimeout must be greater than or equal to zero.'
+    );
+  });
+
   it('does not register or enrich when both timeouts are zero', async () => {
     const stuff = createTestClient(undefined, {
       foregroundSessionTimeout: 0,

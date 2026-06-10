@@ -158,6 +158,26 @@ describe('SessionPluginHelper', () => {
     });
   });
 
+  it('rejects negative session timeouts', () => {
+    expect(() =>
+      SessionPluginHelper.validateSessionTimeouts({
+        foregroundSessionTimeout: -1,
+        backgroundSessionTimeout: 1800000,
+      })
+    ).toThrow(
+      'foregroundSessionTimeout must be greater than or equal to zero.'
+    );
+
+    expect(() =>
+      SessionPluginHelper.validateSessionTimeouts({
+        foregroundSessionTimeout: 1800000,
+        backgroundSessionTimeout: -1,
+      })
+    ).toThrow(
+      'backgroundSessionTimeout must be greater than or equal to zero.'
+    );
+  });
+
   it('is disabled only when both timeouts are zero', () => {
     expect(
       SessionPluginHelper.isEnabled({
