@@ -78,7 +78,7 @@ export class SessionPlugin extends EventPlugin {
       SessionPluginHelper.rotateSession(
         state,
         now,
-        state?.firstEventId ?? '',
+        '',
         new Date(now).toISOString()
       )
     );
