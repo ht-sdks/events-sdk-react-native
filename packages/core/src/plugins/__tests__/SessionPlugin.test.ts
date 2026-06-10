@@ -1,11 +1,13 @@
 import { AppState, AppStateStatus } from 'react-native';
+import type { Persistor } from '@ht-sdks/sovran-react-native';
 
-import { createTestClient } from '../../test-helpers';
-import type { HightouchClient } from '../../analytics';
-import type { UtilityPlugin } from '../../plugin';
-import type { MockHightouchStore } from '../../test-helpers';
+import { HightouchClient } from '../../analytics';
+import { createTestClient, getMockLogger } from '../../test-helpers';
+import { UtilityPlugin } from '../../plugin';
+import { MockHightouchStore } from '../../test-helpers';
+import { SovranStorage } from '../../storage';
 import { SessionPlugin } from '../session/SessionPlugin';
-
+import { PluginType, type HightouchEvent } from '../../types';
 jest.mock('react-native');
 jest.mock('../../context');
 jest.mock('uuid');
@@ -195,6 +197,59 @@ describe('SessionPlugin', () => {
     );
   });
 
+  it('persists session state across client instances', async () => {
+    const writeKey = 'session-persistence';
+    const persistor = new TestPersistor();
+
+    const createPersistedClient = () =>
+      new HightouchClient({
+        config: {
+          writeKey,
+          autoAddHightouchDestination: false,
+          flushInterval: 0,
+          foregroundSessionTimeout: 2000,
+          backgroundSessionTimeout: 2000,
+          storePersistor: persistor,
+        },
+        logger: getMockLogger(),
+        store: new SovranStorage({
+          storeId: writeKey,
+          storePersistor: persistor,
+        }),
+      });
+
+    let persistedClient = createPersistedClient();
+    const output = new ObservablePlugin();
+    jest.spyOn(output, 'execute');
+    persistedClient.add({ plugin: output });
+    await persistedClient.init();
+    await persistedClient.track('First Event');
+    persistedClient.cleanup();
+
+    dateNowSpy.mockReturnValue(1500);
+    persistedClient = createPersistedClient();
+    persistedClient.add({ plugin: output });
+    await persistedClient.init();
+    await persistedClient.track('Second Event');
+
+    expect(output.execute).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({
+          session: expect.objectContaining({
+            sessionId: 1000,
+            sessionIndex: 0,
+            eventIndex: 1,
+          }),
+        }),
+      })
+    );
+    expect(
+      (output.execute as jest.Mock).mock.calls.at(-1)?.[0].context.sessionStart
+    ).toBeUndefined();
+
+    persistedClient.cleanup();
+  });
+
   it('rejects negative session timeouts', () => {
     expect(
       () =>
@@ -237,3 +292,24 @@ describe('SessionPlugin', () => {
     ).toBeUndefined();
   });
 });
+
+class TestPersistor implements Persistor {
+  private values = new Map<string, unknown>();
+
+  get = async <T>(key: string): Promise<T | undefined> => {
+    return this.values.get(key) as T | undefined;
+  };
+
+  set = async <T>(key: string, state: T): Promise<void> => {
+    this.values.set(key, state);
+  };
+}
+
+class ObservablePlugin extends UtilityPlugin {
+  type = PluginType.after;
+
+  execute = async (event: HightouchEvent) => {
+    await super.execute(event);
+    return event;
+  };
+}
