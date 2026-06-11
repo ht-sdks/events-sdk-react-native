@@ -88,6 +88,8 @@ function createClient({
       writeKey,
       flushPolicies,
       trackAppLifecycleEvents,
+      foregroundSessionTimeout: 30 * 60 * 1000,
+      backgroundSessionTimeout: 30 * 60 * 1000,
       storePersistor: persistor,
     },
     logger: getMockLogger(),
@@ -188,6 +190,43 @@ describe('event delivery', () => {
     await client.flush();
 
     expectUploadedEvent(fetchMock, 'Purchase Completed');
+
+    client.cleanup();
+  });
+
+  it('uploads tracked events with session context', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(1000);
+
+    const writeKey = 'session-context-key';
+    const persistor = new TestPersistor();
+    const client = createClient({
+      writeKey,
+      persistor,
+      flushPolicies: [],
+    });
+
+    await client.init();
+    await client.track('Purchase Completed', { transaction_id: 'txn-1' });
+    await client.flush();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.batch[0]).toEqual(
+      expect.objectContaining({
+        event: 'Purchase Completed',
+        context: expect.objectContaining({
+          sessionId: 1000,
+          sessionStart: true,
+          session: expect.objectContaining({
+            sessionId: 1000,
+            sessionIndex: 0,
+            sessionStart: true,
+            eventIndex: 0,
+            previousSessionId: null,
+            firstEventId: 'mocked-uuid',
+          }),
+        }),
+      })
+    );
 
     client.cleanup();
   });

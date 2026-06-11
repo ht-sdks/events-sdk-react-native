@@ -31,6 +31,8 @@ import {
   HightouchDestination,
   HIGHTOUCH_DESTINATION_KEY,
 } from './plugins/HightouchDestination';
+import { SessionPlugin } from './plugins/session/SessionPlugin';
+import { SessionPluginHelper } from './plugins/session/SessionPluginHelper';
 import {
   createGetter,
   DeepLinkData,
@@ -51,6 +53,7 @@ import {
   PluginType,
   HightouchAPIIntegrations,
   HightouchEvent,
+  SessionState,
   UserInfoState,
   UserTraits,
 } from './types';
@@ -140,6 +143,9 @@ export class HightouchClient {
    */
   readonly userInfo: Watchable<UserInfoState> & Settable<UserInfoState>;
 
+  readonly sessionState: Watchable<SessionState | undefined> &
+    Settable<SessionState | undefined>;
+
   readonly deepLinkData: Watchable<DeepLinkData>;
 
   // private telemetry?: Telemetry;
@@ -226,10 +232,26 @@ export class HightouchClient {
       onChange: this.store.userInfo.onChange,
     };
 
+    this.sessionState = {
+      get: this.store.sessionState.get,
+      set: this.store.sessionState.set,
+      onChange: this.store.sessionState.onChange,
+    };
+
     this.deepLinkData = {
       get: this.store.deepLinkData.get,
       onChange: this.store.deepLinkData.onChange,
     };
+
+    SessionPluginHelper.validateSessionTimeouts(this.config);
+
+    if (
+      (this.config.foregroundSessionTimeout !== undefined ||
+        this.config.backgroundSessionTimeout !== undefined) &&
+      SessionPluginHelper.isEnabled(this.config)
+    ) {   
+         this.add({ plugin: new SessionPlugin() });
+    }
 
     // add hightouch destination plugin unless
     // asked not to via configuration.
@@ -433,6 +455,7 @@ export class HightouchClient {
     this.storageReadyUnsubscribe?.();
     this.flushPolicyExecuter.cleanup();
     this.appStateSubscription?.remove();
+    this.timeline.apply((plugin) => plugin.shutdown());
 
     this.destroyed = true;
   }

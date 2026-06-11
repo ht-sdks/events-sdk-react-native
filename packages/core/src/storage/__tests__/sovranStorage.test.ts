@@ -9,6 +9,7 @@ import {
   type Context,
   type DeepPartial,
   HightouchEvent,
+  SessionState,
 } from '../../types';
 jest.mock('@ht-sdks/sovran-react-native', () => ({
   registerBridgeStore: jest.fn(),
@@ -108,6 +109,21 @@ describe('sovranStorage', () => {
     const updatedSettings = await sovran.settings.set(settingsUpdate);
     expect(updatedSettings).toEqual(settingsUpdate);
     expect(sovran.settings.get()).toEqual(settingsUpdate);
+
+    const sessionState: SessionState = {
+      sessionId: 1000,
+      sessionIndex: 0,
+      previousSessionId: null,
+      firstEventId: 'message-id',
+      firstEventTimestamp: '2026-01-01T00:00:01.000Z',
+      eventIndex: 1,
+      lastActivityAt: 1000,
+      backgroundedAt: null,
+    };
+
+    const newSessionState = await sovran.sessionState.set(sessionState);
+    expect(newSessionState).toEqual(sessionState);
+    expect(sovran.sessionState.get()).toEqual(sessionState);
   }
 
   it('works', async () => {

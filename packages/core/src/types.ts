@@ -141,6 +141,8 @@ export type Config = {
   trackAppLifecycleEvents?: boolean;
   maxBatchSize?: number;
   trackDeepLinks?: boolean;
+  foregroundSessionTimeout?: number;
+  backgroundSessionTimeout?: number;
   defaultSettings?: HightouchAPISettings;
   autoAddHightouchDestination?: boolean;
   collectDeviceId?: boolean;
@@ -204,7 +206,19 @@ type ContextScreen = {
   density?: number; // android only
 };
 
-export type Context = {
+export type ContextSession = {
+  sessionId: number;
+  sessionIndex: number;
+  sessionStart?: boolean;
+  eventIndex: number;
+  previousSessionId: number | null;
+  firstEventId: string;
+  firstEventTimestamp: string;
+};
+
+export type Context = Partial<
+  Pick<ContextSession, 'sessionId' | 'sessionStart'>
+> & {
   app: ContextApp;
   device: ContextDevice;
   library: ContextLibrary;
@@ -215,6 +229,7 @@ export type Context = {
   timezone: string;
   traits: UserTraits;
   instanceId: string;
+  session?: ContextSession;
   consent?: {
     categoryPreferences: Record<string, boolean>;
   };
@@ -355,6 +370,17 @@ export type UserInfoState = {
   anonymousId: string;
   userId?: string;
   traits?: UserTraits | GroupTraits;
+};
+
+export type SessionState = {
+  sessionId: number;
+  sessionIndex: number;
+  previousSessionId: number | null;
+  firstEventId: string;
+  firstEventTimestamp: string;
+  eventIndex: number;
+  lastActivityAt: number;
+  backgroundedAt: number | null;
 };
 
 // Native Module types

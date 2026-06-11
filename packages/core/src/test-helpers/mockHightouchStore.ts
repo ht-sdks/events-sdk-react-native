@@ -16,6 +16,7 @@ import type {
   HightouchAPIConsentSettings,
   HightouchAPIIntegrations,
   HightouchEvent,
+  SessionState,
   UserInfoState,
 } from '../types';
 import { createCallbackManager } from './utils';
@@ -28,6 +29,7 @@ export type StoreData = {
   consentSettings?: HightouchAPIConsentSettings;
   filters: DestinationFilters;
   userInfo: UserInfoState;
+  sessionState?: SessionState;
   deepLinkData: DeepLinkData;
   pendingEvents: HightouchEvent[];
 };
@@ -45,6 +47,7 @@ const INITIAL_VALUES: StoreData = {
     userId: undefined,
     traits: undefined,
   },
+  sessionState: undefined,
   deepLinkData: {
     referring_application: '',
     url: '',
@@ -90,6 +93,7 @@ export class MockHightouchStore implements Storage {
     >(),
     filters: createCallbackManager<DestinationFilters>(),
     userInfo: createCallbackManager<UserInfoState>(),
+    sessionState: createCallbackManager<SessionState | undefined>(),
     deepLinkData: createCallbackManager<DeepLinkData>(),
     pendingEvents: createCallbackManager<HightouchEvent[]>(),
   };
@@ -193,6 +197,19 @@ export class MockHightouchStore implements Storage {
           : { ...value };
       this.callbacks.userInfo.run(this.data.userInfo);
       return this.data.userInfo;
+    },
+  };
+
+  readonly sessionState: Watchable<SessionState | undefined> &
+    Settable<SessionState | undefined> = {
+    get: createMockStoreGetter(() => this.data.sessionState),
+    onChange: (callback: (value: SessionState | undefined) => void) =>
+      this.callbacks.sessionState.register(callback),
+    set: (value) => {
+      this.data.sessionState =
+        value instanceof Function ? value(this.data.sessionState) : value;
+      this.callbacks.sessionState.run(this.data.sessionState);
+      return this.data.sessionState;
     },
   };
 
