@@ -177,7 +177,7 @@ export const SessionPluginHelper = {
 
     return {
       ...state,
-      backgroundedAt: now,
+      backgroundedAt: state.backgroundedAt ?? now,
     };
   },
 
