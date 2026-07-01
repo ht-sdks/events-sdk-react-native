@@ -141,13 +141,13 @@ jobs:
       - name: Bundle build
         run: yarn build
 
-      - name: Native unit tests
-        working-directory: examples/${{ matrix.e2e-example }}/android
-        run: ./gradlew :ht-sdks_events-sdk-react-native:testDebugUnitTest
-
       - name: Detox - Build
         run: RCT_NO_LAUNCH_PACKAGER=1 yarn build:android
         working-directory: examples/${{ matrix.e2e-example }}
+
+      - name: Native unit tests
+        working-directory: examples/${{ matrix.e2e-example }}/android
+        run: ./gradlew :ht-sdks_events-sdk-react-native:testDebugUnitTest
 
       - name: Detox - Test
         continue-on-error: true
