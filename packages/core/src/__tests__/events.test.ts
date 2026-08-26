@@ -51,6 +51,33 @@ describe('#createTrackEvent', () => {
     });
   });
 
+  it('creates a track event with optional context', () => {
+    const event = createTrackEvent({
+      event: 'Awesome event',
+      properties: {
+        foo: 'bar',
+      },
+      context: {
+        protocols: {
+          schemaVersion: 'v1',
+        },
+      },
+    });
+
+    expect(event).toEqual({
+      type: EventType.TrackEvent,
+      event: 'Awesome event',
+      properties: {
+        foo: 'bar',
+      },
+      context: {
+        protocols: {
+          schemaVersion: 'v1',
+        },
+      },
+    });
+  });
+
   it('adds the user id when it exists', () => {
     const event = createTrackEvent({
       event: 'Awesome event',

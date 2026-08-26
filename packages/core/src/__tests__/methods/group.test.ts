@@ -44,5 +44,32 @@ describe('methods #group', () => {
 
     expect(client.process).toHaveBeenCalledTimes(1);
     expect(client.process).toHaveBeenCalledWith(expectedEvent);
+    expect(
+      (client.process as jest.Mock).mock.calls[0][0].context
+    ).toBeUndefined();
+  });
+
+  it('stamps per-call context onto the group event', async () => {
+    const client = new HightouchClient(clientArgs);
+    jest.spyOn(client, 'process');
+
+    await client.group(
+      'new-group-id',
+      { name: 'Best Group Ever' },
+      { protocols: { schemaVersion: 'v1' } }
+    );
+
+    expect(client.process).toHaveBeenCalledWith({
+      groupId: 'new-group-id',
+      type: 'group',
+      traits: {
+        name: 'Best Group Ever',
+      },
+      context: {
+        protocols: {
+          schemaVersion: 'v1',
+        },
+      },
+    });
   });
 });

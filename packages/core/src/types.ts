@@ -156,12 +156,28 @@ export type Config = {
 };
 
 export type ClientMethods = {
-  screen: (name: string, properties?: JsonMap) => Promise<void>;
-  track: (event: string, properties?: JsonMap) => Promise<void>;
-  identify: (userId?: string, userTraits?: UserTraits) => Promise<void>;
+  screen: (
+    name: string,
+    properties?: JsonMap,
+    context?: JsonMap
+  ) => Promise<void>;
+  track: (
+    event: string,
+    properties?: JsonMap,
+    context?: JsonMap
+  ) => Promise<void>;
+  identify: (
+    userId?: string,
+    userTraits?: UserTraits,
+    context?: JsonMap
+  ) => Promise<void>;
   flush: () => Promise<void>;
-  group: (groupId: string, groupTraits?: GroupTraits) => Promise<void>;
-  alias: (newUserId: string) => Promise<void>;
+  group: (
+    groupId: string,
+    groupTraits?: GroupTraits,
+    context?: JsonMap
+  ) => Promise<void>;
+  alias: (newUserId: string, context?: JsonMap) => Promise<void>;
   reset: (resetAnonymousId?: boolean) => Promise<void>;
 };
 
@@ -233,6 +249,7 @@ export type Context = Partial<
   consent?: {
     categoryPreferences: Record<string, boolean>;
   };
+  protocols?: JsonMap;
 };
 
 /**

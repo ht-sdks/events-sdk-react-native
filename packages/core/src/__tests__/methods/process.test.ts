@@ -85,6 +85,49 @@ describe('process', () => {
     );
   });
 
+  it('preserves per-call context when replaying pending events', async () => {
+    const client = new HightouchClient(clientArgs);
+    jest.spyOn(client.isReady, 'value', 'get').mockReturnValue(false);
+    // @ts-ignore
+    const timeline = client.timeline;
+    jest.spyOn(timeline, 'process');
+
+    await client.track(
+      'Some Event',
+      { id: 1 },
+      { protocols: { schemaVersion: 'v1' } }
+    );
+
+    // @ts-ignore
+    const pendingEvent = client.store.pendingEvents.get()[0];
+    expect(pendingEvent).toEqual(
+      expect.objectContaining({
+        event: 'Some Event',
+        properties: { id: 1 },
+        context: {
+          protocols: { schemaVersion: 'v1' },
+        },
+      })
+    );
+
+    jest.spyOn(client.isReady, 'value', 'get').mockReturnValue(true);
+    // @ts-ignore
+    await client.onReady();
+    // @ts-ignore
+    await client.processPendingEvents();
+
+    expect(timeline.process).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'Some Event',
+        properties: { id: 1 },
+        context: {
+          ...store.context.get(),
+          protocols: { schemaVersion: 'v1' },
+        },
+      })
+    );
+  });
+
   it('stamps all context and userInfo data for events when ready', async () => {
     const client = new HightouchClient(clientArgs);
     jest.spyOn(client.isReady, 'value', 'get').mockReturnValue(true);
@@ -112,6 +155,93 @@ describe('process', () => {
 
     expect(timeline.process).toHaveBeenCalledWith(
       expect.objectContaining(expectedEvent)
+    );
+    expect(
+      (timeline.process as jest.Mock).mock.calls[0][0].context
+    ).not.toHaveProperty('protocols');
+  });
+
+  it('deep-merges per-call context onto the processed event context', async () => {
+    const client = new HightouchClient(clientArgs);
+    jest.spyOn(client.isReady, 'value', 'get').mockReturnValue(true);
+
+    // @ts-ignore
+    const timeline = client.timeline;
+    jest.spyOn(timeline, 'process');
+
+    await client.track(
+      'Some Event',
+      { id: 1 },
+      { protocols: { schemaVersion: 'v1' } }
+    );
+
+    expect(timeline.process).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'Some Event',
+        properties: {
+          id: 1,
+        },
+        type: EventType.TrackEvent,
+        context: {
+          ...store.context.get(),
+          protocols: {
+            schemaVersion: 'v1',
+          },
+        },
+        userId: store.userInfo.get().userId,
+        anonymousId: store.userInfo.get().anonymousId,
+      })
+    );
+  });
+
+  it('merges nested per-call context maps next to existing context', async () => {
+    const nestedStore = new MockHightouchStore({
+      userInfo: {
+        userId: 'current-user-id',
+        anonymousId: 'very-anonymous',
+      },
+      context: {
+        library: {
+          name: 'test',
+          version: '1.0',
+        },
+        protocols: {
+          existing: true,
+        },
+      },
+    });
+    const client = new HightouchClient({
+      ...clientArgs,
+      store: nestedStore,
+    });
+    jest.spyOn(client.isReady, 'value', 'get').mockReturnValue(true);
+
+    // @ts-ignore
+    const timeline = client.timeline;
+    jest.spyOn(timeline, 'process');
+
+    await client.track(
+      'Some Event',
+      { id: 1 },
+      { protocols: { schemaVersion: 'v1' } }
+    );
+
+    expect(timeline.process).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: {
+          id: 1,
+        },
+        context: {
+          library: {
+            name: 'test',
+            version: '1.0',
+          },
+          protocols: {
+            existing: true,
+            schemaVersion: 'v1',
+          },
+        },
+      })
     );
   });
 });

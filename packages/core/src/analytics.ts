@@ -708,47 +708,51 @@ export class HightouchClient {
     }
   }
 
-  async screen(name: string, options?: JsonMap) {
+  async screen(name: string, options?: JsonMap, context?: JsonMap) {
     const event = createScreenEvent({
       name,
       properties: options,
+      context,
     });
 
     await this.process(event);
     this.logger.info('SCREEN event saved', event);
   }
 
-  async track(eventName: string, options?: JsonMap) {
+  async track(eventName: string, options?: JsonMap, context?: JsonMap) {
     const event = createTrackEvent({
       event: eventName,
       properties: options,
+      context,
     });
 
     await this.process(event);
     this.logger.info('TRACK event saved', event);
   }
 
-  async identify(userId?: string, userTraits?: UserTraits) {
+  async identify(userId?: string, userTraits?: UserTraits, context?: JsonMap) {
     const event = createIdentifyEvent({
       userId: userId,
       userTraits: userTraits,
+      context,
     });
 
     await this.process(event);
     this.logger.info('IDENTIFY event saved', event);
   }
 
-  async group(groupId: string, groupTraits?: GroupTraits) {
+  async group(groupId: string, groupTraits?: GroupTraits, context?: JsonMap) {
     const event = createGroupEvent({
       groupId,
       groupTraits,
+      context,
     });
 
     await this.process(event);
     this.logger.info('GROUP event saved', event);
   }
 
-  async alias(newUserId: string) {
+  async alias(newUserId: string, context?: JsonMap) {
     // We don't use a concurrency safe version of get here as we don't want to lock the values yet,
     // we will update the values correctly when InjectUserInfo processes the change
     const { anonymousId, userId: previousUserId } = this.store.userInfo.get();
@@ -757,6 +761,7 @@ export class HightouchClient {
       anonymousId,
       userId: previousUserId,
       newUserId,
+      context,
     });
 
     await this.process(event);
@@ -1021,10 +1026,7 @@ export class HightouchClient {
     return {
       ...event,
       ...userInfo,
-      context: {
-        ...event.context,
-        ...context,
-      },
+      context: deepmerge(context ?? {}, event.context ?? {}),
     } as HightouchEvent;
   };
 

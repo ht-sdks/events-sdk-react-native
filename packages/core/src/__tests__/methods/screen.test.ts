@@ -44,5 +44,32 @@ describe('methods #screen', () => {
 
     expect(client.process).toHaveBeenCalledTimes(1);
     expect(client.process).toHaveBeenCalledWith(expectedEvent);
+    expect(
+      (client.process as jest.Mock).mock.calls[0][0].context
+    ).toBeUndefined();
+  });
+
+  it('stamps per-call context onto the screen event', async () => {
+    const client = new HightouchClient(clientArgs);
+    jest.spyOn(client, 'process');
+
+    await client.screen(
+      'Home Screen',
+      { id: 1 },
+      { protocols: { schemaVersion: 'v1' } }
+    );
+
+    expect(client.process).toHaveBeenCalledWith({
+      name: 'Home Screen',
+      properties: {
+        id: 1,
+      },
+      type: 'screen',
+      context: {
+        protocols: {
+          schemaVersion: 'v1',
+        },
+      },
+    });
   });
 });

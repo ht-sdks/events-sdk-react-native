@@ -45,5 +45,33 @@ describe('methods #track', () => {
 
     expect(client.process).toHaveBeenCalledTimes(1);
     expect(client.process).toHaveBeenCalledWith(expectedEvent);
+    expect(
+      (client.process as jest.Mock).mock.calls[0][0].context
+    ).toBeUndefined();
+  });
+
+  it('stamps per-call context onto the track event without changing properties', async () => {
+    const client = new HightouchClient(clientArgs);
+    jest.spyOn(client, 'process');
+
+    await client.track(
+      'Some Event',
+      { id: 1 },
+      { protocols: { schemaVersion: 'v1' } }
+    );
+
+    expect(client.process).toHaveBeenCalledTimes(1);
+    expect(client.process).toHaveBeenCalledWith({
+      event: 'Some Event',
+      properties: {
+        id: 1,
+      },
+      type: EventType.TrackEvent,
+      context: {
+        protocols: {
+          schemaVersion: 'v1',
+        },
+      },
+    });
   });
 });

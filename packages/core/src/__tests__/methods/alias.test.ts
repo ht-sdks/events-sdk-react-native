@@ -13,7 +13,7 @@ describe('methods #alias', () => {
     userId: 'current-user-id',
   };
 
-  const { store, client, expectEvent } = createTestClient({
+  const { store, client, plugin, expectEvent } = createTestClient({
     userInfo: initialUserInfo,
   });
 
@@ -85,5 +85,35 @@ describe('methods #alias', () => {
       ...initialUserInfo,
       userId: 'new-user-id',
     });
+  });
+
+  it('does not swap per-call context across overlapping alias calls', async () => {
+    const aliasA = client.alias('user-a', {
+      protocols: { schemaVersion: 'v1' },
+    });
+    const aliasB = client.alias('user-b', {
+      protocols: { schemaVersion: 'v2' },
+    });
+    await Promise.all([aliasA, aliasB]);
+
+    const aliasEvents = (plugin.execute as jest.Mock).mock.calls
+      .map(([event]: [HightouchEvent]) => event)
+      .filter((event) => event.type === EventType.AliasEvent);
+
+    expect(aliasEvents).toHaveLength(2);
+    expect(
+      aliasEvents.find((event) => event.userId === 'user-a')?.context
+    ).toEqual(
+      expect.objectContaining({
+        protocols: { schemaVersion: 'v1' },
+      })
+    );
+    expect(
+      aliasEvents.find((event) => event.userId === 'user-b')?.context
+    ).toEqual(
+      expect.objectContaining({
+        protocols: { schemaVersion: 'v2' },
+      })
+    );
   });
 });

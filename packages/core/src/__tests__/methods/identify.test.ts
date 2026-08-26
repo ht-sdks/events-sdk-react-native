@@ -129,4 +129,24 @@ describe('methods #identify', () => {
       userId: 'new-user-id',
     });
   });
+
+  it('stamps per-call context onto the identify event', async () => {
+    await client.identify(
+      'new-user-id',
+      { name: 'Mary', age: 30 },
+      { protocols: { schemaVersion: 'v1' } }
+    );
+
+    expectEvent({
+      traits: {
+        name: 'Mary',
+        age: 30,
+      },
+      userId: 'new-user-id',
+      type: EventType.IdentifyEvent,
+      context: expect.objectContaining({
+        protocols: { schemaVersion: 'v1' },
+      }),
+    });
+  });
 });
