@@ -1,6 +1,12 @@
 import { HightouchClient } from '../../analytics';
+import { Plugin } from '../../plugin';
 import { getMockLogger, MockHightouchStore } from '../../test-helpers';
-import { EventType, HightouchEvent } from '../../types';
+import {
+  EventType,
+  HightouchEvent,
+  PluginType,
+  TrackEventType,
+} from '../../types';
 
 jest.mock('uuid');
 
@@ -275,6 +281,43 @@ describe('per-call enrichment closure', () => {
     const plain = processed[1];
     expect(getProtocols(plain)).toBeUndefined();
     expect(Object.keys(plain?.context ?? {})).not.toContain('protocols');
+  });
+
+  it('closure survives a plugin that returns a brand-new event object', async () => {
+    const { client, processedEvents } = setup();
+
+    class ReplaceEventPlugin extends Plugin {
+      type = PluginType.enrichment;
+      execute(event: HightouchEvent): HightouchEvent {
+        // Brand-new object literal, deliberately NOT a spread of the incoming
+        // event, so it carries no `enrichment` key.
+        return {
+          type: EventType.TrackEvent,
+          event: 'Replaced Event',
+          properties: { replaced: true },
+          messageId: event.messageId,
+          timestamp: event.timestamp,
+          context: event.context,
+          anonymousId: event.anonymousId,
+          userId: event.userId,
+          integrations: {},
+        };
+      }
+    }
+    client.add({ plugin: new ReplaceEventPlugin() });
+
+    await client.track(
+      'Original Event',
+      { id: 1 },
+      stampSchemaVersion('replaced-v1')
+    );
+
+    const [processed] = await processedEvents();
+    expect((processed as TrackEventType).event).toBe('Replaced Event');
+    expect((processed as TrackEventType).properties).toEqual({
+      replaced: true,
+    });
+    expect(getProtocols(processed)?.schemaVersion).toBe('replaced-v1');
   });
 
   it('omitted enrichment leaves the serialized payload unchanged', async () => {
