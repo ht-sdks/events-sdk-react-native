@@ -46,6 +46,7 @@ import {
   Config,
   Context,
   DeepPartial,
+  EnrichmentClosure,
   GroupTraits,
   IntegrationSettings,
   JsonMap,
@@ -525,9 +526,10 @@ export class HightouchClient {
     this.timeline.remove(plugin);
   }
 
-  async process(incomingEvent: HightouchEvent) {
+  async process(incomingEvent: HightouchEvent, enrichment?: EnrichmentClosure) {
     return this.runProcess(async () => {
       const event = this.applyRawEventData(incomingEvent);
+      event.enrichment = enrichment;
 
       if (this.isReady.value) {
         return await this.startTimelineProcessing(event);
@@ -708,47 +710,63 @@ export class HightouchClient {
     }
   }
 
-  async screen(name: string, options?: JsonMap) {
+  async screen(
+    name: string,
+    options?: JsonMap,
+    enrichment?: EnrichmentClosure
+  ) {
     const event = createScreenEvent({
       name,
       properties: options,
     });
 
-    await this.process(event);
+    await this.process(event, enrichment);
     this.logger.info('SCREEN event saved', event);
   }
 
-  async track(eventName: string, options?: JsonMap) {
+  async track(
+    eventName: string,
+    options?: JsonMap,
+    enrichment?: EnrichmentClosure
+  ) {
     const event = createTrackEvent({
       event: eventName,
       properties: options,
     });
 
-    await this.process(event);
+    await this.process(event, enrichment);
     this.logger.info('TRACK event saved', event);
   }
 
-  async identify(userId?: string, userTraits?: UserTraits) {
+  async identify(
+    userId?: string,
+    userTraits?: UserTraits,
+    enrichment?: EnrichmentClosure
+  ) {
     const event = createIdentifyEvent({
       userId: userId,
       userTraits: userTraits,
     });
 
-    await this.process(event);
+    await this.process(event, enrichment);
     this.logger.info('IDENTIFY event saved', event);
   }
 
-  async group(groupId: string, groupTraits?: GroupTraits) {
+  async group(
+    groupId: string,
+    groupTraits?: GroupTraits,
+    enrichment?: EnrichmentClosure
+  ) {
     const event = createGroupEvent({
       groupId,
       groupTraits,
     });
 
-    await this.process(event);
+    await this.process(event, enrichment);
     this.logger.info('GROUP event saved', event);
   }
 
-  async alias(newUserId: string) {
+  async alias(newUserId: string, enrichment?: EnrichmentClosure) {
     // We don't use a concurrency safe version of get here as we don't want to lock the values yet,
     // we will update the values correctly when InjectUserInfo processes the change
     const { anonymousId, userId: previousUserId } = this.store.userInfo.get();
@@ -759,7 +777,7 @@ export class HightouchClient {
       newUserId,
     });
 
-    await this.process(event);
+    await this.process(event, enrichment);
     this.logger.info('ALIAS event saved', event);
   }
 

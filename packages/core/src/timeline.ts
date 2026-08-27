@@ -59,6 +59,8 @@ export class Timeline {
   async process(
     incomingEvent: HightouchEvent
   ): Promise<HightouchEvent | undefined> {
+    // Deliberate divergence from Segment upstream: capture the per-call enrichment up front so it survives plugins that return a fresh event (upstream drops it).
+    const enrichment = incomingEvent.enrichment;
     let result: HightouchEvent | undefined = incomingEvent;
 
     for (const key of PLUGIN_ORDER) {
@@ -70,6 +72,12 @@ export class Timeline {
       if (key !== PluginType.destination) {
         if (result === undefined) {
           return;
+        } else if (
+          key === PluginType.enrichment &&
+          pluginResult !== undefined &&
+          typeof enrichment === 'function'
+        ) {
+          result = enrichment(pluginResult);
         } else {
           result = pluginResult;
         }
