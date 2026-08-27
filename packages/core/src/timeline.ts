@@ -70,6 +70,12 @@ export class Timeline {
       if (key !== PluginType.destination) {
         if (result === undefined) {
           return;
+        } else if (
+          key === PluginType.enrichment &&
+          pluginResult?.enrichment &&
+          typeof pluginResult.enrichment === 'function'
+        ) {
+          result = pluginResult.enrichment(pluginResult);
         } else {
           result = pluginResult;
         }
