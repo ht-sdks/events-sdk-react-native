@@ -2521,7 +2521,7 @@ __metadata:
     deepmerge: "npm:^4.2.2"
     jest: "npm:^29.7.0"
     semantic-release: "npm:^22.0.8"
-    shell-quote: "npm:1.8.0"
+    shell-quote: "npm:1.9.0"
     typescript: "npm:^5.2.2"
   peerDependencies:
     "@react-native-async-storage/async-storage": 1.x
@@ -13965,10 +13965,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shell-quote@npm:1.8.0":
-  version: 1.8.0
-  resolution: "shell-quote@npm:1.8.0"
-  checksum: 10c0/651a201a1af981d49326fac8c005bbe2af97bc56fcabded0b22944c08eea0ba3bccfa497168d4bcb70508ca5802fe1cb83ca89a7e121eb0701d4c8b1d6c71a5d
+"shell-quote@npm:1.9.0":
+  version: 1.9.0
+  resolution: "shell-quote@npm:1.9.0"
+  checksum: 10c0/a39960107eb086b02394cfceb3c732bd3bf567b568719ff47101448fc3f1bf4a59ecfdd8960ff7ea564d749ef8bda70f2c82a768f22d8c7aeeabf2b64f53b7e8
   languageName: node
   linkType: hard
 
