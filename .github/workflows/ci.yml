@@ -5,15 +5,16 @@ on:
   pull_request:
     branches: [master, beta]
   workflow_dispatch:
+
+# One in-flight CI run per PR (or per branch for push/workflow_dispatch).
+# A new push cancels the superseded run so stale iOS/Android jobs stop
+# holding macos-15-intel runners (GitHub's concurrency limit).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  cancel_previous:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          workflow_id: ${{ github.event.workflow.id }}
   build-and-test:
-    needs: cancel_previous
     runs-on: 'ubuntu-latest'
     steps:
       - uses: actions/checkout@v2
