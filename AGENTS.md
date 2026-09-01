@@ -5,7 +5,7 @@ This file documents the dependency update workflow for this React Native monorep
 ## Project Overview
 
 - **Language**: TypeScript
-- **Runtime**: Node.js (v20 required in CI)
+- **Runtime**: Node.js (v24 required in CI)
 - **Package Manager**: Yarn 4.1.0 (via Corepack)
 - **Monorepo**: Yarn Workspaces
 - **Testing**: Jest
@@ -19,7 +19,7 @@ This file documents the dependency update workflow for this React Native monorep
 ### 1. Pre-flight Checks
 
 ```bash
-# Check Node.js version (v20 required, matching CI)
+# Check Node.js version (v24 required, matching CI)
 node --version
 
 # Enable Corepack for Yarn 4
@@ -129,7 +129,7 @@ Compare test results to baseline. Fix any failures before proceeding.
 
 ### 7. Verify CI Would Pass
 
-The CI runs on Node 20 with Yarn 4.1.0 via Corepack. Replicate the CI steps locally:
+The CI runs on Node 24 with Yarn 4.1.0 via Corepack. Replicate the CI steps locally:
 
 ```bash
 # Match the CI environment
