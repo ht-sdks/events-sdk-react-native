@@ -33,6 +33,7 @@
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native/babel-preset": "0.87.1",
     "@react-native/eslint-config": "0.87.1",
+    "@react-native/jest-preset": "0.87.1",
     "@semantic-release/changelog": "^7.0.0",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^11.0.1",

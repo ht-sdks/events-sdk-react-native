@@ -37,6 +37,8 @@ export const NativeModules = {
     getConstants: () => ({
       ON_STORE_ACTION: 'ON_STORE_ACTION',
     }),
+    addListener: jest.fn(),
+    removeListeners: jest.fn(),
   },
 };
 
