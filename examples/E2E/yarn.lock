@@ -2869,6 +2869,7 @@ __metadata:
     detox: "npm:^20.14.1"
     eslint: "npm:^8.19.0"
     express: "npm:^4.17.1"
+    image-size: "npm:image-size-next@1.2.2"
     jest: "npm:^29.7.0"
     jest-circus: "npm:^29.3.1"
     metro-react-native-babel-preset: "npm:0.76.8"
@@ -5808,14 +5809,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"image-size@npm:^1.0.2":
-  version: 1.2.1
-  resolution: "image-size@npm:1.2.1"
+"image-size@npm:image-size-next@1.2.2":
+  version: 1.2.2
+  resolution: "image-size-next@npm:1.2.2"
   dependencies:
     queue: "npm:6.0.2"
   bin:
-    image-size: bin/image-size.js
-  checksum: 10c0/f8b3c19d4476513f1d7e55c3e6db80997b315444743e2040d545cbcaee59be03d2eb40c46be949a8372697b7003fdb0c04925d704390a7f606bc8181e25c0ed4
+    image-size-next: bin/image-size-next.js
+  checksum: 10c0/fa90144661952f20266d8de5f65d645e2131cf7a15bd1b1699d9c4954a6c7eda63c59cf97209737f4562b1c36c1a195e055d97500494d6f77ff90edfc1e1d5af
   languageName: node
   linkType: hard
 

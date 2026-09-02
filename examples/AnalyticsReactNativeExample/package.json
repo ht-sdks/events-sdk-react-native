@@ -34,6 +34,7 @@
     "@types/react-native": "0.72.6",
     "babel-plugin-module-resolver": "5.0.0",
     "eslint": "^8.19.0",
+    "image-size": "npm:image-size-next@1.2.2",
     "pod-install": "^0.1.39",
     "prettier": "^2.4.1",
     "react-test-renderer": "18.2.0",
@@ -42,5 +43,8 @@
   },
   "engines": {
     "node": ">=16"
+  },
+  "resolutions": {
+    "image-size": "npm:image-size-next@1.2.2"
   }
 }
