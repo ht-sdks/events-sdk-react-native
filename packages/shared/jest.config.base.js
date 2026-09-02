@@ -8,7 +8,7 @@ Object.entries(compilerOptions.paths).map(([key, value]) => {
 })
 
 module.exports = {
-  preset: 'react-native',
+  preset: '@react-native/jest-preset',
   modulePathIgnorePatterns: ['/lib/'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {

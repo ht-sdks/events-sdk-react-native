@@ -2,7 +2,16 @@ import type { Persistor } from '@ht-sdks/sovran-react-native';
 import type { Rule } from '@segment/tsub/dist/store';
 import type { HightouchError } from './errors';
 import type { FlushPolicy } from './flushPolicies';
-import type { NativeModule } from 'react-native';
+
+/**
+ * Shape of a classic RN bridge native module.
+ * React Native 0.87's Strict TypeScript API no longer exports NativeModule
+ * from 'react-native'; keep a local copy so SDK types stay stable.
+ */
+export interface NativeModule {
+  addListener?: (eventType: string) => void;
+  removeListeners?: (count: number) => void;
+}
 
 export type JsonValue =
   | boolean

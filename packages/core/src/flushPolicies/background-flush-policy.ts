@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import type { HightouchEvent } from '../types';
 import { FlushPolicyBase } from './types';
+import { getCurrentAppState } from '../util';
 
 const INACTIVE_STATES: ReadonlyArray<AppStateStatus> = [
   'inactive',
@@ -16,7 +17,7 @@ const INACTIVE_STATES: ReadonlyArray<AppStateStatus> = [
  */
 export class BackgroundFlushPolicy extends FlushPolicyBase {
   private appStateSubscription?: NativeEventSubscription;
-  private lastState: AppStateStatus = AppState.currentState;
+  private lastState: AppStateStatus = getCurrentAppState();
 
   start() {
     this.appStateSubscription = AppState.addEventListener(

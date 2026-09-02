@@ -7,9 +7,9 @@ import {
   HightouchError,
 } from '@ht-sdks/events-sdk-react-native';
 
-import { Platform, NativeModule } from 'react-native';
+import { Platform } from 'react-native';
 
-type AdvertisingIDNativeModule = NativeModule & {
+type AdvertisingIDNativeModule = {
   getAdvertisingId: () => Promise<string>;
 };
 

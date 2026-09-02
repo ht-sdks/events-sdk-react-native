@@ -1,6 +1,32 @@
-import { NativeModule, NativeModules, Platform } from 'react-native';
+import { AppState, NativeModules, Platform } from 'react-native';
+import type { AppStateStatus } from 'react-native';
 import type { EventPlugin } from './plugin';
 import type { Timeline } from './timeline';
+import type { NativeModule } from './types';
+
+const APP_STATE_VALUES: ReadonlyArray<AppStateStatus> = [
+  'active',
+  'background',
+  'inactive',
+  'extension',
+  'unknown',
+];
+
+/**
+ * RN 0.87 types `AppState.currentState` as `string | null | undefined`.
+ * Normalize it to AppStateStatus for callers that still expect the union.
+ */
+export const getCurrentAppState = (): AppStateStatus => {
+  const state = AppState.currentState;
+  if (
+    state !== null &&
+    state !== undefined &&
+    APP_STATE_VALUES.includes(state as AppStateStatus)
+  ) {
+    return state as AppStateStatus;
+  }
+  return 'unknown';
+};
 
 const sizeOf = (obj: unknown): number => {
   const size = encodeURI(JSON.stringify(obj)).split(/%..|./).length - 1;
