@@ -27,7 +27,7 @@
     "@anolilab/multi-semantic-release": "^4.4.9",
     "@babel/core": "^7.29.7",
     "@babel/runtime": "^7.29.7",
-    "@changesets/cli": "^2.26.2",
+    "@changesets/cli": "^2.31.1",
     "@commitlint/config-conventional": "^18.4.2",
     "@ht-sdks/analytics-rn-shared": "workspace:^",
     "@react-native-async-storage/async-storage": "^1.24.0",
