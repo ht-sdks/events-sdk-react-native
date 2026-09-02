@@ -8,6 +8,7 @@ import { EventPlugin } from '../../plugin';
 import { SessionPluginHelper } from './SessionPluginHelper';
 import type { ContextSession, HightouchEvent } from '../../types';
 import { PluginType } from '../../types';
+import { getCurrentAppState } from '../../util';
 
 const INACTIVE_STATES: ReadonlyArray<AppStateStatus> = [
   'inactive',
@@ -17,7 +18,7 @@ const INACTIVE_STATES: ReadonlyArray<AppStateStatus> = [
 export class SessionPlugin extends EventPlugin {
   type = PluginType.enrichment;
   private appStateSubscription?: NativeEventSubscription;
-  private appState: AppStateStatus = AppState.currentState;
+  private appState: AppStateStatus = getCurrentAppState();
   private foregroundSessionTimeout = 0;
   private backgroundSessionTimeout = 0;
   private enabled = false;

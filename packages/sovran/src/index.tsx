@@ -1,10 +1,4 @@
-import {
-  NativeEventEmitter,
-  NativeModules,
-  Platform,
-  type NativeModule,
-  type TurboModule,
-} from 'react-native';
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import { onStoreAction } from './bridge';
 
 const LINKING_ERROR =
@@ -13,18 +7,26 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo managed workflow\n';
 
-const Sovran = NativeModules.HtSovran as NativeModule;
-
 type NativeModuleConstants = { ON_STORE_ACTION: string };
 
+type SovranNativeModule = {
+  addListener: (eventType: string) => void;
+  removeListeners: (count: number) => void;
+  getConstants?: () => NativeModuleConstants;
+};
+
+type SovranNativeEvents = {
+  [event: string]: [{ type: string; payload: unknown }];
+};
+
+const Sovran = NativeModules.HtSovran as SovranNativeModule | undefined;
+
 if (Sovran !== undefined && Sovran !== null) {
-  const { ON_STORE_ACTION } = ((
-    Sovran as unknown as TurboModule
-  ).getConstants?.() as NativeModuleConstants) ?? {
+  const { ON_STORE_ACTION } = Sovran.getConstants?.() ?? {
     ON_STORE_ACTION: '',
   };
 
-  const SovranBridge = new NativeEventEmitter(Sovran);
+  const SovranBridge = new NativeEventEmitter<SovranNativeEvents>(Sovran);
 
   // Listen to Native events
   SovranBridge.addListener(
