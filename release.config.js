@@ -6,7 +6,15 @@ module.exports = {
     ],
     '@semantic-release/changelog',
     'semantic-release-yarn',
-    '@semantic-release/github'
+    [
+      '@semantic-release/github',
+      {
+        // Don't comment "included in version X" on shipped PRs/issues. With
+        // multi-semantic-release every package's release comments on the same
+        // PRs, so a full release posts ~15 duplicate comments per PR.
+        successComment: false
+      }
+    ]
     // NOTE: @semantic-release/git is intentionally omitted. The default branch
     // ruleset requires pull requests, so the publish workflow opens a PR with
     // the generated CHANGELOG.md and package.json bumps instead of pushing
