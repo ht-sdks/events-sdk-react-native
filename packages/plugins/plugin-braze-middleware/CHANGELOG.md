@@ -1,3 +1,8 @@
+### Dependencies
+
+* **@ht-sdks/events-sdk-react-native:** upgraded to 2.22.1
+* **@ht-sdks/sovran-react-native:** upgraded to 1.2.1
+
 ## @segment/analytics-react-native-plugin-braze-middleware [1.1.0](https://github.com/segmentio/analytics-react-native/compare/@segment/analytics-react-native-plugin-braze-middleware-v1.0.1...@segment/analytics-react-native-plugin-braze-middleware-v1.1.0) (2023-12-15)
 
 
