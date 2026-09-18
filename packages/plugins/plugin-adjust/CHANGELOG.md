@@ -1,5 +1,10 @@
 ### Dependencies
 
+* **@ht-sdks/events-sdk-react-native:** upgraded to 2.22.1
+* **@ht-sdks/sovran-react-native:** upgraded to 1.2.1
+
+### Dependencies
+
 * **@ht-sdks/events-sdk-react-native:** upgraded to 2.18.3
 
 ## @segment/analytics-react-native-plugin-adjust [0.7.0](https://github.com/segmentio/analytics-react-native/compare/@segment/analytics-react-native-plugin-adjust-v0.6.3...@segment/analytics-react-native-plugin-adjust-v0.7.0) (2023-12-15)

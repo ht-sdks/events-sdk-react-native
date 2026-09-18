@@ -1,5 +1,10 @@
 ### Dependencies
 
+* **@ht-sdks/events-sdk-react-native:** upgraded to 2.22.1
+* **@ht-sdks/sovran-react-native:** upgraded to 1.2.1
+
+### Dependencies
+
 * **@ht-sdks/analytics-react-native:** upgraded to 2.18.2
 
 ## [@segment/analytics-react-native-plugin-clevertap-v1.0.3](https://github.com/segmentio/analytics-react-native/compare/@segment/analytics-react-native-plugin-clevertap-v1.0.2...@segment/analytics-react-native-plugin-clevertap-v1.0.3) (2023-08-21)
