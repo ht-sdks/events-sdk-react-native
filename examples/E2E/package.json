@@ -61,5 +61,8 @@
   },
   "engines": {
     "node": ">=16"
+  },
+  "resolutions": {
+    "@react-native/gradle-plugin@npm:^0.72.11": "patch:@react-native/gradle-plugin@npm%3A0.72.11#./patches/@react-native-gradle-plugin-npm-0.72.11-kotlin-1.9.10.patch"
   }
 }

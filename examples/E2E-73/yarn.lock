@@ -2440,6 +2440,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native/gradle-plugin@patch:@react-native/gradle-plugin@npm%3A0.73.5#./patches/@react-native-gradle-plugin-npm-0.73.5-kotlin-1.9.10.patch::locator=AnalyticsReactNativeE2E73%40workspace%3A.":
+  version: 0.73.5
+  resolution: "@react-native/gradle-plugin@patch:@react-native/gradle-plugin@npm%3A0.73.5#./patches/@react-native-gradle-plugin-npm-0.73.5-kotlin-1.9.10.patch::version=0.73.5&hash=353358&locator=AnalyticsReactNativeE2E73%40workspace%3A."
+  checksum: 10c0/e6142dcc1ec5f8cd1c1a28d765c19af22c9d84723a0541d8f085180953db3a1867020487aa813c95a0a4937adb72a66bb5690baf314b77a8d8af7b5ce52d8047
+  languageName: node
+  linkType: hard
+
 "@react-native/js-polyfills@npm:0.73.1":
   version: 0.73.1
   resolution: "@react-native/js-polyfills@npm:0.73.1"

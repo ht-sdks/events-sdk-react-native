@@ -2346,10 +2346,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/gradle-plugin@npm:^0.72.11":
+"@react-native/gradle-plugin@npm:0.72.11":
   version: 0.72.11
   resolution: "@react-native/gradle-plugin@npm:0.72.11"
   checksum: 10c0/18ce50162c6a02baedbe3b00b83f60999b09c29c22c9841147af3a885e4b59e5e3ca74aff83d7bd962d3f5683632eb02e63c9bd76267e1723fefbfc04b896118
+  languageName: node
+  linkType: hard
+
+"@react-native/gradle-plugin@patch:@react-native/gradle-plugin@npm%3A0.72.11#./patches/@react-native-gradle-plugin-npm-0.72.11-kotlin-1.9.10.patch::locator=AnalyticsReactNativeE2E%40workspace%3A.":
+  version: 0.72.11
+  resolution: "@react-native/gradle-plugin@patch:@react-native/gradle-plugin@npm%3A0.72.11#./patches/@react-native-gradle-plugin-npm-0.72.11-kotlin-1.9.10.patch::version=0.72.11&hash=d3de4e&locator=AnalyticsReactNativeE2E%40workspace%3A."
+  checksum: 10c0/fe7a36cb8e5c53b200a8de2818185e288d4f87c7a40e0d15a00b6d3af878d806a42601ceb8a6acf1abfbfc0ba45a8725759c6cb1e03b91cf056a358c18ed6834
   languageName: node
   linkType: hard
 
