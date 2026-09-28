@@ -7,17 +7,88 @@ import {
   isDate,
   PluginType,
   TrackEventType,
-  UserInfoState,
+  ScreenEventType,
+  HightouchClient,
+  HightouchEvent,
   isObject,
   objectToString,
   HightouchAPISettings,
   UpdateType,
   JsonMap,
-  HightouchBrazeSettings,
   unknownToString,
 } from '@ht-sdks/events-sdk-react-native';
+import { createStore, Store } from '@ht-sdks/sovran-react-native';
 import Braze, { GenderTypes, MonthsAsNumber } from '@braze/react-native-sdk';
 import flush from './methods/flush';
+
+export interface BrazePluginOptions {
+  logPurchaseWhenRevenuePresent?: boolean;
+  /** Product field used as the Braze purchase productId. Defaults to `sku`. */
+  purchaseProductIdentifier?: 'sku' | 'name';
+  bundleCommerceEvents?: boolean;
+  forwardScreenViews?: boolean;
+  stringifyAttributeValues?: boolean;
+}
+
+type SubscriptionType = Parameters<
+  typeof Braze.setEmailNotificationSubscriptionType
+>[0];
+
+interface AttributeCache {
+  userId?: string;
+  attributes: Record<string, string>;
+}
+
+const GENDERS: Record<string, GenderTypes[keyof GenderTypes]> = {
+  m: 'm',
+  male: 'm',
+  f: 'f',
+  female: 'f',
+  o: 'o',
+  other: 'o',
+  u: 'u',
+  unknown: 'u',
+  n: 'n',
+  not_applicable: 'n',
+  p: 'p',
+  prefer_not_to_say: 'p',
+};
+
+const SUBSCRIPTION_TYPES: Record<string, SubscriptionType> = {
+  opted_in: 'optedin',
+  subscribed: 'subscribed',
+  unsubscribed: 'unsubscribed',
+};
+
+const RESERVED_TRAITS = [
+  'firstName',
+  'first_name',
+  '$FirstName',
+  'lastName',
+  'last_name',
+  '$LastName',
+  'email',
+  'Email',
+  'phone',
+  '$Mobile',
+  'gender',
+  '$Gender',
+  'birthday',
+  'dob',
+  'age',
+  '$Age',
+  'address',
+  'home_city',
+  '$City',
+  'country',
+  '$Country',
+  '$Zip',
+  'email_subscribe',
+  'push_subscribe',
+];
+
+const stripLeadingDollar = (key: string) => key.replace(/^\$+/, '');
+
 interface AttributionProperties {
   network: string;
   campaign: string;
@@ -35,17 +106,95 @@ const defaultProperties: AttributionProperties = {
 export class BrazePlugin extends DestinationPlugin {
   type = PluginType.destination;
   key = 'Appboy';
-  private lastSeenTraits: UserInfoState | undefined;
-  private revenueEnabled = false;
+  private options: BrazePluginOptions;
+  private settings: BrazePluginOptions;
+  private userId?: string;
+  private cache: AttributeCache = { attributes: {} };
+  private cacheStore?: Store<AttributeCache>;
+  private cacheRestored: Promise<void> = Promise.resolve();
+
+  constructor(options: BrazePluginOptions = {}) {
+    super();
+    this.options = options;
+    this.settings = options;
+  }
 
   update(settings: HightouchAPISettings, _: UpdateType) {
-    const brazeSettings = settings.integrations[
-      this.key
-    ] as HightouchBrazeSettings;
-    if (brazeSettings.logPurchaseWhenRevenuePresent === true) {
-      this.revenueEnabled = true;
-    }
+    const brazeSettings = settings.integrations[this.key];
+    this.settings = {
+      ...(isObject(brazeSettings) ? brazeSettings : {}),
+      ...this.options,
+    };
   }
+
+  configure(analytics: HightouchClient) {
+    super.configure(analytics);
+    const config = analytics.getConfig();
+    this.cacheRestored = new Promise((resolve) => {
+      this.cacheStore = createStore<AttributeCache>(
+        { attributes: {} },
+        {
+          persist: {
+            storeId: `${config.writeKey}-braze-attributes`,
+            persistor: config.storePersistor,
+            saveDelay: config.storePersistorSaveDelay,
+            onInitialized: (restored) => {
+              const state = restored as AttributeCache;
+              this.cache = state;
+              this.userId ??= state.userId;
+              resolve();
+            },
+          },
+        }
+      );
+    });
+  }
+
+  async execute(event: HightouchEvent) {
+    const integrations = event.integrations;
+    if (integrations?.All === false && integrations[this.key] !== true) {
+      return undefined;
+    }
+    return super.execute(event);
+  }
+
+  async reset() {
+    this.userId = undefined;
+    await this.cacheRestored;
+    this.cache = { attributes: {} };
+    await this.cacheStore?.dispatch(() => this.cache);
+  }
+
+  private formatValue = (value: unknown) => {
+    if (
+      this.settings.stringifyAttributeValues !== true ||
+      value === null ||
+      value === undefined ||
+      isString(value)
+    ) {
+      return value;
+    }
+    if (isDate(value)) {
+      return value.toISOString();
+    }
+    if (Array.isArray(value) || isObject(value)) {
+      return JSON.stringify(value);
+    }
+    return String(value);
+  };
+
+  private formatProperties = (properties?: Record<string, unknown>) => {
+    if (properties === undefined) {
+      return undefined;
+    }
+    const formatted: Record<string, unknown> = {};
+    Object.entries(properties).forEach(([key, value]) => {
+      if (value !== undefined) {
+        formatted[stripLeadingDollar(key)] = this.formatValue(value);
+      }
+    });
+    return formatted;
+  };
 
   /**
    * Cleans up the attributes to only send valid values to Braze SDK
@@ -63,7 +212,7 @@ export class BrazePlugin extends DestinationPlugin {
       isBoolean(value) ||
       isDate(value)
     ) {
-      return value;
+      return this.formatValue(value) as string | number | boolean | Date | null;
     }
 
     // Arrays and objects we will attempt to serialize
@@ -83,99 +232,195 @@ export class BrazePlugin extends DestinationPlugin {
     return undefined;
   };
 
-  identify(event: IdentifyEventType) {
-    //check to see if anything has changed.
-    //if it hasn't changed don't send event
-    if (
-      this.lastSeenTraits?.userId === event.userId &&
-      this.lastSeenTraits?.anonymousId === event.anonymousId &&
-      this.lastSeenTraits?.traits === event.traits
-    ) {
-      return;
-    } else {
-      if (event.userId !== undefined && event.userId !== null) {
-        Braze.changeUser(event.userId);
-      }
-
-      if (event.traits?.birthday !== undefined) {
-        const birthday = new Date(event.traits.birthday);
-        if (
-          birthday !== undefined &&
-          birthday !== null &&
-          !isNaN(birthday.getTime())
-        ) {
-          const data = new Date(event.traits.birthday);
-          Braze.setDateOfBirth(
-            data.getFullYear(),
-            // getMonth is zero indexed
-            (data.getMonth() + 1) as MonthsAsNumber,
-            data.getDate()
-          );
-        } else {
-          this.analytics?.logger.warn(
-            `Birthday found "${event.traits?.birthday}" could not be parsed as a Date. Try converting to ISO format.`
-          );
-        }
-      }
-
-      if (event.traits?.email !== undefined) {
-        Braze.setEmail(event.traits.email);
-      }
-
-      if (event.traits?.firstName !== undefined) {
-        Braze.setFirstName(event.traits.firstName);
-      }
-
-      if (event.traits?.lastName !== undefined) {
-        Braze.setLastName(event.traits.lastName);
-      }
-
-      if (event.traits?.gender !== undefined) {
-        const validGenders = ['m', 'f', 'n', 'o', 'p', 'u'];
-        const isValidGender = validGenders.indexOf(event.traits.gender) > -1;
-        if (isValidGender) {
-          Braze.setGender(
-            event.traits.gender as GenderTypes[keyof GenderTypes]
-          );
-        }
-      }
-
-      if (event.traits?.phone !== undefined) {
-        Braze.setPhoneNumber(event.traits.phone);
-      }
-
-      if (event.traits?.address !== undefined) {
-        if (event.traits.address.city !== undefined) {
-          Braze.setHomeCity(event.traits.address.city);
-        }
-        if (event.traits?.address.country !== undefined) {
-          Braze.setCountry(event.traits.address.country);
-        }
-      }
-
-      const appBoyTraits = [
-        'birthday',
-        'email',
-        'firstName',
-        'lastName',
-        'gender',
-        'phone',
-        'address',
+  private parseDate = (
+    value: unknown
+  ): [number, MonthsAsNumber, number] | undefined => {
+    // Date-only strings parse as UTC midnight, which is the previous day in
+    // time zones behind UTC, so read the calendar date from the string.
+    const match = isString(value)
+      ? /^(\d{4})-(\d{2})-(\d{2})/.exec(value)
+      : null;
+    if (match) {
+      return [
+        Number(match[1]),
+        Number(match[2]) as MonthsAsNumber,
+        Number(match[3]),
       ];
-
-      Object.entries(event.traits ?? {}).forEach(([key, value]) => {
-        const sanitized = this.sanitizeAttribute(value);
-        if (sanitized !== undefined && appBoyTraits.indexOf(key) < 0) {
-          Braze.setCustomUserAttribute(key, sanitized);
-        }
-      });
-
-      this.lastSeenTraits = {
-        anonymousId: event.anonymousId ?? '',
-        userId: event.userId,
-        traits: event.traits,
-      };
     }
+    const date = isDate(value)
+      ? value
+      : isString(value) || isNumber(value)
+      ? new Date(value)
+      : undefined;
+    if (date === undefined || isNaN(date.getTime())) {
+      return undefined;
+    }
+    return [
+      date.getFullYear(),
+      // getMonth is zero indexed
+      (date.getMonth() + 1) as MonthsAsNumber,
+      date.getDate(),
+    ];
+  };
+
+  identify(event: IdentifyEventType) {
+    const userId = event.userId ?? undefined;
+    // Stays synchronous so events tracked right after identify aren't
+    // attributed to the previous Braze user.
+    if (userId !== undefined && userId !== this.userId) {
+      Braze.changeUser(userId);
+      this.userId = userId;
+    }
+    return this.updateAttributes(event, userId);
+  }
+
+  private async updateAttributes(event: IdentifyEventType, userId?: string) {
+    await this.cacheRestored;
+    if (userId !== undefined && userId !== this.cache.userId) {
+      this.cache = { userId, attributes: {} };
+    }
+    const sent = this.cache.attributes;
+    const setIfChanged = (key: string, value: unknown, send: () => void) => {
+      const serialized = JSON.stringify(value);
+      if (sent[key] !== serialized) {
+        send();
+        sent[key] = serialized;
+      }
+    };
+    const traits = (event.traits ?? {}) as Record<string, unknown>;
+    const address = isObject(traits.address) ? traits.address : {};
+    const pick = (...values: unknown[]) => values.find((v) => v !== undefined);
+    const pickString = (...values: unknown[]) => {
+      const value = pick(...values);
+      return isString(value) ? value : undefined;
+    };
+
+    const stringSetters: [string, string | undefined, (v: string) => void][] = [
+      [
+        '$firstName',
+        pickString(traits.firstName, traits.first_name, traits.$FirstName),
+        (v) => Braze.setFirstName(v),
+      ],
+      [
+        '$lastName',
+        pickString(traits.lastName, traits.last_name, traits.$LastName),
+        (v) => Braze.setLastName(v),
+      ],
+      [
+        '$email',
+        pickString(traits.email, traits.Email),
+        (v) => Braze.setEmail(v),
+      ],
+      [
+        '$phone',
+        pickString(traits.phone, traits.$Mobile),
+        (v) => Braze.setPhoneNumber(v),
+      ],
+      [
+        '$homeCity',
+        pickString(address.city, traits.home_city, traits.$City),
+        (v) => Braze.setHomeCity(v),
+      ],
+      [
+        '$country',
+        pickString(address.country, traits.country, traits.$Country),
+        (v) => Braze.setCountry(v),
+      ],
+    ];
+    stringSetters.forEach(([key, value, setter]) => {
+      if (value !== undefined) {
+        setIfChanged(key, value, () => setter(value));
+      }
+    });
+
+    const gender = pick(traits.gender, traits.$Gender);
+    if (gender !== undefined && gender !== null) {
+      const normalized =
+        GENDERS[
+          String(gender)
+            .trim()
+            .toLowerCase()
+            .replace(/[\s-]+/g, '_')
+        ];
+      if (normalized !== undefined) {
+        setIfChanged('$gender', normalized, () => Braze.setGender(normalized));
+      } else {
+        this.analytics?.logger.warn(
+          `Gender "${String(gender)}" is not a supported Braze gender value.`
+        );
+      }
+    }
+
+    const birthday = pick(traits.birthday, traits.dob);
+    const age = pick(traits.age, traits.$Age);
+    if (birthday !== undefined && birthday !== null) {
+      const dateOfBirth = this.parseDate(birthday);
+      if (dateOfBirth !== undefined) {
+        setIfChanged('$dateOfBirth', dateOfBirth, () =>
+          Braze.setDateOfBirth(...dateOfBirth)
+        );
+      } else {
+        this.analytics?.logger.warn(
+          `Birthday found "${String(
+            birthday
+          )}" could not be parsed as a Date. Try converting to ISO format.`
+        );
+      }
+    } else if (isNumber(age)) {
+      const year = new Date().getFullYear() - age;
+      setIfChanged('$dateOfBirth', [year, 1, 1], () =>
+        Braze.setDateOfBirth(year, 1, 1)
+      );
+    }
+
+    const subscriptions: [string, unknown, (v: SubscriptionType) => void][] = [
+      [
+        '$emailSubscribe',
+        traits.email_subscribe,
+        (v) => Braze.setEmailNotificationSubscriptionType(v),
+      ],
+      [
+        '$pushSubscribe',
+        traits.push_subscribe,
+        (v) => Braze.setPushNotificationSubscriptionType(v),
+      ],
+    ];
+    subscriptions.forEach(([key, value, setter]) => {
+      const type = isString(value) ? SUBSCRIPTION_TYPES[value] : undefined;
+      if (type !== undefined) {
+        setIfChanged(key, type, () => setter(type));
+      }
+    });
+
+    const customAttributes = Object.entries(traits).filter(
+      ([key]) => !RESERVED_TRAITS.includes(key)
+    );
+    const zip = pick(address.postalCode, traits.$Zip);
+    if (zip !== undefined) {
+      customAttributes.push(['Zip', zip]);
+    }
+    customAttributes.forEach(([rawKey, value]) => {
+      const key = stripLeadingDollar(rawKey);
+      if (key === '') {
+        return;
+      }
+      if (value === null) {
+        // The bridge ignores null in setCustomUserAttribute.
+        setIfChanged(key, null, () => Braze.unsetCustomUserAttribute(key));
+        return;
+      }
+      const sanitized = this.sanitizeAttribute(value);
+      if (sanitized !== undefined) {
+        setIfChanged(key, sanitized, () =>
+          Braze.setCustomUserAttribute(key, sanitized)
+        );
+      }
+    });
+
+    await this.cacheStore?.dispatch(() => ({
+      ...this.cache,
+      attributes: { ...sent },
+    }));
     return event;
   }
 
@@ -232,13 +477,26 @@ export class BrazePlugin extends DestinationPlugin {
     if (eventName === 'Order Completed' || eventName === 'Completed Order') {
       this.logPurchaseEvent(event);
     } else if (
-      this.revenueEnabled === true &&
+      this.settings.logPurchaseWhenRevenuePresent === true &&
       revenue !== 0 &&
       revenue !== undefined
     ) {
       this.logPurchaseEvent(event);
     } else {
-      Braze.logCustomEvent(eventName, event.properties);
+      Braze.logCustomEvent(
+        stripLeadingDollar(eventName),
+        this.formatProperties(event.properties)
+      );
+    }
+    return event;
+  }
+
+  screen(event: ScreenEventType) {
+    if (this.settings.forwardScreenViews === true) {
+      Braze.logCustomEvent(
+        stripLeadingDollar(event.name),
+        this.formatProperties(event.properties)
+      );
     }
     return event;
   }
@@ -270,71 +528,93 @@ export class BrazePlugin extends DestinationPlugin {
   logPurchaseEvent(event: TrackEventType) {
     // Make USD as the default currency.
     let currency = 'USD';
-    const revenue = this.extractRevenue(event.properties, 'revenue');
+    const revenue =
+      this.extractRevenue(event.properties, 'revenue') ||
+      this.extractRevenue(event.properties, 'total');
     if (
       typeof event.properties?.currency === 'string' &&
       event.properties.currency.length === 3
     ) {
       currency = event.properties.currency;
     }
-    if (event.properties) {
-      const appBoyProperties = Object.assign({}, event.properties);
-      delete appBoyProperties.currency;
-      delete appBoyProperties.revenue;
-
-      if (
-        appBoyProperties.products !== undefined &&
-        appBoyProperties.products !== null
-      ) {
-        const products = (appBoyProperties.products as unknown[]).slice(0);
-        delete appBoyProperties.products;
-
-        products.forEach((product) => {
-          const productDict = Object.assign(
-            {},
-            isObject(product) ? product : {}
-          );
-          const productId =
-            unknownToString(
-              productDict.product_id,
-              true,
-              undefined,
-              undefined
-            ) ?? '';
-          const productRevenue = this.extractRevenue(
-            productDict as unknown as JsonMap,
-            'price'
-          );
-          const productQuantity = isNumber(productDict.quantity)
-            ? productDict.quantity
-            : 1;
-          delete productDict.product_id;
-          delete productDict.price;
-          delete productDict.quantity;
-          const productProperties = Object.assign(
-            {},
-            appBoyProperties,
-            productDict
-          );
-          Braze.logPurchase(
-            unknownToString(productId) ?? '',
-            String(productRevenue),
-            currency,
-            productQuantity,
-            productProperties
-          );
-        });
-      } else {
-        Braze.logPurchase(
-          event.event,
-          String(revenue),
-          currency,
-          1,
-          appBoyProperties
-        );
-      }
-    } else {
-      Braze.logPurchase(event.event, String(revenue), currency, 1);
+    const orderProperties: Record<string, unknown> = { ...event.properties };
+    const products = Array.isArray(orderProperties.products)
+      ? orderProperties.products.filter(isObject)
+      : [];
+    if (orderProperties.order_id !== undefined) {
+      orderProperties['Transaction Id'] = orderProperties.order_id;
     }
+    delete orderProperties.currency;
+    delete orderProperties.revenue;
+    delete orderProperties.products;
+    delete orderProperties.order_id;
+
+    if (this.settings.bundleCommerceEvents === true) {
+      Braze.logPurchase(
+        'eCommerce - purchase',
+        String(revenue),
+        currency,
+        1,
+        this.formatProperties({
+          ...orderProperties,
+          products: products.map(({ sku, coupon, ...product }) => ({
+            ...product,
+            ...(sku !== undefined && { Id: sku }),
+            ...(coupon !== undefined && { 'Coupon Code': coupon }),
+            'Total Product Amount':
+              this.extractRevenue(product as JsonMap, 'price') *
+              (isNumber(product.quantity) ? product.quantity : 1),
+          })),
+        })
+      );
+      return;
+    }
+
+    if (products.length === 0) {
+      Braze.logPurchase(
+        stripLeadingDollar(event.event),
+        String(revenue),
+        currency,
+        1,
+        this.formatProperties(orderProperties)
+      );
+      return;
+    }
+
+    products.forEach((product) => {
+      const {
+        product_id: productId,
+        sku,
+        name,
+        brand,
+        category,
+        variant,
+        position,
+        coupon,
+        price,
+        quantity,
+        ...customFields
+      } = product;
+      const identifier =
+        this.settings.purchaseProductIdentifier === 'name'
+          ? name
+          : sku ?? productId;
+      Braze.logPurchase(
+        unknownToString(identifier, true, undefined, undefined) ?? '',
+        String(this.extractRevenue({ price } as JsonMap, 'price')),
+        currency,
+        isNumber(quantity) ? quantity : 1,
+        this.formatProperties({
+          ...orderProperties,
+          'Name': name,
+          'Brand': brand,
+          'Category': category,
+          'Variant': variant,
+          'Position': position,
+          'Coupon Code': coupon,
+          ...customFields,
+        })
+      );
+    });
   }
 }

@@ -47,7 +47,8 @@
   "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/plugins/plugin-braze#readme",
   "peerDependencies": {
     "@braze/react-native-sdk": "^5.x",
-    "@ht-sdks/events-sdk-react-native": "^2.18.0"
+    "@ht-sdks/events-sdk-react-native": "^2.18.0",
+    "@ht-sdks/sovran-react-native": "^1.1.0"
   },
   "devDependencies": {
     "@braze/react-native-sdk": "^5.x",

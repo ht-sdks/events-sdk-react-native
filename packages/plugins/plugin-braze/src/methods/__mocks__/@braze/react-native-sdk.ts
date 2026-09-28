@@ -9,6 +9,9 @@ export const setPhoneNumber = jest.fn();
 export const setHomeCity = jest.fn();
 export const setCountry = jest.fn();
 export const setCustomUserAttribute = jest.fn();
+export const unsetCustomUserAttribute = jest.fn();
+export const setEmailNotificationSubscriptionType = jest.fn();
+export const setPushNotificationSubscriptionType = jest.fn();
 export const logCustomEvent = jest.fn();
 export const logPurchase = jest.fn();
 export const setAttributionData = jest.fn();
@@ -25,6 +28,9 @@ export default {
   setHomeCity,
   setCountry,
   setCustomUserAttribute,
+  unsetCustomUserAttribute,
+  setEmailNotificationSubscriptionType,
+  setPushNotificationSubscriptionType,
   logCustomEvent,
   logPurchase,
   setAttributionData,
