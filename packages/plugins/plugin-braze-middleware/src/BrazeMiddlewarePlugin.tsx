@@ -6,6 +6,10 @@ import {
   EventType,
 } from '@ht-sdks/events-sdk-react-native';
 
+/**
+ * @deprecated `BrazePlugin` only sends changed attributes and persists what it
+ * sent across launches, so this plugin is no longer needed.
+ */
 export class BrazeMiddlewarePlugin extends Plugin {
   type = PluginType.before;
   key = 'Appboy';
