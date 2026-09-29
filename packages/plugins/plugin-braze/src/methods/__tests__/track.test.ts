@@ -5,6 +5,7 @@ import type {
 import type { HightouchClient } from '@ht-sdks/events-sdk-react-native';
 import {
   BrazePlugin,
+  BrazePluginOptions,
   BrazePurchase,
   BrazePurchaseContext,
 } from '../../BrazePlugin';
@@ -364,9 +365,16 @@ describe('#track', () => {
 
   it('lets isPurchaseEvent override purchaseEventNames', () => {
     const plugin = new BrazePlugin({
-      purchaseEventNames: ['Membership Purchased'],
       isPurchaseEvent: (event) => event.properties?.paid === true,
     });
+    plugin.update(
+      {
+        integrations: {
+          Appboy: { purchaseEventNames: ['Membership Purchased'] },
+        },
+      },
+      UpdateType.initial
+    );
     plugin.track({
       event: 'Checkout',
       properties: { paid: true },
@@ -622,6 +630,19 @@ describe('#track', () => {
 
     expect(logPurchase).not.toHaveBeenCalled();
     expect(warn).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects constructor options that another option makes unused', () => {
+    const options: BrazePluginOptions[] = [
+      // @ts-expect-error isPurchaseEvent overrides purchaseEventNames
+      { purchaseEventNames: ['Order Completed'], isPurchaseEvent: () => true },
+      // @ts-expect-error isPurchaseEvent overrides purchaseEventNames
+      { isPurchaseEvent: () => true, purchaseEventNames: ['Order Completed'] },
+      // @ts-expect-error bundled purchases use the event name as productId
+      { bundleCommerceEvents: true, purchaseProductIdentifier: 'sku' },
+      { bundleCommerceEvents: false, purchaseProductIdentifier: 'name' },
+    ];
+    expect(options).toHaveLength(4);
   });
 
   it('forwards screen views only when forwardScreenViews is on', () => {

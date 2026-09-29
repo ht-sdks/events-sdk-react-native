@@ -37,31 +37,48 @@ export interface BrazePurchaseContext {
   product?: Record<string, unknown>;
 }
 
-export interface BrazePluginOptions {
-  /** Track event names logged as purchases. Exact, case-sensitive match. */
-  purchaseEventNames?: string[];
-  /**
-   * Decides which track events are purchases, overriding `purchaseEventNames`.
-   * Constructor only.
-   */
-  isPurchaseEvent?: (event: TrackEventType) => boolean;
-  /**
-   * Changes each purchase before it's logged. Return null or undefined to skip
-   * it. If it throws, the default purchase is logged. Constructor only.
-   */
-  transformPurchase?: (
-    purchase: BrazePurchase,
-    context: BrazePurchaseContext
-  ) => BrazePurchase | null | undefined;
-  /**
-   * Product field used as the Braze purchase productId. Defaults to `sku`,
-   * falling back to `product_id`, then `name`.
-   */
-  purchaseProductIdentifier?: 'sku' | 'name';
-  bundleCommerceEvents?: boolean;
-  forwardScreenViews?: boolean;
-  stringifyAttributeValues?: boolean;
-}
+type PurchaseEventOptions =
+  | {
+      /** Track event names logged as purchases. Exact, case-sensitive match. */
+      purchaseEventNames?: string[];
+      isPurchaseEvent?: never;
+    }
+  | {
+      purchaseEventNames?: never;
+      /**
+       * Decides which track events are purchases, overriding
+       * `purchaseEventNames`. Constructor only.
+       */
+      isPurchaseEvent?: (event: TrackEventType) => boolean;
+    };
+
+type PurchaseProductOptions =
+  | {
+      bundleCommerceEvents?: false;
+      /**
+       * Product field used as the Braze purchase productId. Defaults to `sku`,
+       * falling back to `product_id`, then `name`.
+       */
+      purchaseProductIdentifier?: 'sku' | 'name';
+    }
+  | {
+      bundleCommerceEvents: true;
+      purchaseProductIdentifier?: never;
+    };
+
+export type BrazePluginOptions = PurchaseEventOptions &
+  PurchaseProductOptions & {
+    /**
+     * Changes each purchase before it's logged. Return null or undefined to
+     * skip it. If it throws, the default purchase is logged. Constructor only.
+     */
+    transformPurchase?: (
+      purchase: BrazePurchase,
+      context: BrazePurchaseContext
+    ) => BrazePurchase | null | undefined;
+    forwardScreenViews?: boolean;
+    stringifyAttributeValues?: boolean;
+  };
 
 type SubscriptionType = Parameters<
   typeof Braze.setEmailNotificationSubscriptionType
