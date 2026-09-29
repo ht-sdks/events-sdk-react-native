@@ -22,6 +22,13 @@ import Braze, { GenderTypes, MonthsAsNumber } from '@braze/react-native-sdk';
 import flush from './methods/flush';
 
 export interface BrazePluginOptions {
+  /** Track event names logged as purchases. Exact, case-sensitive match. */
+  purchaseEventNames?: string[];
+  /**
+   * Decides which track events are purchases, overriding `purchaseEventNames`
+   * and `logPurchaseWhenRevenuePresent`. Constructor only.
+   */
+  isPurchaseEvent?: (event: TrackEventType) => boolean;
   logPurchaseWhenRevenuePresent?: boolean;
   /** Product field used as the Braze purchase productId. Defaults to `sku`. */
   purchaseProductIdentifier?: 'sku' | 'name';
@@ -86,6 +93,8 @@ const RESERVED_TRAITS = [
   'email_subscribe',
   'push_subscribe',
 ];
+
+const DEFAULT_PURCHASE_EVENT_NAMES = ['Order Completed', 'Completed Order'];
 
 const stripLeadingDollar = (key: string) => key.replace(/^\$+/, '');
 
@@ -426,7 +435,6 @@ export class BrazePlugin extends DestinationPlugin {
 
   track(event: TrackEventType) {
     const eventName = event.event;
-    const revenue = this.extractRevenue(event.properties, 'revenue');
 
     if (event.event === 'Install Attributed') {
       if (
@@ -474,13 +482,7 @@ export class BrazePlugin extends DestinationPlugin {
       }
     }
 
-    if (eventName === 'Order Completed' || eventName === 'Completed Order') {
-      this.logPurchaseEvent(event);
-    } else if (
-      this.settings.logPurchaseWhenRevenuePresent === true &&
-      revenue !== 0 &&
-      revenue !== undefined
-    ) {
+    if (this.isPurchase(event)) {
       this.logPurchaseEvent(event);
     } else {
       Braze.logCustomEvent(
@@ -489,6 +491,32 @@ export class BrazePlugin extends DestinationPlugin {
       );
     }
     return event;
+  }
+
+  private isPurchase(event: TrackEventType) {
+    // Read from options, not settings: a function can't come from JSON settings.
+    const { isPurchaseEvent } = this.options;
+    if (isPurchaseEvent !== undefined) {
+      try {
+        return isPurchaseEvent(event);
+      } catch (error) {
+        this.analytics?.logger.warn(
+          `isPurchaseEvent threw for "${event.event}"; logging it as a custom event.`,
+          error
+        );
+        return false;
+      }
+    }
+    const names = Array.isArray(this.settings.purchaseEventNames)
+      ? this.settings.purchaseEventNames
+      : DEFAULT_PURCHASE_EVENT_NAMES;
+    const revenue = this.extractRevenue(event.properties, 'revenue');
+    return (
+      names.includes(event.event) ||
+      (this.settings.logPurchaseWhenRevenuePresent === true &&
+        revenue !== 0 &&
+        revenue !== undefined)
+    );
   }
 
   screen(event: ScreenEventType) {

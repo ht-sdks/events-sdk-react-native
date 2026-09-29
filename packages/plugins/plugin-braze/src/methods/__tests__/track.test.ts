@@ -346,6 +346,109 @@ describe('#track', () => {
     });
   });
 
+  const purchase = (event: string) =>
+    ({ event, properties: { revenue: 5 } } as unknown as TrackEventType);
+
+  it('treats Order Completed and Completed Order as purchases by default', () => {
+    const plugin = new BrazePlugin();
+    plugin.track(purchase('Order Completed'));
+    plugin.track(purchase('Completed Order'));
+    plugin.track(purchase('order completed'));
+
+    expect(logPurchase).toHaveBeenCalledTimes(2);
+    expect(logCustomEvent).toHaveBeenCalledTimes(1);
+    expect(logCustomEvent).toHaveBeenCalledWith('order completed', {
+      revenue: 5,
+    });
+  });
+
+  it('uses purchaseEventNames from constructor options', () => {
+    const plugin = new BrazePlugin({
+      purchaseEventNames: ['Membership Purchased'],
+    });
+    plugin.update(
+      { integrations: { Appboy: { purchaseEventNames: ['Other'] } } },
+      UpdateType.initial
+    );
+    plugin.track(purchase('Membership Purchased'));
+    plugin.track(purchase('Other'));
+    plugin.track(purchase('Order Completed'));
+
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Membership Purchased',
+      '5',
+      'USD',
+      1,
+      {}
+    );
+    expect(logCustomEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses purchaseEventNames from settings', () => {
+    const plugin = new BrazePlugin();
+    plugin.update(
+      {
+        integrations: {
+          Appboy: { purchaseEventNames: ['Membership Purchased'] },
+        },
+      },
+      UpdateType.initial
+    );
+    plugin.track(purchase('Membership Purchased'));
+    plugin.track(purchase('Order Completed'));
+
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
+      revenue: 5,
+    });
+  });
+
+  it('lets isPurchaseEvent override names and revenue detection', () => {
+    const plugin = new BrazePlugin({
+      purchaseEventNames: ['Membership Purchased'],
+      logPurchaseWhenRevenuePresent: true,
+      isPurchaseEvent: (event) => event.properties?.paid === true,
+    });
+    plugin.track({
+      event: 'Checkout',
+      properties: { paid: true },
+    } as unknown as TrackEventType);
+    plugin.track(purchase('Membership Purchased'));
+    plugin.track(purchase('Order Completed'));
+
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith('Checkout', '0', 'USD', 1, {
+      paid: true,
+    });
+    expect(logCustomEvent).toHaveBeenCalledTimes(2);
+    expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
+      revenue: 5,
+    });
+  });
+
+  it('logs a custom event and warns when isPurchaseEvent throws', () => {
+    const warn = jest.fn();
+    const error = new Error('boom');
+    const plugin = new BrazePlugin({
+      isPurchaseEvent: () => {
+        throw error;
+      },
+    });
+    plugin.configure({
+      settings: { get: () => ({ Appboy: {} }) },
+      getConfig: () => ({ writeKey: 'key' }),
+      logger: { warn },
+    } as unknown as HightouchClient);
+    plugin.track(purchase('Order Completed'));
+
+    expect(logPurchase).not.toHaveBeenCalled();
+    expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
+      revenue: 5,
+    });
+    expect(warn).toHaveBeenCalledWith(expect.any(String), error);
+  });
+
   it('strips leading $ from event names and property keys', () => {
     const plugin = new BrazePlugin();
     plugin.track({
