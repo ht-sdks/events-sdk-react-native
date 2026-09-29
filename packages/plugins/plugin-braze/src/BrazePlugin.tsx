@@ -21,16 +21,42 @@ import { createStore, Store } from '@ht-sdks/sovran-react-native';
 import Braze, { GenderTypes, MonthsAsNumber } from '@braze/react-native-sdk';
 import flush from './methods/flush';
 
+export interface BrazePurchase {
+  productId: string;
+  price: number;
+  currency: string;
+  quantity: number;
+  properties: Record<string, unknown>;
+}
+
+export interface BrazePurchaseContext {
+  event: TrackEventType;
+  /** The track event's properties. */
+  order: Record<string, unknown>;
+  /** The product this purchase came from; none for per-order purchases. */
+  product?: Record<string, unknown>;
+}
+
 export interface BrazePluginOptions {
   /** Track event names logged as purchases. Exact, case-sensitive match. */
   purchaseEventNames?: string[];
   /**
-   * Decides which track events are purchases, overriding `purchaseEventNames`
-   * and `logPurchaseWhenRevenuePresent`. Constructor only.
+   * Decides which track events are purchases, overriding `purchaseEventNames`.
+   * Constructor only.
    */
   isPurchaseEvent?: (event: TrackEventType) => boolean;
-  logPurchaseWhenRevenuePresent?: boolean;
-  /** Product field used as the Braze purchase productId. Defaults to `sku`. */
+  /**
+   * Changes each purchase before it's logged. Return null or undefined to skip
+   * it. If it throws, the default purchase is logged. Constructor only.
+   */
+  transformPurchase?: (
+    purchase: BrazePurchase,
+    context: BrazePurchaseContext
+  ) => BrazePurchase | null | undefined;
+  /**
+   * Product field used as the Braze purchase productId. Defaults to `sku`,
+   * falling back to `product_id`, then `name`.
+   */
   purchaseProductIdentifier?: 'sku' | 'name';
   bundleCommerceEvents?: boolean;
   forwardScreenViews?: boolean;
@@ -70,33 +96,21 @@ const SUBSCRIPTION_TYPES: Record<string, SubscriptionType> = {
 const RESERVED_TRAITS = [
   'firstName',
   'first_name',
-  '$FirstName',
   'lastName',
   'last_name',
-  '$LastName',
   'email',
-  'Email',
   'phone',
-  '$Mobile',
   'gender',
-  '$Gender',
   'birthday',
   'dob',
-  'age',
-  '$Age',
   'address',
   'home_city',
-  '$City',
   'country',
-  '$Country',
-  '$Zip',
   'email_subscribe',
   'push_subscribe',
 ];
 
 const DEFAULT_PURCHASE_EVENT_NAMES = ['Order Completed', 'Completed Order'];
-
-const stripLeadingDollar = (key: string) => key.replace(/^\$+/, '');
 
 interface AttributionProperties {
   network: string;
@@ -199,7 +213,7 @@ export class BrazePlugin extends DestinationPlugin {
     const formatted: Record<string, unknown> = {};
     Object.entries(properties).forEach(([key, value]) => {
       if (value !== undefined) {
-        formatted[stripLeadingDollar(key)] = this.formatValue(value);
+        formatted[key] = this.formatValue(value);
       }
     });
     return formatted;
@@ -307,32 +321,24 @@ export class BrazePlugin extends DestinationPlugin {
     const stringSetters: [string, string | undefined, (v: string) => void][] = [
       [
         '$firstName',
-        pickString(traits.firstName, traits.first_name, traits.$FirstName),
+        pickString(traits.firstName, traits.first_name),
         (v) => Braze.setFirstName(v),
       ],
       [
         '$lastName',
-        pickString(traits.lastName, traits.last_name, traits.$LastName),
+        pickString(traits.lastName, traits.last_name),
         (v) => Braze.setLastName(v),
       ],
-      [
-        '$email',
-        pickString(traits.email, traits.Email),
-        (v) => Braze.setEmail(v),
-      ],
-      [
-        '$phone',
-        pickString(traits.phone, traits.$Mobile),
-        (v) => Braze.setPhoneNumber(v),
-      ],
+      ['$email', pickString(traits.email), (v) => Braze.setEmail(v)],
+      ['$phone', pickString(traits.phone), (v) => Braze.setPhoneNumber(v)],
       [
         '$homeCity',
-        pickString(address.city, traits.home_city, traits.$City),
+        pickString(address.city, traits.home_city),
         (v) => Braze.setHomeCity(v),
       ],
       [
         '$country',
-        pickString(address.country, traits.country, traits.$Country),
+        pickString(address.country, traits.country),
         (v) => Braze.setCountry(v),
       ],
     ];
@@ -342,7 +348,7 @@ export class BrazePlugin extends DestinationPlugin {
       }
     });
 
-    const gender = pick(traits.gender, traits.$Gender);
+    const gender = traits.gender;
     if (gender !== undefined && gender !== null) {
       const normalized =
         GENDERS[
@@ -361,7 +367,6 @@ export class BrazePlugin extends DestinationPlugin {
     }
 
     const birthday = pick(traits.birthday, traits.dob);
-    const age = pick(traits.age, traits.$Age);
     if (birthday !== undefined && birthday !== null) {
       const dateOfBirth = this.parseDate(birthday);
       if (dateOfBirth !== undefined) {
@@ -375,11 +380,6 @@ export class BrazePlugin extends DestinationPlugin {
           )}" could not be parsed as a Date. Try converting to ISO format.`
         );
       }
-    } else if (isNumber(age)) {
-      const year = new Date().getFullYear() - age;
-      setIfChanged('$dateOfBirth', [year, 1, 1], () =>
-        Braze.setDateOfBirth(year, 1, 1)
-      );
     }
 
     const subscriptions: [string, unknown, (v: SubscriptionType) => void][] = [
@@ -401,18 +401,15 @@ export class BrazePlugin extends DestinationPlugin {
       }
     });
 
-    const customAttributes = Object.entries(traits).filter(
-      ([key]) => !RESERVED_TRAITS.includes(key)
-    );
-    const zip = pick(address.postalCode, traits.$Zip);
-    if (zip !== undefined) {
-      customAttributes.push(['Zip', zip]);
-    }
-    customAttributes.forEach(([rawKey, value]) => {
-      const key = stripLeadingDollar(rawKey);
-      if (key === '') {
-        return;
-      }
+    const customAttributes = [
+      ...Object.entries(traits).filter(
+        ([key]) => !RESERVED_TRAITS.includes(key)
+      ),
+      ...Object.entries(address).filter(
+        ([key]) => key !== 'city' && key !== 'country'
+      ),
+    ];
+    customAttributes.forEach(([key, value]) => {
       if (value === null) {
         // The bridge ignores null in setCustomUserAttribute.
         setIfChanged(key, null, () => Braze.unsetCustomUserAttribute(key));
@@ -485,10 +482,7 @@ export class BrazePlugin extends DestinationPlugin {
     if (this.isPurchase(event)) {
       this.logPurchaseEvent(event);
     } else {
-      Braze.logCustomEvent(
-        stripLeadingDollar(eventName),
-        this.formatProperties(event.properties)
-      );
+      Braze.logCustomEvent(eventName, this.formatProperties(event.properties));
     }
     return event;
   }
@@ -510,21 +504,12 @@ export class BrazePlugin extends DestinationPlugin {
     const names = Array.isArray(this.settings.purchaseEventNames)
       ? this.settings.purchaseEventNames
       : DEFAULT_PURCHASE_EVENT_NAMES;
-    const revenue = this.extractRevenue(event.properties, 'revenue');
-    return (
-      names.includes(event.event) ||
-      (this.settings.logPurchaseWhenRevenuePresent === true &&
-        revenue !== 0 &&
-        revenue !== undefined)
-    );
+    return names.includes(event.event);
   }
 
   screen(event: ScreenEventType) {
     if (this.settings.forwardScreenViews === true) {
-      Braze.logCustomEvent(
-        stripLeadingDollar(event.name),
-        this.formatProperties(event.properties)
-      );
+      Braze.logCustomEvent(event.name, this.formatProperties(event.properties));
     }
     return event;
   }
@@ -565,84 +550,79 @@ export class BrazePlugin extends DestinationPlugin {
     ) {
       currency = event.properties.currency;
     }
-    const orderProperties: Record<string, unknown> = { ...event.properties };
-    const products = Array.isArray(orderProperties.products)
-      ? orderProperties.products.filter(isObject)
-      : [];
-    if (orderProperties.order_id !== undefined) {
-      orderProperties['Transaction Id'] = orderProperties.order_id;
-    }
-    delete orderProperties.currency;
-    delete orderProperties.revenue;
-    delete orderProperties.products;
-    delete orderProperties.order_id;
+    const order: Record<string, unknown> = { ...event.properties };
+    const { products, ...orderProperties } = order;
+    const items = Array.isArray(products) ? products.filter(isObject) : [];
 
-    if (this.settings.bundleCommerceEvents === true) {
-      Braze.logPurchase(
-        'eCommerce - purchase',
-        String(revenue),
-        currency,
-        1,
-        this.formatProperties({
-          ...orderProperties,
-          products: products.map(({ sku, coupon, ...product }) => ({
-            ...product,
-            ...(sku !== undefined && { Id: sku }),
-            ...(coupon !== undefined && { 'Coupon Code': coupon }),
-            'Total Product Amount':
-              this.extractRevenue(product as JsonMap, 'price') *
-              (isNumber(product.quantity) ? product.quantity : 1),
-          })),
-        })
+    if (this.settings.bundleCommerceEvents === true || items.length === 0) {
+      this.logBrazePurchase(
+        {
+          productId: event.event,
+          price: revenue,
+          currency,
+          quantity: 1,
+          properties: order,
+        },
+        { event, order }
       );
       return;
     }
 
-    if (products.length === 0) {
-      Braze.logPurchase(
-        stripLeadingDollar(event.event),
-        String(revenue),
-        currency,
-        1,
-        this.formatProperties(orderProperties)
-      );
-      return;
-    }
-
-    products.forEach((product) => {
-      const {
-        product_id: productId,
-        sku,
-        name,
-        brand,
-        category,
-        variant,
-        position,
-        coupon,
-        price,
-        quantity,
-        ...customFields
-      } = product;
+    items.forEach((product) => {
+      const { price, quantity, ...productFields } = product;
       const identifier =
         this.settings.purchaseProductIdentifier === 'name'
-          ? name
-          : sku ?? productId;
-      Braze.logPurchase(
-        unknownToString(identifier, true, undefined, undefined) ?? '',
-        String(this.extractRevenue({ price } as JsonMap, 'price')),
-        currency,
-        isNumber(quantity) ? quantity : 1,
-        this.formatProperties({
-          ...orderProperties,
-          'Name': name,
-          'Brand': brand,
-          'Category': category,
-          'Variant': variant,
-          'Position': position,
-          'Coupon Code': coupon,
-          ...customFields,
-        })
+          ? product.name
+          : product.sku ?? product.product_id ?? product.name;
+      this.logBrazePurchase(
+        {
+          productId:
+            unknownToString(identifier, true, undefined, undefined) ?? '',
+          price: this.extractRevenue({ price } as JsonMap, 'price'),
+          currency,
+          quantity: isNumber(quantity) ? quantity : 1,
+          properties: { ...orderProperties, ...productFields },
+        },
+        { event, order, product }
       );
     });
+  }
+
+  private logBrazePurchase(
+    purchase: BrazePurchase,
+    context: BrazePurchaseContext
+  ) {
+    const { transformPurchase } = this.options;
+    let result: BrazePurchase | null | undefined = purchase;
+    if (transformPurchase !== undefined) {
+      try {
+        // Copy so a hook that mutates and then throws can't alter the fallback.
+        result = transformPurchase(
+          { ...purchase, properties: { ...purchase.properties } },
+          context
+        );
+      } catch (error) {
+        this.analytics?.logger.warn(
+          `transformPurchase threw for "${context.event.event}"; logging the default purchase.`,
+          error
+        );
+      }
+    }
+    if (result === null || result === undefined) {
+      return;
+    }
+    if (!isString(result.productId) || result.productId === '') {
+      this.analytics?.logger.warn(
+        `Skipping a Braze purchase for "${context.event.event}" with no productId.`
+      );
+      return;
+    }
+    Braze.logPurchase(
+      result.productId,
+      String(result.price),
+      result.currency,
+      result.quantity,
+      this.formatProperties(result.properties)
+    );
   }
 }

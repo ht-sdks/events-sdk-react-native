@@ -126,22 +126,24 @@ describe('#identify', () => {
     } as unknown as IdentifyEventType);
 
     expect(setGender).toHaveBeenCalledWith('f');
+
+    await plugin.identify({
+      traits: { gender: 'Prefer not to say' },
+    } as unknown as IdentifyEventType);
+
+    expect(setGender).toHaveBeenCalledWith('p');
   });
 
-  it('accepts mParticle trait names', async () => {
+  it('accepts Braze attribute names', async () => {
     const plugin = new BrazePlugin();
     const payload = {
       type: 'identify',
       traits: {
         first_name: 'John',
-        $LastName: 'Smith',
-        Email: 'test@test.com',
-        $Mobile: '555',
-        $Gender: 'm',
+        last_name: 'Smith',
         dob: '1990-05-01',
         home_city: 'Denver',
-        $Country: 'US',
-        $Zip: '80202',
+        country: 'US',
         email_subscribe: 'opted_in',
         push_subscribe: 'bogus',
       },
@@ -151,33 +153,41 @@ describe('#identify', () => {
 
     expect(setFirstName).toHaveBeenCalledWith('John');
     expect(setLastName).toHaveBeenCalledWith('Smith');
-    expect(setEmail).toHaveBeenCalledWith('test@test.com');
-    expect(setPhoneNumber).toHaveBeenCalledWith('555');
-    expect(setGender).toHaveBeenCalledWith('m');
     expect(setDateOfBirth).toHaveBeenCalledWith(1990, 5, 1);
     expect(setHomeCity).toHaveBeenCalledWith('Denver');
     expect(setCountry).toHaveBeenCalledWith('US');
-    expect(setCustomUserAttribute).toHaveBeenCalledWith('Zip', '80202');
     expect(setEmailNotificationSubscriptionType).toHaveBeenCalledWith(
       'optedin'
     );
     expect(setPushNotificationSubscriptionType).not.toHaveBeenCalled();
-    expect(setCustomUserAttribute).toHaveBeenCalledTimes(1);
+    expect(setCustomUserAttribute).not.toHaveBeenCalled();
   });
 
-  it('maps address.postalCode to Zip and age to date of birth', async () => {
+  it('sends other trait names as custom attributes', async () => {
     const plugin = new BrazePlugin();
 
     await plugin.identify({
-      traits: { age: 30, address: { postalCode: '80202' } },
+      traits: {
+        $FirstName: 'John',
+        Email: 'test@test.com',
+        age: 30,
+        address: { city: 'Denver', postalCode: '80202', state: 'CO' },
+      },
     } as unknown as IdentifyEventType);
 
-    expect(setDateOfBirth).toHaveBeenCalledWith(
-      new Date().getFullYear() - 30,
-      1,
-      1
+    expect(setFirstName).not.toHaveBeenCalled();
+    expect(setEmail).not.toHaveBeenCalled();
+    expect(setDateOfBirth).not.toHaveBeenCalled();
+    expect(setHomeCity).toHaveBeenCalledWith('Denver');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('$FirstName', 'John');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith(
+      'Email',
+      'test@test.com'
     );
-    expect(setCustomUserAttribute).toHaveBeenCalledWith('Zip', '80202');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('age', 30);
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('postalCode', '80202');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('state', 'CO');
+    expect(setCustomUserAttribute).toHaveBeenCalledTimes(5);
   });
 
   it('formats custom attributes', async () => {
@@ -193,7 +203,7 @@ describe('#identify', () => {
       },
     } as unknown as IdentifyEventType);
 
-    expect(setCustomUserAttribute).toHaveBeenCalledWith('plan', 'gold');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('$plan', 'gold');
     expect(setCustomUserAttribute).toHaveBeenCalledWith('tags', ['a', '1']);
     expect(setCustomUserAttribute).toHaveBeenCalledWith('meta', '{"a":1}');
     expect(unsetCustomUserAttribute).toHaveBeenCalledWith('removed');
