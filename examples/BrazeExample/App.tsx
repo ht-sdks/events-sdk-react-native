@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import {createClient} from '@ht-sdks/events-sdk-react-native';
@@ -36,26 +37,41 @@ client.add({
   }),
 });
 
-const userA = {
-  email: 'jane@example.com',
-  firstName: 'Jane',
-  gender: 'male',
-  plan: 'pro',
-  address: {city: 'New York', country: 'US'},
-};
+const names = ['Jane', 'Bob', 'Ada', 'Maya', 'Luis', 'Priya', 'Omar', 'Chen'];
 
-const actions: {label: string; run: () => Promise<void>}[] = [
+const randomId = () =>
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
+    const random = (Math.random() * 16) | 0;
+    const value = character === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+
+const randomName = () => names[Math.floor(Math.random() * names.length)];
+
+const traits = (firstName: string, plan: string) => ({
+  email: `${firstName.trim().toLowerCase().replace(/\s+/g, '')}@example.com`,
+  firstName,
+  gender: 'male',
+  plan,
+  address: {city: 'New York', country: 'US'},
+});
+
+const actions: {
+  label: string;
+  run: (userId: string, firstName: string) => Promise<void>;
+}[] = [
   {
-    label: 'Identify A',
-    run: () => client.identify('user-a', userA),
+    label: 'Identify',
+    run: (userId, firstName) => client.identify(userId, traits(firstName, 'pro')),
   },
   {
-    label: 'Identify A again',
-    run: () => client.identify('user-a', userA),
+    label: 'Identify again',
+    run: (userId, firstName) => client.identify(userId, traits(firstName, 'pro')),
   },
   {
     label: 'Change plan',
-    run: () => client.identify('user-a', {...userA, plan: 'enterprise'}),
+    run: (userId, firstName) =>
+      client.identify(userId, traits(firstName, 'enterprise')),
   },
   {
     label: 'Custom event',
@@ -122,27 +138,49 @@ const actions: {label: string; run: () => Promise<void>}[] = [
     label: 'Reset',
     run: () => client.reset(),
   },
-  {
-    label: 'Identify B',
-    run: () =>
-      client.identify('user-b', {email: 'bob@example.com', firstName: 'Bob'}),
-  },
 ];
 
 const App = () => {
   const [lastAction, setLastAction] = useState<string>();
+  const [userId, setUserId] = useState(randomId);
+  const [firstName, setFirstName] = useState(randomName);
 
   return (
     <SafeAreaView style={styles.screen}>
       <Text style={styles.last}>Last action: {lastAction ?? 'none'}</Text>
       <ScrollView contentContainerStyle={styles.column}>
+        <TextInput
+          style={styles.input}
+          value={userId}
+          onChangeText={setUserId}
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="User ID"
+        />
+        <TextInput
+          style={styles.input}
+          value={firstName}
+          onChangeText={setFirstName}
+          autoCorrect={false}
+          placeholder="First name"
+        />
+        <View style={styles.button}>
+          <Button
+            title="New user"
+            onPress={() => {
+              setUserId(randomId());
+              setFirstName(randomName());
+              setLastAction('New user');
+            }}
+          />
+        </View>
         {actions.map(action => (
           <View key={action.label} style={styles.button}>
             <Button
               title={action.label}
               onPress={() => {
                 setLastAction(action.label);
-                void action.run();
+                void action.run(userId, firstName);
               }}
             />
           </View>
@@ -163,6 +201,13 @@ const styles = StyleSheet.create({
   column: {
     paddingHorizontal: 16,
     paddingBottom: 24,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 8,
   },
   button: {
     marginBottom: 8,
