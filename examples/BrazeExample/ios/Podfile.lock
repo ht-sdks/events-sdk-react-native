@@ -1,5 +1,15 @@
 PODS:
   - boost (1.76.0)
+  - braze-react-native-sdk (5.2.0):
+    - BrazeKit (~> 6.3.1)
+    - BrazeLocation (~> 6.3.1)
+    - BrazeUI (~> 6.3.1)
+    - React-Core
+  - BrazeKit (6.3.1)
+  - BrazeLocation (6.3.1):
+    - BrazeKit (= 6.3.1)
+  - BrazeUI (6.3.1):
+    - BrazeKit (= 6.3.1)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.72.9)
   - FBReactNativeSpec (0.72.9):
@@ -14,10 +24,10 @@ PODS:
   - hermes-engine (0.72.9):
     - hermes-engine/Pre-built (= 0.72.9)
   - hermes-engine/Pre-built (0.72.9)
-  - hightouch-events-sdk-react-native (2.18.8):
+  - hightouch-events-sdk-react-native (2.22.1):
     - ht-sovran-react-native
     - React-Core
-  - ht-sovran-react-native (1.1.7):
+  - ht-sovran-react-native (1.2.1):
     - React-Core
   - libevent (2.1.12)
   - RCT-Folly (2021.07.22.00):
@@ -320,9 +330,9 @@ PODS:
   - React-jsinspector (0.72.9)
   - React-logger (0.72.9):
     - glog
-  - react-native-get-random-values (1.10.0):
+  - react-native-get-random-values (1.11.0):
     - React-Core
-  - react-native-safe-area-context (4.7.4):
+  - react-native-safe-area-context (4.14.1):
     - React-Core
   - React-NativeModulesApple (0.72.9):
     - hermes-engine
@@ -434,21 +444,23 @@ PODS:
     - React-jsi (= 0.72.9)
     - React-logger (= 0.72.9)
     - React-perflogger (= 0.72.9)
-  - RNCAsyncStorage (1.19.8):
+  - RNCAsyncStorage (1.24.0):
     - React-Core
   - RNCMaskedView (0.1.11):
     - React
-  - RNGestureHandler (2.14.0):
+  - RNGestureHandler (2.16.2):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - RNScreens (3.27.0):
+  - RNScreens (3.35.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+    - React-RCTImage
   - SocketRocket (0.6.1)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - "braze-react-native-sdk (from `../node_modules/@braze/react-native-sdk`)"
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
@@ -500,6 +512,9 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - BrazeKit
+    - BrazeLocation
+    - BrazeUI
     - fmt
     - libevent
     - SocketRocket
@@ -507,6 +522,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  braze-react-native-sdk:
+    :path: "../node_modules/@braze/react-native-sdk"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   FBLazyVector:
@@ -602,14 +619,18 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7dcd2de282d72e344012f7d6564d024930a6a440
+  braze-react-native-sdk: 73c3809cc8345bbac1dfcdaa30db42d58c30b473
+  BrazeKit: da969530d445eb2d107f5ec27d44d5eb21f1d3e9
+  BrazeLocation: 7227adcea4913d4291efba7ef30cbc59b54c7de4
+  BrazeUI: 2fc3a9d1e65e3c4390a7d2844378d45b158441db
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: dc178b8748748c036ef9493a5d59d6d1f91a36ce
   FBReactNativeSpec: d0aaae78e93c89dc2d691d8052a4d2aeb1b461ee
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 9b9bb14184a11b8ceb4131b09abf634880f0f46d
-  hightouch-events-sdk-react-native: 629694592041cd5d94e03bef3c1f383d4a4a3550
-  ht-sovran-react-native: 0151c74ca15fb4e01ca93137734c755cecb90415
+  hightouch-events-sdk-react-native: c08f617a72a8260522c23f84c110f21e3eeb0500
+  ht-sovran-react-native: 90bb88166dba76ecc900ef785da5809ed16baa58
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   RCT-Folly: 8dc08ca5a393b48b1c523ab6220dfdcc0fe000ad
   RCTRequired: f30c3213569b1dc43659ecc549a6536e1e11139e
@@ -626,8 +647,8 @@ SPEC CHECKSUMS:
   React-jsiexecutor: d0e8687f75e16c63c2f5bbe51f58bdbebe9df4b2
   React-jsinspector: 54205b269da20c51417e0fc02c4cde9f29a4bf1a
   React-logger: 81785c91d2fcc517657ff456c106c6d8e9ec4110
-  react-native-get-random-values: ce0b8796c99e2b85e3202bd500b1ef286a17a02e
-  react-native-safe-area-context: 8dba469126c1d5fb9502bfb49996026593292cf4
+  react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
+  react-native-safe-area-context: 758e894ca5a9bd1868d2a9cfbca7326a2b6bf9dc
   React-NativeModulesApple: 6cc32bf0a8dc0a9de48878ccca14788bbe5e4fc6
   React-perflogger: cb433f318c6667060fc1f62e26eb58d6eb30a627
   React-RCTActionSheet: 0af3f8ac067e8a1dde902810b7ad169d0a0ec31e
@@ -645,13 +666,13 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 7d1ccbf849f7555bd2a7722f7cfad0d1930a7e2a
   React-utils: 91c44ba497ce661c8b132eba747a93936ea557b3
   ReactCommon: 9b8ce41770a295df8c3d2cbefa82896e4caeffbb
-  RNCAsyncStorage: 24e389fea98b1231212f8e5de4e7d306c92f1b53
+  RNCAsyncStorage: b6410dead2732b5c72a7fdb1ecb5651bbcf4674b
   RNCMaskedView: 4c5ee1c8667d56077246cc6d1977f77393923560
-  RNGestureHandler: dc1acdc779554be3aa733f4a9a19bb782ec3a48c
-  RNScreens: c04e015e917ce64d0983974d8efb8fa1dc1ddc56
+  RNGestureHandler: 5ae428abcc1bf7d89b42ee17a1d5a53e38de7acd
+  RNScreens: a568946532d3cabcb7f46fdc0a8dbada3dd5de44
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: eddf2bbe4a896454c248a8f23b4355891eb720a6
 
-PODFILE CHECKSUM: 2d0882655ea2fbee94cbaae3daa2b16ede7c0538
+PODFILE CHECKSUM: 30ce8aba8a40b54fa79219bf36bc1c05cb976dea
 
 COCOAPODS: 1.16.2

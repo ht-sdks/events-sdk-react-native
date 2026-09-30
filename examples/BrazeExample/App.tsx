@@ -16,7 +16,7 @@ import {BrazePlugin} from '@ht-sdks/events-sdk-react-native-plugin-braze';
 const perOrder = false;
 
 const client = createClient({
-  writeKey: '<WRITE_KEY>',
+  writeKey: '72b7caa5de8f082b6526c56ef42c8ee4bf9cd73daf6bc307b067db3692e61e9b',
   debug: true,
   defaultSettings: {
     integrations: {
@@ -62,11 +62,13 @@ const actions: {
 }[] = [
   {
     label: 'Identify',
-    run: (userId, firstName) => client.identify(userId, traits(firstName, 'pro')),
+    run: (userId, firstName) =>
+      client.identify(userId, traits(firstName, 'pro')),
   },
   {
     label: 'Identify again',
-    run: (userId, firstName) => client.identify(userId, traits(firstName, 'pro')),
+    run: (userId, firstName) =>
+      client.identify(userId, traits(firstName, 'pro')),
   },
   {
     label: 'Change plan',
@@ -133,6 +135,10 @@ const actions: {
         event.integrations = {...event.integrations, Appboy: false};
         return event;
       }),
+  },
+  {
+    label: 'Flush',
+    run: () => client.flush(),
   },
   {
     label: 'Reset',
