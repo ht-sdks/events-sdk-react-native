@@ -568,6 +568,76 @@ describe('#track', () => {
     });
   });
 
+  it('applies the mParticle mobile purchase recipe', () => {
+    const orderNames: Record<string, string> = {
+      order_id: 'Transaction Id',
+      revenue: 'Total Amount',
+      tax: 'Tax Amount',
+      shipping: 'Shipping Amount',
+    };
+    const productNames: Record<string, string> = {
+      name: 'Name',
+      brand: 'Brand',
+      category: 'Category',
+      variant: 'Variant',
+      position: 'Position',
+      coupon: 'Coupon Code',
+    };
+    const passed = [
+      'sku',
+      'product_id',
+      'price',
+      'quantity',
+      'currency',
+      'products',
+    ];
+    const renamed = (
+      values: Record<string, unknown> = {},
+      names: Record<string, string>
+    ) =>
+      Object.fromEntries(
+        Object.entries(values)
+          .filter(([key]) => !passed.includes(key))
+          .map(([key, value]) => [names[key] ?? key, value])
+      );
+    const plugin = new BrazePlugin({
+      transformPurchase: (purchase, { order: purchaseOrder, product }) => ({
+        ...purchase,
+        properties: {
+          ...renamed(purchaseOrder, orderNames),
+          ...renamed(product, productNames),
+        },
+      }),
+    });
+    plugin.track({
+      type: 'track',
+      event: 'Order Completed',
+      properties: {
+        order_id: 'o1',
+        revenue: 25,
+        currency: 'USD',
+        products: [
+          {
+            sku: 'SKU1',
+            name: 'Shirt',
+            price: 10,
+            quantity: 2,
+            brand: 'Equinox',
+            coupon: 'C1',
+          },
+        ],
+      },
+    } as unknown as TrackEventType);
+
+    expect(logPurchase).toHaveBeenCalledWith('SKU1', '10', 'USD', 2, {
+      'Transaction Id': 'o1',
+      'Total Amount': 25,
+      'Name': 'Shirt',
+      'Brand': 'Equinox',
+      'Coupon Code': 'C1',
+    });
+  });
+
   it('passes no product to transformPurchase for per-order purchases', () => {
     const transformPurchase = jest.fn((p: BrazePurchase) => p);
     const plugin = new BrazePlugin({
