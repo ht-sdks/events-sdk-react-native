@@ -28,12 +28,14 @@ const client = createClient({
 client.add({
   plugin: new BrazePlugin({
     forwardScreenViews: true,
-    purchaseEventNames: [
+    purchaseDetection: [
       'Order Completed',
       'Completed Order',
       'Membership Purchased',
     ],
-    ...(perOrder ? {bundleCommerceEvents: true as const} : {}),
+    purchaseGrouping: perOrder
+      ? {mode: 'perOrder'}
+      : {mode: 'perProduct', identifier: 'sku'},
   }),
 });
 

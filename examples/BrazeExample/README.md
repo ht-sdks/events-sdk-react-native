@@ -22,6 +22,8 @@ Braze is started natively. Do not put a Braze API key in JavaScript.
 
 `perOrder` at the top of `App.tsx` defaults to `false`, so each product in an order is its own Braze purchase. Set it to `true` and reload to log one purchase per order.
 
+`purchaseDetection` selects purchase event names (or accepts a predicate). `purchaseGrouping` selects per-product purchases with SKU/name identifiers or one purchase per order. For legacy mappings, use `transformPurchase` and convert only the fields that need string values.
+
 ## Appboy
 
 `Appboy` must stay in `createClient` `defaultSettings.integrations`. Without it, the plugin never runs.
