@@ -210,11 +210,11 @@ describe('#identify', () => {
     expect(setCustomUserAttribute).toHaveBeenCalledTimes(3);
   });
 
-  it('stringifies attribute values when stringifyAttributeValues is on', async () => {
-    const plugin = new BrazePlugin({ stringifyAttributeValues: true });
+  it('preserves explicitly string-valued attributes', async () => {
+    const plugin = new BrazePlugin();
 
     await plugin.identify({
-      traits: { visits: 3, member: true },
+      traits: { visits: '3', member: 'true' },
     } as unknown as IdentifyEventType);
 
     expect(setCustomUserAttribute).toHaveBeenCalledWith('visits', '3');

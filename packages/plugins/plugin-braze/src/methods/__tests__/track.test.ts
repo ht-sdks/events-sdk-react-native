@@ -321,12 +321,12 @@ describe('#track', () => {
     });
   });
 
-  it('uses purchaseEventNames from constructor options', () => {
+  it('uses purchaseDetection from constructor options', () => {
     const plugin = new BrazePlugin({
-      purchaseEventNames: ['Membership Purchased'],
+      purchaseDetection: ['Membership Purchased'],
     });
     plugin.update(
-      { integrations: { Appboy: { purchaseEventNames: ['Other'] } } },
+      { integrations: { Appboy: { purchaseDetection: ['Other'] } } },
       UpdateType.initial
     );
     plugin.track(purchase('Membership Purchased'));
@@ -344,12 +344,12 @@ describe('#track', () => {
     expect(logCustomEvent).toHaveBeenCalledTimes(2);
   });
 
-  it('uses purchaseEventNames from settings', () => {
+  it('uses purchaseDetection from settings', () => {
     const plugin = new BrazePlugin();
     plugin.update(
       {
         integrations: {
-          Appboy: { purchaseEventNames: ['Membership Purchased'] },
+          Appboy: { purchaseDetection: ['Membership Purchased'] },
         },
       },
       UpdateType.initial
@@ -363,14 +363,14 @@ describe('#track', () => {
     });
   });
 
-  it('lets isPurchaseEvent override purchaseEventNames', () => {
+  it('uses a purchaseDetection predicate instead of the default event names', () => {
     const plugin = new BrazePlugin({
-      isPurchaseEvent: (event) => event.properties?.paid === true,
+      purchaseDetection: (event) => event.properties?.paid === true,
     });
     plugin.update(
       {
         integrations: {
-          Appboy: { purchaseEventNames: ['Membership Purchased'] },
+          Appboy: { purchaseDetection: ['Membership Purchased'] },
         },
       },
       UpdateType.initial
@@ -392,10 +392,10 @@ describe('#track', () => {
     });
   });
 
-  it('logs a custom event and warns when isPurchaseEvent throws', () => {
+  it('logs a custom event and warns when purchaseDetection throws', () => {
     const error = new Error('boom');
     const plugin = new BrazePlugin({
-      isPurchaseEvent: () => {
+      purchaseDetection: () => {
         throw error;
       },
     });
@@ -422,11 +422,11 @@ describe('#track', () => {
     });
   });
 
-  it('stringifies property values when stringifyAttributeValues is on', () => {
-    const plugin = new BrazePlugin({ stringifyAttributeValues: true });
+  it('preserves explicitly string-valued properties', () => {
+    const plugin = new BrazePlugin();
     plugin.track({
       event: 'ACTION',
-      properties: { count: 2, flag: false, nested: { a: 1 } },
+      properties: { count: '2', flag: 'false', nested: '{"a":1}' },
     } as unknown as TrackEventType);
 
     expect(logCustomEvent).toHaveBeenCalledWith('ACTION', {
@@ -511,8 +511,10 @@ describe('#track', () => {
     expect(warn).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the product name when purchaseProductIdentifier is name', () => {
-    const plugin = new BrazePlugin({ purchaseProductIdentifier: 'name' });
+  it('uses the product name in per-product grouping', () => {
+    const plugin = new BrazePlugin({
+      purchaseGrouping: { mode: 'perProduct', identifier: 'name' },
+    });
     plugin.track(order);
 
     expect(logPurchase).toHaveBeenCalledWith(
@@ -531,8 +533,33 @@ describe('#track', () => {
     );
   });
 
-  it('logs a single purchase when bundleCommerceEvents is on', () => {
-    const plugin = new BrazePlugin({ bundleCommerceEvents: true });
+  it('reads grouping from settings and lets constructor grouping override it', () => {
+    const settings = {
+      integrations: { Appboy: { purchaseGrouping: { mode: 'perOrder' } } },
+    };
+    const fromSettings = new BrazePlugin();
+    fromSettings.update(settings, UpdateType.initial);
+    fromSettings.track(order);
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Order Completed',
+      '30',
+      'EUR',
+      1,
+      order.properties
+    );
+
+    jest.clearAllMocks();
+    const fromConstructor = new BrazePlugin({
+      purchaseGrouping: { mode: 'perProduct', identifier: 'name' },
+    });
+    fromConstructor.update(settings, UpdateType.initial);
+    fromConstructor.track(order);
+    expect(logPurchase.mock.calls.map(([id]) => id)).toEqual(['Shirt', 'Hat']);
+  });
+
+  it('logs a single purchase in per-order grouping', () => {
+    const plugin = new BrazePlugin({ purchaseGrouping: { mode: 'perOrder' } });
     plugin.track(order);
 
     expect(logPurchase).toHaveBeenCalledTimes(1);
@@ -571,7 +598,7 @@ describe('#track', () => {
   it('passes no product to transformPurchase for per-order purchases', () => {
     const transformPurchase = jest.fn((p: BrazePurchase) => p);
     const plugin = new BrazePlugin({
-      bundleCommerceEvents: true,
+      purchaseGrouping: { mode: 'perOrder' },
       transformPurchase,
     });
     plugin.track(order);
@@ -632,15 +659,13 @@ describe('#track', () => {
     expect(warn).toHaveBeenCalledTimes(2);
   });
 
-  it('rejects constructor options that another option makes unused', () => {
+  it('accepts purchase strategies and rejects invalid combinations', () => {
     const options: BrazePluginOptions[] = [
-      // @ts-expect-error isPurchaseEvent overrides purchaseEventNames
-      { purchaseEventNames: ['Order Completed'], isPurchaseEvent: () => true },
-      // @ts-expect-error isPurchaseEvent overrides purchaseEventNames
-      { isPurchaseEvent: () => true, purchaseEventNames: ['Order Completed'] },
-      // @ts-expect-error bundled purchases use the event name as productId
-      { bundleCommerceEvents: true, purchaseProductIdentifier: 'sku' },
-      { bundleCommerceEvents: false, purchaseProductIdentifier: 'name' },
+      { purchaseDetection: ['Order Completed'] },
+      { purchaseDetection: () => true },
+      // @ts-expect-error per-order purchases do not select a product field
+      { purchaseGrouping: { mode: 'perOrder', identifier: 'sku' } },
+      { purchaseGrouping: { mode: 'perProduct', identifier: 'name' } },
     ];
     expect(options).toHaveLength(4);
   });

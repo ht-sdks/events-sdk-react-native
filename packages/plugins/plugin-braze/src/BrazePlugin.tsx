@@ -37,48 +37,23 @@ export interface BrazePurchaseContext {
   product?: Record<string, unknown>;
 }
 
-type PurchaseEventOptions =
-  | {
-      /** Track event names logged as purchases. Exact, case-sensitive match. */
-      purchaseEventNames?: string[];
-      isPurchaseEvent?: never;
-    }
-  | {
-      purchaseEventNames?: never;
-      /**
-       * Decides which track events are purchases, overriding
-       * `purchaseEventNames`. Constructor only.
-       */
-      isPurchaseEvent?: (event: TrackEventType) => boolean;
-    };
-
-type PurchaseProductOptions =
-  | {
-      bundleCommerceEvents?: false;
-      /**
-       * Product field used as the Braze purchase productId. Defaults to `sku`,
-       * falling back to `product_id`, then `name`.
-       */
-      purchaseProductIdentifier?: 'sku' | 'name';
-    }
-  | {
-      bundleCommerceEvents: true;
-      purchaseProductIdentifier?: never;
-    };
-
-export type BrazePluginOptions = PurchaseEventOptions &
-  PurchaseProductOptions & {
-    /**
-     * Changes each purchase before it's logged. Return null or undefined to
-     * skip it. If it throws, the default purchase is logged. Constructor only.
-     */
-    transformPurchase?: (
-      purchase: BrazePurchase,
-      context: BrazePurchaseContext
-    ) => BrazePurchase | null | undefined;
-    forwardScreenViews?: boolean;
-    stringifyAttributeValues?: boolean;
-  };
+export type BrazePluginOptions = {
+  /** Exact event names or a predicate identifying purchases. Predicates are constructor-only. */
+  purchaseDetection?: string[] | ((event: TrackEventType) => boolean);
+  /** One purchase per product (SKU by default), or one for the whole order. */
+  purchaseGrouping?:
+    | { mode: 'perProduct'; identifier?: 'sku' | 'name' }
+    | { mode: 'perOrder' };
+  /**
+   * Changes each purchase before it's logged. Return null or undefined to
+   * skip it. If it throws, the default purchase is logged. Constructor only.
+   */
+  transformPurchase?: (
+    purchase: BrazePurchase,
+    context: BrazePurchaseContext
+  ) => BrazePurchase | null | undefined;
+  forwardScreenViews?: boolean;
+};
 
 type SubscriptionType = Parameters<
   typeof Braze.setEmailNotificationSubscriptionType
@@ -205,24 +180,6 @@ export class BrazePlugin extends DestinationPlugin {
     await this.cacheStore?.dispatch(() => this.cache);
   }
 
-  private formatValue = (value: unknown) => {
-    if (
-      this.settings.stringifyAttributeValues !== true ||
-      value === null ||
-      value === undefined ||
-      isString(value)
-    ) {
-      return value;
-    }
-    if (isDate(value)) {
-      return value.toISOString();
-    }
-    if (Array.isArray(value) || isObject(value)) {
-      return JSON.stringify(value);
-    }
-    return String(value);
-  };
-
   private formatProperties = (properties?: Record<string, unknown>) => {
     if (properties === undefined) {
       return undefined;
@@ -230,7 +187,7 @@ export class BrazePlugin extends DestinationPlugin {
     const formatted: Record<string, unknown> = {};
     Object.entries(properties).forEach(([key, value]) => {
       if (value !== undefined) {
-        formatted[key] = this.formatValue(value);
+        formatted[key] = value;
       }
     });
     return formatted;
@@ -252,7 +209,7 @@ export class BrazePlugin extends DestinationPlugin {
       isBoolean(value) ||
       isDate(value)
     ) {
-      return this.formatValue(value) as string | number | boolean | Date | null;
+      return value;
     }
 
     // Arrays and objects we will attempt to serialize
@@ -505,21 +462,20 @@ export class BrazePlugin extends DestinationPlugin {
   }
 
   private isPurchase(event: TrackEventType) {
-    // Read from options, not settings: a function can't come from JSON settings.
-    const { isPurchaseEvent } = this.options;
-    if (isPurchaseEvent !== undefined) {
+    const { purchaseDetection } = this.settings;
+    if (typeof purchaseDetection === 'function') {
       try {
-        return isPurchaseEvent(event);
+        return purchaseDetection(event);
       } catch (error) {
         this.analytics?.logger.warn(
-          `isPurchaseEvent threw for "${event.event}"; logging it as a custom event.`,
+          `purchaseDetection threw for "${event.event}"; logging it as a custom event.`,
           error
         );
         return false;
       }
     }
-    const names = Array.isArray(this.settings.purchaseEventNames)
-      ? this.settings.purchaseEventNames
+    const names = Array.isArray(purchaseDetection)
+      ? purchaseDetection
       : DEFAULT_PURCHASE_EVENT_NAMES;
     return names.includes(event.event);
   }
@@ -571,7 +527,10 @@ export class BrazePlugin extends DestinationPlugin {
     const { products, ...orderProperties } = order;
     const items = Array.isArray(products) ? products.filter(isObject) : [];
 
-    if (this.settings.bundleCommerceEvents === true || items.length === 0) {
+    if (
+      this.settings.purchaseGrouping?.mode === 'perOrder' ||
+      items.length === 0
+    ) {
       this.logBrazePurchase(
         {
           productId: event.event,
@@ -588,7 +547,8 @@ export class BrazePlugin extends DestinationPlugin {
     items.forEach((product) => {
       const { price, quantity, ...productFields } = product;
       const identifier =
-        this.settings.purchaseProductIdentifier === 'name'
+        this.settings.purchaseGrouping?.mode === 'perProduct' &&
+        this.settings.purchaseGrouping.identifier === 'name'
           ? product.name
           : product.sku ?? product.product_id ?? product.name;
       this.logBrazePurchase(
