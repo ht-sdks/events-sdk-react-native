@@ -9,8 +9,14 @@ import {
   setGender,
   setHomeCity,
   setCustomUserAttribute,
+  unsetCustomUserAttribute,
+  setEmailNotificationSubscriptionType,
+  setPushNotificationSubscriptionType,
 } from '../__mocks__/@braze/react-native-sdk';
-import type { IdentifyEventType } from '@ht-sdks/events-sdk-react-native';
+import type {
+  HightouchClient,
+  IdentifyEventType,
+} from '@ht-sdks/events-sdk-react-native';
 import { BrazePlugin } from '../../BrazePlugin';
 
 describe('#identify', () => {
@@ -18,7 +24,7 @@ describe('#identify', () => {
     jest.clearAllMocks();
   });
 
-  it('calls correct methods #1', () => {
+  it('calls correct methods #1', async () => {
     const plugin = new BrazePlugin();
     const payload = {
       type: 'identify',
@@ -30,7 +36,7 @@ describe('#identify', () => {
       userId: 'user',
     };
 
-    plugin.identify(payload as IdentifyEventType);
+    await plugin.identify(payload as IdentifyEventType);
 
     expect(changeUser).toHaveBeenCalledWith('user');
     expect(setFirstName).toHaveBeenCalledWith('John');
@@ -38,7 +44,7 @@ describe('#identify', () => {
     expect(setCustomUserAttribute).toHaveBeenCalledWith('foo', 'bar');
   });
 
-  it('calls correct methods #2', () => {
+  it('calls correct methods #2', async () => {
     const plugin = new BrazePlugin();
     const payload = {
       type: 'identify',
@@ -51,14 +57,14 @@ describe('#identify', () => {
       },
     };
 
-    plugin.identify(payload as IdentifyEventType);
+    await plugin.identify(payload as IdentifyEventType);
 
     expect(setDateOfBirth).toHaveBeenCalledWith(2020, 2, 29);
     expect(setLastName).toHaveBeenCalledWith('Smith');
     expect(setHomeCity).toHaveBeenCalledWith('Denver');
   });
 
-  it('handles invalid dates gracefully', () => {
+  it('handles invalid dates gracefully', async () => {
     const plugin = new BrazePlugin();
     const payload = {
       type: 'identify',
@@ -71,14 +77,14 @@ describe('#identify', () => {
       },
     };
 
-    plugin.identify(payload as IdentifyEventType);
+    await plugin.identify(payload as IdentifyEventType);
 
     expect(setDateOfBirth).not.toHaveBeenCalled();
     expect(setLastName).toHaveBeenCalledWith('Smith');
     expect(setHomeCity).toHaveBeenCalledWith('Denver');
   });
 
-  it('calls correct methods #3', () => {
+  it('calls correct methods #3', async () => {
     const plugin = new BrazePlugin();
     const payload = {
       type: 'identify',
@@ -91,24 +97,200 @@ describe('#identify', () => {
       },
     };
 
-    plugin.identify(payload as IdentifyEventType);
+    await plugin.identify(payload as IdentifyEventType);
 
     expect(setEmail).toHaveBeenCalledWith('test@test.com');
     expect(setGender).toHaveBeenCalledWith('o');
     expect(setCountry).toHaveBeenCalledWith('US');
   });
 
-  it('only calls setGender with defined values', () => {
+  it('only calls setGender with defined values', async () => {
     const plugin = new BrazePlugin();
     const payload = {
       type: 'identify',
       traits: {
-        gender: 'male',
+        gender: 'robot',
       },
     };
 
-    plugin.identify(payload as IdentifyEventType);
+    await plugin.identify(payload as IdentifyEventType);
 
     expect(setGender).not.toHaveBeenCalled();
+  });
+
+  it('normalizes gender values', async () => {
+    const plugin = new BrazePlugin();
+
+    await plugin.identify({
+      traits: { gender: 'Female' },
+    } as unknown as IdentifyEventType);
+
+    expect(setGender).toHaveBeenCalledWith('f');
+
+    await plugin.identify({
+      traits: { gender: 'Prefer not to say' },
+    } as unknown as IdentifyEventType);
+
+    expect(setGender).toHaveBeenCalledWith('p');
+  });
+
+  it('accepts Braze attribute names', async () => {
+    const plugin = new BrazePlugin();
+    const payload = {
+      type: 'identify',
+      traits: {
+        first_name: 'John',
+        last_name: 'Smith',
+        dob: '1990-05-01',
+        home_city: 'Denver',
+        country: 'US',
+        email_subscribe: 'opted_in',
+        push_subscribe: 'bogus',
+      },
+    };
+
+    await plugin.identify(payload as IdentifyEventType);
+
+    expect(setFirstName).toHaveBeenCalledWith('John');
+    expect(setLastName).toHaveBeenCalledWith('Smith');
+    expect(setDateOfBirth).toHaveBeenCalledWith(1990, 5, 1);
+    expect(setHomeCity).toHaveBeenCalledWith('Denver');
+    expect(setCountry).toHaveBeenCalledWith('US');
+    expect(setEmailNotificationSubscriptionType).toHaveBeenCalledWith(
+      'optedin'
+    );
+    expect(setPushNotificationSubscriptionType).not.toHaveBeenCalled();
+    expect(setCustomUserAttribute).not.toHaveBeenCalled();
+  });
+
+  it('sends other trait names as custom attributes', async () => {
+    const plugin = new BrazePlugin();
+
+    await plugin.identify({
+      traits: {
+        $FirstName: 'John',
+        Email: 'test@test.com',
+        age: 30,
+        address: { city: 'Denver', postalCode: '80202', state: 'CO' },
+      },
+    } as unknown as IdentifyEventType);
+
+    expect(setFirstName).not.toHaveBeenCalled();
+    expect(setEmail).not.toHaveBeenCalled();
+    expect(setDateOfBirth).not.toHaveBeenCalled();
+    expect(setHomeCity).toHaveBeenCalledWith('Denver');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('$FirstName', 'John');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith(
+      'Email',
+      'test@test.com'
+    );
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('age', 30);
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('postalCode', '80202');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('state', 'CO');
+    expect(setCustomUserAttribute).toHaveBeenCalledTimes(5);
+  });
+
+  it('formats custom attributes', async () => {
+    const plugin = new BrazePlugin();
+
+    await plugin.identify({
+      traits: {
+        $plan: 'gold',
+        tags: ['a', 1],
+        meta: { a: 1 },
+        removed: null,
+        skipped: undefined,
+      },
+    } as unknown as IdentifyEventType);
+
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('$plan', 'gold');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('tags', ['a', '1']);
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('meta', '{"a":1}');
+    expect(unsetCustomUserAttribute).toHaveBeenCalledWith('removed');
+    expect(setCustomUserAttribute).toHaveBeenCalledTimes(3);
+  });
+
+  it('preserves explicitly string-valued attributes', async () => {
+    const plugin = new BrazePlugin();
+
+    await plugin.identify({
+      traits: { visits: '3', member: 'true' },
+    } as unknown as IdentifyEventType);
+
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('visits', '3');
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('member', 'true');
+  });
+
+  it('only sends attributes that changed', async () => {
+    const plugin = new BrazePlugin();
+
+    await plugin.identify({
+      userId: 'user',
+      traits: { email: 'a@test.com', plan: 'gold' },
+    } as unknown as IdentifyEventType);
+    jest.clearAllMocks();
+    await plugin.identify({
+      userId: 'user',
+      traits: { email: 'a@test.com', plan: 'silver' },
+    } as unknown as IdentifyEventType);
+
+    expect(changeUser).not.toHaveBeenCalled();
+    expect(setEmail).not.toHaveBeenCalled();
+    expect(setCustomUserAttribute).toHaveBeenCalledTimes(1);
+    expect(setCustomUserAttribute).toHaveBeenCalledWith('plan', 'silver');
+  });
+
+  it('resends attributes after the user changes or reset', async () => {
+    const plugin = new BrazePlugin();
+    const traits = { email: 'a@test.com' };
+
+    await plugin.identify({
+      userId: 'a',
+      traits,
+    } as unknown as IdentifyEventType);
+    await plugin.identify({
+      userId: 'b',
+      traits,
+    } as unknown as IdentifyEventType);
+    expect(changeUser).toHaveBeenCalledWith('b');
+    expect(setEmail).toHaveBeenCalledTimes(2);
+
+    await plugin.reset();
+    await plugin.identify({
+      userId: 'b',
+      traits,
+    } as unknown as IdentifyEventType);
+    expect(setEmail).toHaveBeenCalledTimes(3);
+  });
+
+  it('persists the attribute cache across launches', async () => {
+    const storage: Record<string, unknown> = {};
+    const analytics = {
+      getConfig: () => ({
+        writeKey: 'key',
+        storePersistor: {
+          get: (key: string) => Promise.resolve(storage[key]),
+          set: (key: string, state: unknown) => {
+            storage[key] = state;
+            return Promise.resolve();
+          },
+        },
+      }),
+    } as unknown as HightouchClient;
+    const payload = {
+      userId: 'user',
+      traits: { email: 'a@test.com' },
+    } as unknown as IdentifyEventType;
+
+    const firstLaunch = new BrazePlugin();
+    firstLaunch.configure(analytics);
+    await firstLaunch.identify(payload);
+    jest.clearAllMocks();
+
+    const secondLaunch = new BrazePlugin();
+    secondLaunch.configure(analytics);
+    await secondLaunch.identify(payload);
+
+    expect(setEmail).not.toHaveBeenCalled();
   });
 });
