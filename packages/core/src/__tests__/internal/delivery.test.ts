@@ -8,10 +8,16 @@ import {
   StartupFlushPolicy,
   type FlushPolicy,
 } from '../../flushPolicies';
-import { UtilityPlugin } from '../../plugin';
+import { DestinationPlugin, UtilityPlugin } from '../../plugin';
+import { HIGHTOUCH_DESTINATION_KEY } from '../../plugins/HightouchDestination';
 import { SovranStorage } from '../../storage';
 import { getMockLogger } from '../../test-helpers';
-import { EventType, HightouchEvent, PluginType } from '../../types';
+import {
+  EventType,
+  HightouchAPISettings,
+  HightouchEvent,
+  PluginType,
+} from '../../types';
 
 jest.mock('react-native');
 jest.mock('uuid');
@@ -77,11 +83,13 @@ function createClient({
   persistor,
   flushPolicies,
   trackAppLifecycleEvents = false,
+  defaultSettings,
 }: {
   writeKey: string;
   persistor: Persistor;
   flushPolicies: FlushPolicy[];
   trackAppLifecycleEvents?: boolean;
+  defaultSettings?: HightouchAPISettings;
 }) {
   return new HightouchClient({
     config: {
@@ -91,6 +99,7 @@ function createClient({
       foregroundSessionTimeout: 30 * 60 * 1000,
       backgroundSessionTimeout: 30 * 60 * 1000,
       storePersistor: persistor,
+      defaultSettings,
     },
     logger: getMockLogger(),
     store: new SovranStorage({
@@ -142,6 +151,49 @@ describe('event delivery', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
+
+  it.each([undefined, { integrations: { Other: { enabled: true } } }])(
+    'removes persisted destinations absent from current settings (%j)',
+    async (defaultSettings) => {
+      const writeKey = `removed-destination-${
+        defaultSettings ? 'other' : 'none'
+      }`;
+      const persistor = new TestPersistor();
+      await persistor.set(`${writeKey}-settings`, {
+        settings: { Appboy: {}, Other: { stale: true } },
+      });
+      const client = createClient({
+        writeKey,
+        persistor,
+        flushPolicies: [],
+        defaultSettings,
+      });
+      const removed = new DestinationPlugin();
+      removed.key = 'Appboy';
+      const removedTrack = jest.spyOn(removed, 'track');
+      const other = new DestinationPlugin();
+      other.key = 'Other';
+      const otherTrack = jest.spyOn(other, 'track');
+      client.add({ plugin: removed });
+      client.add({ plugin: other });
+
+      try {
+        await client.init();
+        expect(client.settings.get()).toEqual({
+          [HIGHTOUCH_DESTINATION_KEY]: { apiHost: undefined },
+          ...defaultSettings?.integrations,
+        });
+        await client.track('After configuration change');
+        await client.flush();
+
+        expect(removedTrack).not.toHaveBeenCalled();
+        expect(otherTrack).toHaveBeenCalledTimes(defaultSettings ? 1 : 0);
+        expectUploadedEvent(fetchMock, 'After configuration change');
+      } finally {
+        client.cleanup();
+      }
+    }
+  );
 
   it('uploads events restored from the persisted destination queue on startup', async () => {
     const writeKey = 'startup-restore-key';
