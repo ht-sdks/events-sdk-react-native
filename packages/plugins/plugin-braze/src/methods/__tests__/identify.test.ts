@@ -163,6 +163,47 @@ describe('#identify', () => {
     expect(setCustomUserAttribute).not.toHaveBeenCalled();
   });
 
+  it('normalizes subscription values before caching', async () => {
+    const plugin = new BrazePlugin();
+    for (const state of ['opted_in', 'subscribed', 'unsubscribed']) {
+      for (const value of [` \t${state.toUpperCase()}\n`, state]) {
+        await plugin.identify({
+          type: 'identify',
+          userId: 'user-1',
+          traits: { email_subscribe: value, push_subscribe: value },
+        } as IdentifyEventType);
+      }
+    }
+    const expected = [['optedin'], ['subscribed'], ['unsubscribed']];
+    expect(
+      jest.mocked(setEmailNotificationSubscriptionType).mock.calls
+    ).toEqual(expected);
+    expect(jest.mocked(setPushNotificationSubscriptionType).mock.calls).toEqual(
+      expected
+    );
+  });
+
+  it('ignores invalid subscription values', async () => {
+    const plugin = new BrazePlugin();
+    for (const value of [
+      null,
+      true,
+      1,
+      ' ',
+      ' Maybe ',
+      ' Constructor ',
+      '__proto__',
+    ]) {
+      await plugin.identify({
+        type: 'identify',
+        userId: 'user-1',
+        traits: { email_subscribe: value, push_subscribe: value },
+      } as IdentifyEventType);
+    }
+    expect(setEmailNotificationSubscriptionType).not.toHaveBeenCalled();
+    expect(setPushNotificationSubscriptionType).not.toHaveBeenCalled();
+  });
+
   it('sends other trait names as custom attributes', async () => {
     const plugin = new BrazePlugin();
 

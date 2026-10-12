@@ -385,7 +385,13 @@ export class BrazePlugin extends DestinationPlugin {
       ],
     ];
     subscriptions.forEach(([key, value, setter]) => {
-      const type = isString(value) ? SUBSCRIPTION_TYPES[value] : undefined;
+      const normalized = isString(value) ? value.trim().toLowerCase() : '';
+      const type = Object.prototype.hasOwnProperty.call(
+        SUBSCRIPTION_TYPES,
+        normalized
+      )
+        ? SUBSCRIPTION_TYPES[normalized]
+        : undefined;
       if (type !== undefined) {
         setIfChanged(key, type, () => setter(type));
       }
