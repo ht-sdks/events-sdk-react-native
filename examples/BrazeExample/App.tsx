@@ -16,7 +16,7 @@ import {BrazePlugin} from '@ht-sdks/events-sdk-react-native-plugin-braze';
 const perOrder = false;
 
 const client = createClient({
-  writeKey: '72b7caa5de8f082b6526c56ef42c8ee4bf9cd73daf6bc307b067db3692e61e9b',
+  writeKey: 'YOUR_HIGHTOUCH_WRITE_KEY',
   debug: true,
   defaultSettings: {
     integrations: {
