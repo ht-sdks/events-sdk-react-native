@@ -231,6 +231,75 @@ describe('#identify', () => {
     expect(setCustomUserAttribute).toHaveBeenCalledTimes(5);
   });
 
+  it.each([
+    ['firstName', setFirstName],
+    ['first_name', setFirstName],
+    ['lastName', setLastName],
+    ['last_name', setLastName],
+    ['email', setEmail],
+    ['phone', setPhoneNumber],
+    ['home_city', setHomeCity],
+    ['country', setCountry],
+  ] as const)(
+    'clears %s, deduplicates clears, and allows restoring it',
+    async (key, setter) => {
+      const plugin = new BrazePlugin();
+      for (const traits of [
+        { [key]: 'value' },
+        {},
+        { [key]: undefined },
+        { [key]: null },
+        { [key]: null },
+        { [key]: 'value' },
+      ]) {
+        await plugin.identify({ traits } as unknown as IdentifyEventType);
+      }
+      expect(setter.mock.calls).toEqual([['value'], [null], ['value']]);
+    }
+  );
+
+  it('preserves explicit null ahead of aliases and location fallbacks', async () => {
+    await new BrazePlugin().identify({
+      traits: {
+        firstName: null,
+        first_name: 'Ignored',
+        lastName: null,
+        last_name: 'Ignored',
+        address: { city: null, country: null },
+        home_city: 'Ignored',
+        country: 'US',
+      },
+    } as unknown as IdentifyEventType);
+    for (const setter of [setFirstName, setLastName, setHomeCity, setCountry]) {
+      expect(setter.mock.calls).toEqual([[null]]);
+    }
+  });
+
+  it('reports unsupported clears without changing the cached values', async () => {
+    const plugin = new BrazePlugin();
+    const warn = jest.fn();
+    plugin.configure({
+      getConfig: () => ({ writeKey: 'key' }),
+      logger: { warn },
+    } as unknown as HightouchClient);
+    const traits = { gender: 'female', birthday: '1990-05-12' };
+    await plugin.identify({ traits } as unknown as IdentifyEventType);
+    jest.clearAllMocks();
+    await plugin.identify({
+      traits: { gender: null, birthday: null, dob: '2000-01-01' },
+    } as unknown as IdentifyEventType);
+    await plugin.identify({ traits } as unknown as IdentifyEventType);
+    expect(setGender).not.toHaveBeenCalled();
+    expect(setDateOfBirth).not.toHaveBeenCalled();
+    expect(setCustomUserAttribute).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Cannot clear gender')
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Cannot clear birthday')
+    );
+  });
+
   it('formats custom attributes', async () => {
     const plugin = new BrazePlugin();
 

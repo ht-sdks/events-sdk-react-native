@@ -305,10 +305,14 @@ export class BrazePlugin extends DestinationPlugin {
     const pick = (...values: unknown[]) => values.find((v) => v !== undefined);
     const pickString = (...values: unknown[]) => {
       const value = pick(...values);
-      return isString(value) ? value : undefined;
+      return value === null || isString(value) ? value : undefined;
     };
 
-    const stringSetters: [string, string | undefined, (v: string) => void][] = [
+    const stringSetters: [
+      string,
+      string | null | undefined,
+      (v: string) => void
+    ][] = [
       [
         '$firstName',
         pickString(traits.firstName, traits.first_name),
@@ -334,12 +338,19 @@ export class BrazePlugin extends DestinationPlugin {
     ];
     stringSetters.forEach(([key, value, setter]) => {
       if (value !== undefined) {
-        setIfChanged(key, value, () => setter(value));
+        // Braze 5.x native string setters accept null, but its TS declarations omit it.
+        setIfChanged(key, value, () =>
+          (setter as (v: string | null) => void)(value)
+        );
       }
     });
 
     const gender = traits.gender;
-    if (gender !== undefined && gender !== null) {
+    if (gender === null) {
+      this.analytics?.logger.warn(
+        'Cannot clear gender: the Braze React Native 5.x bridge does not support it. Existing value unchanged.'
+      );
+    } else if (gender !== undefined) {
       const normalized =
         GENDERS[
           String(gender)
@@ -357,7 +368,11 @@ export class BrazePlugin extends DestinationPlugin {
     }
 
     const birthday = pick(traits.birthday, traits.dob);
-    if (birthday !== undefined && birthday !== null) {
+    if (birthday === null) {
+      this.analytics?.logger.warn(
+        'Cannot clear birthday: the Braze React Native 5.x bridge does not support it. Existing value unchanged.'
+      );
+    } else if (birthday !== undefined) {
       const dateOfBirth = this.parseDate(birthday);
       if (dateOfBirth !== undefined) {
         setIfChanged('$dateOfBirth', dateOfBirth, () =>
@@ -394,6 +409,10 @@ export class BrazePlugin extends DestinationPlugin {
         : undefined;
       if (type !== undefined) {
         setIfChanged(key, type, () => setter(type));
+      } else if (value !== undefined) {
+        this.analytics?.logger.warn(
+          `Dropped ${key}: expected opted_in, subscribed, or unsubscribed.`
+        );
       }
     });
 
