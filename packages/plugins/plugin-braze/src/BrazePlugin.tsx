@@ -20,6 +20,7 @@ import {
 import { createStore, Store } from '@ht-sdks/sovran-react-native';
 import Braze, { GenderTypes, MonthsAsNumber } from '@braze/react-native-sdk';
 import flush from './methods/flush';
+import { resolvePurchaseCurrency } from './currency';
 
 export interface BrazePurchase {
   productId: string;
@@ -38,6 +39,13 @@ export interface BrazePurchaseContext {
 }
 
 export type BrazePluginOptions = {
+  /**
+   * Explicit fallback for missing/invalid purchase currencies; no implicit default.
+   * Codes are trimmed, uppercased, and checked for exactly three ASCII letters,
+   * including after transformPurchase. Braze determines which codes it supports.
+   * Without a valid fallback, the purchase throws; the client reports a PluginError.
+   */
+  defaultCurrency?: string;
   /** Exact event names or a predicate identifying purchases. Predicates are constructor-only. */
   purchaseDetection?: string[] | ((event: TrackEventType) => boolean);
   /** One purchase per product (SKU by default), or one for the whole order. */
@@ -512,17 +520,13 @@ export class BrazePlugin extends DestinationPlugin {
   };
 
   logPurchaseEvent(event: TrackEventType) {
-    // Make USD as the default currency.
-    let currency = 'USD';
+    const currency = resolvePurchaseCurrency(
+      event.properties?.currency,
+      this.settings.defaultCurrency
+    );
     const revenue =
       this.extractRevenue(event.properties, 'revenue') ||
       this.extractRevenue(event.properties, 'total');
-    if (
-      typeof event.properties?.currency === 'string' &&
-      event.properties.currency.length === 3
-    ) {
-      currency = event.properties.currency;
-    }
     const order: Record<string, unknown> = { ...event.properties };
     const { products, ...orderProperties } = order;
     const items = Array.isArray(products) ? products.filter(isObject) : [];
@@ -597,7 +601,7 @@ export class BrazePlugin extends DestinationPlugin {
     Braze.logPurchase(
       result.productId,
       String(result.price),
-      result.currency,
+      resolvePurchaseCurrency(result.currency, this.settings.defaultCurrency),
       result.quantity,
       this.formatProperties(result.properties)
     );
