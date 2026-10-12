@@ -14,13 +14,13 @@ import {
   objectToString,
   HightouchAPISettings,
   UpdateType,
-  JsonMap,
   unknownToString,
 } from '@ht-sdks/events-sdk-react-native';
 import { createStore, Store } from '@ht-sdks/sovran-react-native';
 import Braze, { GenderTypes, MonthsAsNumber } from '@braze/react-native-sdk';
 import flush from './methods/flush';
 import { resolvePurchaseCurrency } from './currency';
+import { purchaseNumber } from './purchase-number';
 
 export interface BrazePurchase {
   productId: string;
@@ -48,7 +48,15 @@ export type BrazePluginOptions = {
   defaultCurrency?: string;
   /** Exact event names or a predicate identifying purchases. Predicates are constructor-only. */
   purchaseDetection?: string[] | ((event: TrackEventType) => boolean);
-  /** One purchase per product (SKU by default), or one for the whole order. */
+  /**
+   * One purchase per product (SKU by default), or one for the whole order.
+   * Products require a finite price. Omitted quantities default to 1; supplied
+   * quantities must be integers from 1 to 100.
+   * Whole-order purchases (including events without products) require revenue
+   * (or total if revenue is absent); quantity also defaults to 1.
+   * Complete numeric strings are accepted. Missing prices and invalid values are rejected,
+   * including after transformPurchase; an explicitly supplied zero price is valid.
+   */
   purchaseGrouping?:
     | { mode: 'perProduct'; identifier?: 'sku' | 'name' }
     | { mode: 'perOrder' };
@@ -499,34 +507,11 @@ export class BrazePlugin extends DestinationPlugin {
     flush();
   }
 
-  extractRevenue = (properties: JsonMap | undefined, key: string) => {
-    if (!properties) {
-      return 0;
-    }
-
-    const revenue = properties[key];
-    if (revenue !== undefined && revenue !== null) {
-      switch (typeof revenue) {
-        case 'string':
-          return parseFloat(revenue);
-        case 'number':
-          return revenue;
-        default:
-          return 0;
-      }
-    } else {
-      return 0;
-    }
-  };
-
   logPurchaseEvent(event: TrackEventType) {
     const currency = resolvePurchaseCurrency(
       event.properties?.currency,
       this.settings.defaultCurrency
     );
-    const revenue =
-      this.extractRevenue(event.properties, 'revenue') ||
-      this.extractRevenue(event.properties, 'total');
     const order: Record<string, unknown> = { ...event.properties };
     const { products, ...orderProperties } = order;
     const items = Array.isArray(products) ? products.filter(isObject) : [];
@@ -538,9 +523,15 @@ export class BrazePlugin extends DestinationPlugin {
       this.logBrazePurchase(
         {
           productId: event.event,
-          price: revenue,
+          price: purchaseNumber(
+            order.revenue === undefined ? order.total : order.revenue,
+            'price'
+          ),
           currency,
-          quantity: 1,
+          quantity: purchaseNumber(
+            order.quantity === undefined ? 1 : order.quantity,
+            'quantity'
+          ),
           properties: order,
         },
         { event, order }
@@ -559,9 +550,12 @@ export class BrazePlugin extends DestinationPlugin {
         {
           productId:
             unknownToString(identifier, true, undefined, undefined) ?? '',
-          price: this.extractRevenue({ price } as JsonMap, 'price'),
+          price: purchaseNumber(price, 'price'),
           currency,
-          quantity: isNumber(quantity) ? quantity : 1,
+          quantity: purchaseNumber(
+            quantity === undefined ? 1 : quantity,
+            'quantity'
+          ),
           properties: { ...orderProperties, ...productFields },
         },
         { event, order, product }
@@ -600,9 +594,9 @@ export class BrazePlugin extends DestinationPlugin {
     }
     Braze.logPurchase(
       result.productId,
-      String(result.price),
+      String(purchaseNumber(result.price, 'price')),
       resolvePurchaseCurrency(result.currency, this.settings.defaultCurrency),
-      result.quantity,
+      purchaseNumber(result.quantity, 'quantity'),
       this.formatProperties(result.properties)
     );
   }

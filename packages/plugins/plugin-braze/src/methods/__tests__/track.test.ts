@@ -22,7 +22,7 @@ describe('purchase currency', () => {
     ({
       type: 'track',
       event: 'Order Completed',
-      properties: { currency },
+      properties: { currency, quantity: 1, revenue: 0 },
     } as TrackEventType);
 
   it.each([' eur\n', 'uSd', 'btc', ' zzz '])(
@@ -34,7 +34,7 @@ describe('purchase currency', () => {
         '0',
         currency.trim().toUpperCase(),
         1,
-        { currency }
+        { currency, quantity: 1, revenue: 0 }
       );
     }
   );
@@ -102,7 +102,12 @@ describe('purchase currency', () => {
       });
       const purchase = {
         ...event('USD'),
-        properties: { currency: 'USD', products: [{ sku: 'SKU1' }] },
+        properties: {
+          currency: 'USD',
+          products: [{ sku: 'SKU1', price: 0, quantity: 1 }],
+          quantity: 1,
+          revenue: 0,
+        },
       };
       plugin.track(purchase);
       expect(logPurchase).toHaveBeenCalledWith(
@@ -117,6 +122,134 @@ describe('purchase currency', () => {
       expect(logPurchase).toHaveBeenCalledTimes(1);
     }
   );
+});
+
+describe('purchase numbers', () => {
+  beforeEach(() => jest.clearAllMocks());
+  it.each(['perOrder', 'perProduct'] as const)(
+    'requires price and validates supplied quantity in %s mode',
+    (mode) => {
+      const plugin = new BrazePlugin({
+        purchaseGrouping:
+          mode === 'perOrder' ? { mode } : { mode, identifier: 'sku' },
+      });
+      for (const field of ['price', 'quantity']) {
+        const invalid = [
+          undefined,
+          null,
+          true,
+          '',
+          ' ',
+          '12oops',
+          'NaN',
+          Infinity,
+          NaN,
+          '1e309',
+          '0x10',
+          {},
+          [],
+        ];
+        if (field === 'quantity') invalid.push(0, -1, 1.5, 101);
+        for (const value of invalid) {
+          if (field === 'quantity' && value === undefined) continue;
+          const product = {
+            sku: 'SKU1',
+            price: 2,
+            quantity: 1,
+            [field]: value,
+          };
+          const event = {
+            type: 'track',
+            event: 'Order Completed',
+            properties: {
+              currency: 'USD',
+              revenue: 2,
+              quantity: 1,
+              products: [product],
+              [field === 'price' ? 'revenue' : field]: value,
+              total: field === 'price' && value !== undefined ? 99 : undefined,
+            },
+          } as unknown as TrackEventType;
+          expect(() => plugin.track(event)).toThrow(RangeError);
+        }
+      }
+      expect(logPurchase).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(['perOrder', 'perProduct'] as const)(
+    'defaults omitted quantity to one in %s mode',
+    (mode) => {
+      const transformPurchase = jest.fn((purchase: BrazePurchase) => purchase);
+      const plugin = new BrazePlugin({
+        purchaseGrouping:
+          mode === 'perOrder' ? { mode } : { mode, identifier: 'sku' },
+        transformPurchase,
+      });
+      for (const products of [[], [{ sku: 'SKU1', price: 2 }]]) {
+        plugin.track({
+          type: 'track',
+          event: 'Order Completed',
+          properties: { currency: 'USD', revenue: 2, products },
+        } as TrackEventType);
+      }
+      expect(
+        transformPurchase.mock.calls.map(([purchase]) => purchase.quantity)
+      ).toEqual([1, 1]);
+      expect(
+        jest
+          .mocked(logPurchase)
+          .mock.calls.map((call: unknown[]) => [call[1], call[3]])
+      ).toEqual([
+        ['2', 1],
+        ['2', 1],
+      ]);
+    }
+  );
+
+  it('preserves zero revenue and accepts complete numeric strings', () => {
+    const plugin = new BrazePlugin();
+    plugin.track({
+      event: 'Order Completed',
+      properties: { currency: 'USD', revenue: 0, total: 99, quantity: '2' },
+    } as unknown as TrackEventType);
+    plugin.track({
+      event: 'Order Completed',
+      properties: {
+        currency: 'USD',
+        products: [{ sku: 'SKU1', price: ' 2.5e1 ', quantity: '3' }],
+      },
+    } as unknown as TrackEventType);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Order Completed',
+      '0',
+      'USD',
+      2,
+      expect.any(Object)
+    );
+    expect(logPurchase).toHaveBeenCalledWith(
+      'SKU1',
+      '25',
+      'USD',
+      3,
+      expect.any(Object)
+    );
+  });
+
+  it.each(['price', 'quantity'])('rejects invalid transformed %s', (field) => {
+    const plugin = new BrazePlugin({
+      transformPurchase: (purchase) => ({
+        ...purchase,
+        [field]: field === 'price' ? Infinity : 0,
+      }),
+    });
+    const event = {
+      event: 'Order Completed',
+      properties: { currency: 'USD', revenue: 2, quantity: 1 },
+    } as unknown as TrackEventType;
+    expect(() => plugin.track(event)).toThrow(RangeError);
+    expect(logPurchase).not.toHaveBeenCalled();
+  });
 });
 
 describe('#track', () => {
@@ -270,17 +403,15 @@ describe('#track', () => {
     const payload = {
       type: 'track',
       event: 'Order Completed',
+      properties: { revenue: 0, quantity: 1 },
     };
 
     plugin.track(payload as TrackEventType);
 
-    expect(logPurchase).toHaveBeenCalledWith(
-      'Order Completed',
-      '0',
-      'USD',
-      1,
-      {}
-    );
+    expect(logPurchase).toHaveBeenCalledWith('Order Completed', '0', 'USD', 1, {
+      revenue: 0,
+      quantity: 1,
+    });
   });
 
   it('logs an order completed event in the correct currency', () => {
@@ -291,6 +422,8 @@ describe('#track', () => {
       properties: {
         currency: 'JPY',
         foo: 'bar',
+        quantity: 1,
+        revenue: 0,
       },
     };
 
@@ -299,6 +432,8 @@ describe('#track', () => {
     expect(logPurchase).toHaveBeenCalledWith('Order Completed', '0', 'JPY', 1, {
       currency: 'JPY',
       foo: 'bar',
+      quantity: 1,
+      revenue: 0,
     });
   });
 
@@ -310,6 +445,7 @@ describe('#track', () => {
       properties: {
         revenue: 399.99,
         foo: 'bar',
+        quantity: 1,
       },
     };
 
@@ -323,6 +459,7 @@ describe('#track', () => {
       {
         revenue: 399.99,
         foo: 'bar',
+        quantity: 1,
       }
     );
   });
@@ -335,6 +472,7 @@ describe('#track', () => {
       properties: {
         revenue: '399.99',
         foo: 'bar',
+        quantity: 1,
       },
     };
 
@@ -348,6 +486,7 @@ describe('#track', () => {
       {
         revenue: '399.99',
         foo: 'bar',
+        quantity: 1,
       }
     );
   });
@@ -358,16 +497,18 @@ describe('#track', () => {
       type: 'track',
       event: 'Order Completed',
       properties: {
-        revenue: {},
+        revenue: 0,
         foo: 'bar',
+        quantity: 1,
       },
     };
 
     plugin.track(payload as TrackEventType);
 
     expect(logPurchase).toHaveBeenCalledWith('Order Completed', '0', 'USD', 1, {
-      revenue: {},
+      revenue: 0,
       foo: 'bar',
+      quantity: 1,
     });
   });
 
@@ -386,6 +527,7 @@ describe('#track', () => {
           },
         ],
         foo: 'bar',
+        quantity: 1,
       },
     };
 
@@ -395,6 +537,7 @@ describe('#track', () => {
       revenue: '399.99',
       foo: 'bar',
       product_id: '123',
+      quantity: 1,
     });
   });
 
@@ -409,7 +552,10 @@ describe('#track', () => {
   };
 
   const purchase = (event: string) =>
-    ({ event, properties: { revenue: 5 } } as unknown as TrackEventType);
+    ({
+      event,
+      properties: { revenue: 5, quantity: 1 },
+    } as unknown as TrackEventType);
 
   it('treats Order Completed and Completed Order as purchases by default', () => {
     const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
@@ -421,6 +567,7 @@ describe('#track', () => {
     expect(logCustomEvent).toHaveBeenCalledTimes(1);
     expect(logCustomEvent).toHaveBeenCalledWith('order completed', {
       revenue: 5,
+      quantity: 1,
     });
   });
 
@@ -443,7 +590,7 @@ describe('#track', () => {
       '5',
       'USD',
       1,
-      { revenue: 5 }
+      { revenue: 5, quantity: 1 }
     );
     expect(logCustomEvent).toHaveBeenCalledTimes(2);
   });
@@ -464,6 +611,7 @@ describe('#track', () => {
     expect(logPurchase).toHaveBeenCalledTimes(1);
     expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
       revenue: 5,
+      quantity: 1,
     });
   });
 
@@ -482,7 +630,7 @@ describe('#track', () => {
     );
     plugin.track({
       event: 'Checkout',
-      properties: { paid: true },
+      properties: { paid: true, quantity: 1, revenue: 0 },
     } as unknown as TrackEventType);
     plugin.track(purchase('Membership Purchased'));
     plugin.track(purchase('Order Completed'));
@@ -490,10 +638,13 @@ describe('#track', () => {
     expect(logPurchase).toHaveBeenCalledTimes(1);
     expect(logPurchase).toHaveBeenCalledWith('Checkout', '0', 'USD', 1, {
       paid: true,
+      quantity: 1,
+      revenue: 0,
     });
     expect(logCustomEvent).toHaveBeenCalledTimes(2);
     expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
       revenue: 5,
+      quantity: 1,
     });
   });
 
@@ -511,6 +662,7 @@ describe('#track', () => {
     expect(logPurchase).not.toHaveBeenCalled();
     expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
       revenue: 5,
+      quantity: 1,
     });
     expect(warn).toHaveBeenCalledWith(expect.any(String), error);
   });
@@ -565,8 +717,9 @@ describe('#track', () => {
           quantity: 2,
           size: 'M',
         },
-        { product_id: 'p2', name: 'Hat', price: 10 },
+        { product_id: 'p2', name: 'Hat', price: 10, quantity: 1 },
       ],
+      quantity: 1,
     },
   } as unknown as TrackEventType;
 
@@ -575,6 +728,7 @@ describe('#track', () => {
     revenue: 30,
     currency: 'EUR',
     store: 'nyc',
+    quantity: 1,
   };
 
   it('logs one purchase per product with order and product fields', () => {
@@ -607,7 +761,12 @@ describe('#track', () => {
     const warn = withWarn(plugin);
     plugin.track({
       event: 'Order Completed',
-      properties: { products: [{ name: 'Hat' }, { price: 5 }] },
+      properties: {
+        products: [
+          { name: 'Hat', price: 0, quantity: 1 },
+          { price: 5, quantity: 1 },
+        ],
+      },
     } as unknown as TrackEventType);
 
     expect(logPurchase).toHaveBeenCalledTimes(1);
