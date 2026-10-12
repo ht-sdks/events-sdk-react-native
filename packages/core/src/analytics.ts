@@ -433,12 +433,12 @@ export class HightouchClient {
     }
     */
 
-    await this.store.settings.set({
+    await this.store.settings.set(() => ({
       [HIGHTOUCH_DESTINATION_KEY]: {
         apiHost: this.config.proxy,
       },
       ...this.config?.defaultSettings?.integrations,
-    });
+    }));
   }
 
   /**

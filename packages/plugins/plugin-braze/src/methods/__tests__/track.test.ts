@@ -1,11 +1,256 @@
-import type { TrackEventType } from '../../../../../core/src/types';
-import { BrazePlugin } from '../../BrazePlugin';
+import type {
+  ScreenEventType,
+  TrackEventType,
+} from '../../../../../core/src/types';
+import type { HightouchClient } from '@ht-sdks/events-sdk-react-native';
+import {
+  BrazePlugin,
+  BrazePluginOptions,
+  BrazePurchase,
+  BrazePurchaseContext,
+} from '../../BrazePlugin';
 import {
   logCustomEvent,
   logPurchase,
   setAttributionData,
 } from '../__mocks__/@braze/react-native-sdk';
 import { UpdateType } from '../../../../../core/src/types';
+
+describe('purchase currency', () => {
+  beforeEach(() => jest.clearAllMocks());
+  const event = (currency?: unknown) =>
+    ({
+      type: 'track',
+      event: 'Order Completed',
+      properties: { currency, quantity: 1, revenue: 0 },
+    } as TrackEventType);
+
+  it.each([' eur\n', 'uSd', 'btc', ' zzz '])(
+    'normalizes %j without a default',
+    (currency) => {
+      new BrazePlugin().track(event(currency));
+      expect(logPurchase).toHaveBeenCalledWith(
+        'Order Completed',
+        '0',
+        currency.trim().toUpperCase(),
+        1,
+        { currency, quantity: 1, revenue: 0 }
+      );
+    }
+  );
+
+  it.each([
+    undefined,
+    null,
+    123,
+    '',
+    '   ',
+    'dollars',
+    'US',
+    '123',
+    'US1',
+    '€€€',
+    'éur',
+    'US D',
+  ])('throws for %j without a default', (currency) => {
+    expect(() => new BrazePlugin().track(event(currency))).toThrow(RangeError);
+    expect(logPurchase).not.toHaveBeenCalled();
+  });
+
+  it('uses a normalized default only when needed, including remote settings', () => {
+    const plugin = new BrazePlugin();
+    plugin.update(
+      { integrations: { Appboy: { defaultCurrency: ' gbp\n' } } },
+      UpdateType.initial
+    );
+    [undefined, 'US1', 'eur'].forEach((currency) =>
+      plugin.track(event(currency))
+    );
+    expect(
+      jest.mocked(logPurchase).mock.calls.map((call: unknown[]) => call[2])
+    ).toEqual(['GBP', 'GBP', 'EUR']);
+  });
+
+  it('leaves currency recognition to Braze with an explicit default', () => {
+    const plugin = new BrazePlugin({ defaultCurrency: ' zzz ' });
+    for (const currency of ['abc', undefined]) {
+      plugin.track({
+        ...event(currency),
+        properties: { currency, revenue: 2, quantity: 1 },
+      } as TrackEventType);
+    }
+    expect(
+      jest.mocked(logPurchase).mock.calls.map((call: unknown[]) => call[2])
+    ).toEqual(['ABC', 'ZZZ']);
+  });
+
+  it('rejects an invalid default', () => {
+    expect(() =>
+      new BrazePlugin({ defaultCurrency: 'US1' }).track(event())
+    ).toThrow('defaultCurrency must be a three-letter currency code');
+    expect(logPurchase).not.toHaveBeenCalled();
+  });
+
+  it.each(['perOrder', 'perProduct'] as const)(
+    'validates transformed currencies in %s mode',
+    (mode) => {
+      let currency = ' zzz ';
+      const plugin = new BrazePlugin({
+        purchaseGrouping:
+          mode === 'perOrder' ? { mode } : { mode, identifier: 'sku' },
+        transformPurchase: (purchase) => ({ ...purchase, currency }),
+      });
+      const purchase = {
+        ...event('USD'),
+        properties: {
+          currency: 'USD',
+          products: [{ sku: 'SKU1', price: 0, quantity: 1 }],
+          quantity: 1,
+          revenue: 0,
+        },
+      };
+      plugin.track(purchase);
+      expect(logPurchase).toHaveBeenCalledWith(
+        expect.any(String),
+        '0',
+        'ZZZ',
+        1,
+        expect.any(Object)
+      );
+      currency = 'US1';
+      expect(() => plugin.track(purchase)).toThrow(RangeError);
+      expect(logPurchase).toHaveBeenCalledTimes(1);
+    }
+  );
+});
+
+describe('purchase numbers', () => {
+  beforeEach(() => jest.clearAllMocks());
+  it.each(['perOrder', 'perProduct'] as const)(
+    'requires price and validates supplied quantity in %s mode',
+    (mode) => {
+      const plugin = new BrazePlugin({
+        purchaseGrouping:
+          mode === 'perOrder' ? { mode } : { mode, identifier: 'sku' },
+      });
+      for (const field of ['price', 'quantity']) {
+        const invalid = [
+          undefined,
+          null,
+          true,
+          '',
+          ' ',
+          '12oops',
+          'NaN',
+          Infinity,
+          NaN,
+          '1e309',
+          '0x10',
+          {},
+          [],
+        ];
+        if (field === 'quantity') invalid.push(0, -1, 1.5, 101);
+        for (const value of invalid) {
+          if (field === 'quantity' && value === undefined) continue;
+          const product = {
+            sku: 'SKU1',
+            price: 2,
+            quantity: 1,
+            [field]: value,
+          };
+          const event = {
+            type: 'track',
+            event: 'Order Completed',
+            properties: {
+              currency: 'USD',
+              revenue: 2,
+              quantity: 1,
+              products: [product],
+              [field === 'price' ? 'revenue' : field]: value,
+              total: field === 'price' && value !== undefined ? 99 : undefined,
+            },
+          } as unknown as TrackEventType;
+          expect(() => plugin.track(event)).toThrow(RangeError);
+        }
+      }
+      expect(logPurchase).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(['perOrder', 'perProduct'] as const)(
+    'defaults omitted quantity to one in %s mode',
+    (mode) => {
+      const transformPurchase = jest.fn((purchase: BrazePurchase) => purchase);
+      const plugin = new BrazePlugin({
+        purchaseGrouping:
+          mode === 'perOrder' ? { mode } : { mode, identifier: 'sku' },
+        transformPurchase,
+      });
+      for (const products of [[], [{ sku: 'SKU1', price: 2 }]]) {
+        plugin.track({
+          type: 'track',
+          event: 'Order Completed',
+          properties: { currency: 'USD', revenue: 2, products },
+        } as TrackEventType);
+      }
+      expect(
+        transformPurchase.mock.calls.map(([purchase]) => purchase.quantity)
+      ).toEqual([1, 1]);
+      expect(
+        jest
+          .mocked(logPurchase)
+          .mock.calls.map((call: unknown[]) => [call[1], call[3]])
+      ).toEqual([
+        ['2', 1],
+        ['2', 1],
+      ]);
+    }
+  );
+
+  it('preserves zero revenue and accepts complete numeric strings', () => {
+    const plugin = new BrazePlugin();
+    plugin.track({
+      event: 'Order Completed',
+      properties: { currency: 'USD', revenue: 0, total: 99, quantity: '2' },
+    } as unknown as TrackEventType);
+    plugin.track({
+      event: 'Order Completed',
+      properties: {
+        currency: 'USD',
+        products: [{ sku: 'SKU1', price: ' 2.5e1 ', quantity: '3' }],
+      },
+    } as unknown as TrackEventType);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Order Completed',
+      '0',
+      'USD',
+      2,
+      expect.any(Object)
+    );
+    expect(logPurchase).toHaveBeenCalledWith(
+      'SKU1',
+      '25',
+      'USD',
+      3,
+      expect.any(Object)
+    );
+  });
+
+  it.each(['price', 'quantity'])('rejects invalid transformed %s', (field) => {
+    const plugin = new BrazePlugin({
+      transformPurchase: (purchase) => ({
+        ...purchase,
+        [field]: field === 'price' ? Infinity : 0,
+      }),
+    });
+    const event = {
+      event: 'Order Completed',
+      properties: { currency: 'USD', revenue: 2, quantity: 1 },
+    } as unknown as TrackEventType;
+    expect(() => plugin.track(event)).toThrow(RangeError);
+    expect(logPurchase).not.toHaveBeenCalled();
+  });
+});
 
 describe('#track', () => {
   beforeEach(() => {
@@ -154,43 +399,53 @@ describe('#track', () => {
   });
 
   it('logs an order completed event', () => {
-    const plugin = new BrazePlugin();
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
     const payload = {
       type: 'track',
       event: 'Order Completed',
+      properties: { revenue: 0, quantity: 1 },
     };
 
     plugin.track(payload as TrackEventType);
 
-    expect(logPurchase).toHaveBeenCalledWith('Order Completed', '0', 'USD', 1);
+    expect(logPurchase).toHaveBeenCalledWith('Order Completed', '0', 'USD', 1, {
+      revenue: 0,
+      quantity: 1,
+    });
   });
 
   it('logs an order completed event in the correct currency', () => {
-    const plugin = new BrazePlugin();
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
     const payload = {
       type: 'track',
       event: 'Order Completed',
       properties: {
         currency: 'JPY',
         foo: 'bar',
+        quantity: 1,
+        revenue: 0,
       },
     };
 
     plugin.track(payload as TrackEventType);
 
     expect(logPurchase).toHaveBeenCalledWith('Order Completed', '0', 'JPY', 1, {
+      currency: 'JPY',
       foo: 'bar',
+      quantity: 1,
+      revenue: 0,
     });
   });
 
   it('logs an order completed event with revenue', () => {
-    const plugin = new BrazePlugin();
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
     const payload = {
       type: 'track',
       event: 'Order Completed',
       properties: {
         revenue: 399.99,
         foo: 'bar',
+        quantity: 1,
       },
     };
 
@@ -202,19 +457,22 @@ describe('#track', () => {
       'USD',
       1,
       {
+        revenue: 399.99,
         foo: 'bar',
+        quantity: 1,
       }
     );
   });
 
   it('logs an order completed event with revenue as string', () => {
-    const plugin = new BrazePlugin();
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
     const payload = {
       type: 'track',
       event: 'Order Completed',
       properties: {
         revenue: '399.99',
         foo: 'bar',
+        quantity: 1,
       },
     };
 
@@ -226,31 +484,36 @@ describe('#track', () => {
       'USD',
       1,
       {
+        revenue: '399.99',
         foo: 'bar',
+        quantity: 1,
       }
     );
   });
 
   it('logs an order completed event with revenue as 0', () => {
-    const plugin = new BrazePlugin();
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
     const payload = {
       type: 'track',
       event: 'Order Completed',
       properties: {
-        revenue: {},
+        revenue: 0,
         foo: 'bar',
+        quantity: 1,
       },
     };
 
     plugin.track(payload as TrackEventType);
 
     expect(logPurchase).toHaveBeenCalledWith('Order Completed', '0', 'USD', 1, {
+      revenue: 0,
       foo: 'bar',
+      quantity: 1,
     });
   });
 
   it('logs an order completed event with products', () => {
-    const plugin = new BrazePlugin();
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
     const payload = {
       type: 'track',
       event: 'Order Completed',
@@ -264,58 +527,457 @@ describe('#track', () => {
           },
         ],
         foo: 'bar',
+        quantity: 1,
       },
     };
 
     plugin.track(payload as TrackEventType);
 
     expect(logPurchase).toHaveBeenCalledWith('123', '399.99', 'USD', 4, {
+      revenue: '399.99',
       foo: 'bar',
+      product_id: '123',
+      quantity: 1,
     });
   });
 
-  it('logs a revenue event if `revenueEnabled` setting is true', () => {
-    const settings = {
-      integrations: { Appboy: { logPurchaseWhenRevenuePresent: true } },
-    };
-    const updateType: UpdateType = UpdateType.initial;
-    const plugin = new BrazePlugin();
-    const payload = {
-      type: 'track',
-      event: 'RevenueTest',
-      properties: {
-        revenue: 34,
-        foo: 'bar',
-      },
-    };
-    plugin.update(settings, updateType);
-    plugin.track(payload as TrackEventType);
+  const withWarn = (plugin: BrazePlugin) => {
+    const warn = jest.fn();
+    plugin.configure({
+      settings: { get: () => ({ Appboy: {} }) },
+      getConfig: () => ({ writeKey: 'key' }),
+      logger: { warn },
+    } as unknown as HightouchClient);
+    return warn;
+  };
 
-    expect(logPurchase).toHaveBeenCalledWith('RevenueTest', '34', 'USD', 1, {
-      foo: 'bar',
+  const purchase = (event: string) =>
+    ({
+      event,
+      properties: { revenue: 5, quantity: 1 },
+    } as unknown as TrackEventType);
+
+  it('treats Order Completed and Completed Order as purchases by default', () => {
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
+    plugin.track(purchase('Order Completed'));
+    plugin.track(purchase('Completed Order'));
+    plugin.track(purchase('order completed'));
+
+    expect(logPurchase).toHaveBeenCalledTimes(2);
+    expect(logCustomEvent).toHaveBeenCalledTimes(1);
+    expect(logCustomEvent).toHaveBeenCalledWith('order completed', {
+      revenue: 5,
+      quantity: 1,
     });
   });
 
-  it('logs a custom event when revenue is 0', () => {
-    const settings = {
-      integrations: { Appboy: { logPurchaseWhenRevenuePresent: true } },
-    };
-    const updateType: UpdateType = UpdateType.initial;
-    const plugin = new BrazePlugin();
-    const payload = {
-      type: 'track',
-      event: 'RevenueTest',
-      properties: {
-        revenue: 0,
-        foo: 'bar',
-      },
-    };
-    plugin.update(settings, updateType);
-    plugin.track(payload as TrackEventType);
+  it('uses purchaseDetection from constructor options', () => {
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      purchaseDetection: ['Membership Purchased'],
+    });
+    plugin.update(
+      { integrations: { Appboy: { purchaseDetection: ['Other'] } } },
+      UpdateType.initial
+    );
+    plugin.track(purchase('Membership Purchased'));
+    plugin.track(purchase('Other'));
+    plugin.track(purchase('Order Completed'));
 
-    expect(logCustomEvent).toBeCalledWith('RevenueTest', {
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Membership Purchased',
+      '5',
+      'USD',
+      1,
+      { revenue: 5, quantity: 1 }
+    );
+    expect(logCustomEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses purchaseDetection from settings', () => {
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
+    plugin.update(
+      {
+        integrations: {
+          Appboy: { purchaseDetection: ['Membership Purchased'] },
+        },
+      },
+      UpdateType.initial
+    );
+    plugin.track(purchase('Membership Purchased'));
+    plugin.track(purchase('Order Completed'));
+
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
+      revenue: 5,
+      quantity: 1,
+    });
+  });
+
+  it('uses a purchaseDetection predicate instead of the default event names', () => {
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      purchaseDetection: (event) => event.properties?.paid === true,
+    });
+    plugin.update(
+      {
+        integrations: {
+          Appboy: { purchaseDetection: ['Membership Purchased'] },
+        },
+      },
+      UpdateType.initial
+    );
+    plugin.track({
+      event: 'Checkout',
+      properties: { paid: true, quantity: 1, revenue: 0 },
+    } as unknown as TrackEventType);
+    plugin.track(purchase('Membership Purchased'));
+    plugin.track(purchase('Order Completed'));
+
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith('Checkout', '0', 'USD', 1, {
+      paid: true,
+      quantity: 1,
       revenue: 0,
-      foo: 'bar',
     });
+    expect(logCustomEvent).toHaveBeenCalledTimes(2);
+    expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
+      revenue: 5,
+      quantity: 1,
+    });
+  });
+
+  it('logs a custom event and warns when purchaseDetection throws', () => {
+    const error = new Error('boom');
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      purchaseDetection: () => {
+        throw error;
+      },
+    });
+    const warn = withWarn(plugin);
+    plugin.track(purchase('Order Completed'));
+
+    expect(logPurchase).not.toHaveBeenCalled();
+    expect(logCustomEvent).toHaveBeenCalledWith('Order Completed', {
+      revenue: 5,
+      quantity: 1,
+    });
+    expect(warn).toHaveBeenCalledWith(expect.any(String), error);
+  });
+
+  it('passes event names and property keys through unchanged', () => {
+    const plugin = new BrazePlugin();
+    plugin.track({
+      event: '$ACTION',
+      properties: { $foo: 'bar', nested: { a: [1] } },
+    } as unknown as TrackEventType);
+
+    expect(logCustomEvent).toHaveBeenCalledWith('$ACTION', {
+      $foo: 'bar',
+      nested: { a: [1] },
+    });
+  });
+
+  it('preserves explicitly string-valued properties', () => {
+    const plugin = new BrazePlugin();
+    plugin.track({
+      event: 'ACTION',
+      properties: { count: '2', flag: 'false', nested: '{"a":1}' },
+    } as unknown as TrackEventType);
+
+    expect(logCustomEvent).toHaveBeenCalledWith('ACTION', {
+      count: '2',
+      flag: 'false',
+      nested: '{"a":1}',
+    });
+  });
+
+  const order = {
+    type: 'track',
+    event: 'Order Completed',
+    properties: {
+      order_id: 'o1',
+      revenue: 30,
+      currency: 'EUR',
+      store: 'nyc',
+      coupon: 'ORDER',
+      products: [
+        {
+          product_id: 'p1',
+          sku: 'SKU1',
+          name: 'Shirt',
+          brand: 'Acme',
+          category: 'Apparel',
+          variant: 'Red',
+          position: 1,
+          coupon: 'SAVE',
+          price: 10,
+          quantity: 2,
+          size: 'M',
+        },
+        { product_id: 'p2', name: 'Hat', price: 10, quantity: 1 },
+      ],
+      quantity: 1,
+    },
+  } as unknown as TrackEventType;
+
+  const orderProperties = {
+    order_id: 'o1',
+    revenue: 30,
+    currency: 'EUR',
+    store: 'nyc',
+    quantity: 1,
+  };
+
+  it('logs one purchase per product with order and product fields', () => {
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
+    plugin.track(order);
+
+    expect(logPurchase).toHaveBeenCalledTimes(2);
+    expect(logPurchase).toHaveBeenCalledWith('SKU1', '10', 'EUR', 2, {
+      ...orderProperties,
+      product_id: 'p1',
+      sku: 'SKU1',
+      name: 'Shirt',
+      brand: 'Acme',
+      category: 'Apparel',
+      variant: 'Red',
+      position: 1,
+      coupon: 'SAVE',
+      size: 'M',
+    });
+    expect(logPurchase).toHaveBeenCalledWith('p2', '10', 'EUR', 1, {
+      ...orderProperties,
+      coupon: 'ORDER',
+      product_id: 'p2',
+      name: 'Hat',
+    });
+  });
+
+  it('falls back to the product name and skips products without an ID', () => {
+    const plugin = new BrazePlugin({ defaultCurrency: 'USD' });
+    const warn = withWarn(plugin);
+    plugin.track({
+      event: 'Order Completed',
+      properties: {
+        products: [
+          { name: 'Hat', price: 0, quantity: 1 },
+          { price: 5, quantity: 1 },
+        ],
+      },
+    } as unknown as TrackEventType);
+
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith('Hat', '0', 'USD', 1, {
+      name: 'Hat',
+    });
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the product name in per-product grouping', () => {
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      purchaseGrouping: { mode: 'perProduct', identifier: 'name' },
+    });
+    plugin.track(order);
+
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Shirt',
+      '10',
+      'EUR',
+      2,
+      expect.any(Object)
+    );
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Hat',
+      '10',
+      'EUR',
+      1,
+      expect.any(Object)
+    );
+  });
+
+  it('reads grouping from settings and lets constructor grouping override it', () => {
+    const settings = {
+      integrations: { Appboy: { purchaseGrouping: { mode: 'perOrder' } } },
+    };
+    const fromSettings = new BrazePlugin({ defaultCurrency: 'USD' });
+    fromSettings.update(settings, UpdateType.initial);
+    fromSettings.track(order);
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Order Completed',
+      '30',
+      'EUR',
+      1,
+      order.properties
+    );
+
+    jest.clearAllMocks();
+    const fromConstructor = new BrazePlugin({
+      defaultCurrency: 'USD',
+      purchaseGrouping: { mode: 'perProduct', identifier: 'name' },
+    });
+    fromConstructor.update(settings, UpdateType.initial);
+    fromConstructor.track(order);
+    expect(logPurchase.mock.calls.map(([id]) => id)).toEqual(['Shirt', 'Hat']);
+  });
+
+  it('logs a single purchase in per-order grouping', () => {
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      purchaseGrouping: { mode: 'perOrder' },
+    });
+    plugin.track(order);
+
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'Order Completed',
+      '30',
+      'EUR',
+      1,
+      order.properties
+    );
+  });
+
+  it('lets transformPurchase change purchases', () => {
+    const transformPurchase = jest.fn(
+      (p: BrazePurchase, { order: o, product }: BrazePurchaseContext) => ({
+        ...p,
+        productId: String(product?.name),
+        properties: { 'Transaction Id': o.order_id },
+      })
+    );
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      transformPurchase,
+    });
+    plugin.track(order);
+
+    expect(transformPurchase.mock.calls[0]).toMatchObject([
+      { productId: 'SKU1' },
+      { event: order, order: order.properties, product: { sku: 'SKU1' } },
+    ]);
+    expect(logPurchase).toHaveBeenCalledWith('Shirt', '10', 'EUR', 2, {
+      'Transaction Id': 'o1',
+    });
+    expect(logPurchase).toHaveBeenCalledWith('Hat', '10', 'EUR', 1, {
+      'Transaction Id': 'o1',
+    });
+  });
+
+  it('passes no product to transformPurchase for per-order purchases', () => {
+    const transformPurchase = jest.fn((p: BrazePurchase) => p);
+    const plugin = new BrazePlugin({
+      purchaseGrouping: { mode: 'perOrder' },
+      transformPurchase,
+    });
+    plugin.track(order);
+
+    expect(transformPurchase).toHaveBeenCalledWith(
+      expect.objectContaining({ productId: 'Order Completed' }),
+      { event: order, order: order.properties, product: undefined }
+    );
+  });
+
+  it('skips purchases when transformPurchase returns null', () => {
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      transformPurchase: (p, { product }) =>
+        product?.sku !== undefined ? p : null,
+    });
+    plugin.track(order);
+
+    expect(logPurchase).toHaveBeenCalledTimes(1);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'SKU1',
+      '10',
+      'EUR',
+      2,
+      expect.any(Object)
+    );
+  });
+
+  it('logs the default purchase and warns when transformPurchase throws', () => {
+    const error = new Error('boom');
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      transformPurchase: (p) => {
+        p.properties.mutated = true;
+        throw error;
+      },
+    });
+    const warn = withWarn(plugin);
+    plugin.track(order);
+
+    expect(logPurchase).toHaveBeenCalledTimes(2);
+    expect(logPurchase).toHaveBeenCalledWith(
+      'SKU1',
+      '10',
+      'EUR',
+      2,
+      expect.not.objectContaining({ mutated: true })
+    );
+    expect(warn).toHaveBeenCalledWith(expect.any(String), error);
+  });
+
+  it('skips and warns when transformPurchase returns no productId', () => {
+    const plugin = new BrazePlugin({
+      defaultCurrency: 'USD',
+      transformPurchase: (p) => ({ ...p, productId: '' }),
+    });
+    const warn = withWarn(plugin);
+    plugin.track(order);
+
+    expect(logPurchase).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledTimes(2);
+  });
+
+  it('accepts purchase strategies and rejects invalid combinations', () => {
+    const options: BrazePluginOptions[] = [
+      { purchaseDetection: ['Order Completed'] },
+      { purchaseDetection: () => true },
+      // @ts-expect-error per-order purchases do not select a product field
+      { purchaseGrouping: { mode: 'perOrder', identifier: 'sku' } },
+      { purchaseGrouping: { mode: 'perProduct', identifier: 'name' } },
+    ];
+    expect(options).toHaveLength(4);
+  });
+
+  it('forwards screen views only when forwardScreenViews is on', () => {
+    const screen = {
+      type: 'screen',
+      name: 'Home',
+      properties: { $tab: 'feed' },
+    } as unknown as ScreenEventType;
+
+    new BrazePlugin().screen(screen);
+    expect(logCustomEvent).not.toHaveBeenCalled();
+
+    new BrazePlugin({ forwardScreenViews: true }).screen(screen);
+    expect(logCustomEvent).toHaveBeenCalledWith('Home', { $tab: 'feed' });
+  });
+
+  it('skips events when integrations.All is false unless Appboy is true', async () => {
+    const plugin = new BrazePlugin();
+    plugin.configure({
+      settings: { get: () => ({ Appboy: {} }) },
+      getConfig: () => ({ writeKey: 'key' }),
+    } as unknown as HightouchClient);
+    const event = { type: 'track', event: 'ACTION' };
+
+    await plugin.execute({
+      ...event,
+      integrations: { All: false },
+    } as unknown as TrackEventType);
+    expect(logCustomEvent).not.toHaveBeenCalled();
+
+    await plugin.execute({
+      ...event,
+      integrations: { All: false, Appboy: true },
+    } as unknown as TrackEventType);
+    expect(logCustomEvent).toHaveBeenCalledWith('ACTION', undefined);
   });
 });
