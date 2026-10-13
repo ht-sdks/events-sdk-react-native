@@ -1,0 +1,19 @@
+{
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "paths": {
+      "@ht-sdks/events-sdk-react-native": [
+        "../../packages/core/lib/typescript/src/index.d.ts"
+      ],
+      "@ht-sdks/events-sdk-react-native-plugin-braze": [
+        "../../packages/plugins/plugin-braze/src/index"
+      ],
+      "@ht-sdks/sovran-react-native": [
+        "../../packages/sovran/lib/typescript/src/index.d.ts"
+      ]
+    }
+  },
+  "include": ["App.tsx"]
+}
