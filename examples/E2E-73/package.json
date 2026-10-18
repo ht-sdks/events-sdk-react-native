@@ -47,6 +47,7 @@
     "detox": "^20.14.1",
     "eslint": "^8.19.0",
     "express": "^4.17.1",
+    "image-size": "npm:image-size-next@1.2.2",
     "jest": "^29.7.0",
     "jest-circus": "^29.3.1",
     "prettier": "2.8.8",
@@ -58,5 +59,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "resolutions": {
+    "image-size": "npm:image-size-next@1.2.2"
   }
 }
