@@ -1,0 +1,26 @@
+diff --git a/build.gradle.kts b/build.gradle.kts
+index dfb97e03e0996803901e02ece540124b5a86783b..6a32d7f2e93ba542a9e4b4a8d3a2da043774c4c0 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -61,7 +61,7 @@ tasks.withType<KotlinCompile>().configureEach {
+     apiVersion = "1.5"
+     // See comment above on JDK 11 support
+     jvmTarget = "11"
+-    allWarningsAsErrors = true
++    allWarningsAsErrors = false
+   }
+ }
+ 
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index f2a1d2edab765a519bf0aff66ed33e27b9281e21..168d58d1055a6b3273092efd386318d70faeadf2 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -4,7 +4,7 @@ gson = "2.8.9"
+ guava = "31.0.1-jre"
+ javapoet = "1.13.0"
+ junit = "4.13.2"
+-kotlin = "1.8.0"
++kotlin = "1.9.10"
+ 
+ [libraries]
+ kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

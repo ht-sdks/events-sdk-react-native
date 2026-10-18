@@ -1,0 +1,13 @@
+diff --git a/build.gradle.kts b/build.gradle.kts
+index aba364903b2857e0e12e1c3fae62bb2141bd125c..3b956406496157ae8cf98acf43e03b6d2a94c13b 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -11,7 +11,7 @@ import org.gradle.configurationcache.extensions.serviceOf
+ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+ 
+ plugins {
+-  kotlin("jvm") version "1.7.22"
++  kotlin("jvm") version "1.9.10"
+   id("java-gradle-plugin")
+ }
+ 
