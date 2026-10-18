@@ -45,7 +45,7 @@
   "homepage": "https://github.com/ht-sdks/events-sdk-react-native/tree/master/packages/plugins/plugin-facebook-app-events#readme",
   "peerDependencies": {
     "@ht-sdks/events-sdk-react-native": "^2.18.2",
-    "react-native-fbsdk-next": "^11"
+    "react-native-fbsdk-next": "^13"
   },
   "devDependencies": {
     "@ht-sdks/analytics-rn-shared": "workspace:^",
@@ -53,7 +53,7 @@
     "@ht-sdks/sovran-react-native": "^1.1.1",
     "jest": "^29.7.0",
     "react-native-builder-bob": "^0.23.1",
-    "react-native-fbsdk-next": "^11",
+    "react-native-fbsdk-next": "^13",
     "rimraf": "^5.0.5",
     "typescript": "^5.2.2"
   },
