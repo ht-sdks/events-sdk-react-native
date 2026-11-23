@@ -80,22 +80,10 @@ export class JSONError extends HightouchError {
   }
 }
 
-/**
- * HTTP status codes that indicate a transient server issue worth retrying.
- * The event collector returns 400 (validation), 401 (auth), 404 (invalid
- * write key on webhooks), and 500 (server error). Only 5xx and 429 are
- * transient — all other codes indicate the server will never accept this
- * request, so events should be dropped rather than retried.
- */
-const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
-
-/**
- * Determines whether a failed request should be retried based on the error.
- * Only 5xx/429 are retryable; all 4xx client errors are permanent.
- */
 export const isRetryableError = (error: unknown): boolean => {
   if (error instanceof NetworkError) {
-    return RETRYABLE_STATUS_CODES.has(error.statusCode);
+    const { statusCode } = error;
+    return statusCode === 408 || statusCode === 429 || (statusCode >= 500 && statusCode < 600);
   }
   // Network failures (no status code), timeouts, etc. are retryable
   return true;

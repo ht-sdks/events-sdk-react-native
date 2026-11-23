@@ -1,7 +1,7 @@
 import { NetworkError, isRequestScopedError, isRetryableError } from '../errors';
 
 describe('isRetryableError', () => {
-  it.each([429, 500, 502, 503, 504])(
+  it.each([408, 429, 500, 501, 502, 503, 504, 522, 599])(
     'returns true for retryable status code %d',
     (statusCode) => {
       const error = new NetworkError(statusCode, 'Server error');

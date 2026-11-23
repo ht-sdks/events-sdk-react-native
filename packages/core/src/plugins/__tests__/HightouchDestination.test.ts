@@ -396,7 +396,7 @@ describe('HightouchDestination', () => {
       });
     });
 
-    it('drops entire batch on request-scoped 4xx (e.g. 401) without splitting', async () => {
+    it('retains the batch and pauses uploads after a request-scoped response', async () => {
       const events = [
         { messageId: 'message-1' },
         { messageId: 'message-2' },
@@ -421,13 +421,10 @@ describe('HightouchDestination', () => {
 
       await plugin.flush();
 
-      // All 3 events dropped in one shot — no splitting
-      expect(dequeueSpy).toHaveBeenCalled();
-      const dequeuedEvents = dequeueSpy.mock.calls[0][0] as HightouchEvent[];
-      expect(dequeuedEvents).toHaveLength(3);
-
-      // Only 1 upload attempt — no recursive splitting
+      expect(dequeueSpy).not.toHaveBeenCalled();
+      await plugin.flush();
       expect(sendEventsSpy).toHaveBeenCalledTimes(1);
+      plugin.shutdown();
     });
 
     it('drops a single-event batch on non-retryable HTTP errors (e.g. 400)', async () => {
@@ -516,9 +513,7 @@ describe('HightouchDestination', () => {
       await plugin.flush();
 
       // 5xx is retryable — events stay in queue, no splitting
-      expect(dequeueSpy).toHaveBeenCalled();
-      const dequeuedEvents = dequeueSpy.mock.calls[0][0] as HightouchEvent[];
-      expect(dequeuedEvents).toHaveLength(0);
+      expect(dequeueSpy).not.toHaveBeenCalled();
 
       // Only 1 upload attempt — no splitting on retryable errors
       expect(sendEventsSpy).toHaveBeenCalledTimes(1);
@@ -546,9 +541,7 @@ describe('HightouchDestination', () => {
       await plugin.flush();
 
       // Generic errors are retryable — event stays in queue
-      expect(dequeueSpy).toHaveBeenCalled();
-      const dequeuedEvents = dequeueSpy.mock.calls[0][0] as HightouchEvent[];
-      expect(dequeuedEvents).toHaveLength(0);
+      expect(dequeueSpy).not.toHaveBeenCalled();
       expect(sendEventsSpy).toHaveBeenCalledTimes(1);
     });
 

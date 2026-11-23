@@ -34,6 +34,9 @@ export class HightouchDestination extends DestinationPlugin {
   key = HIGHTOUCH_DESTINATION_KEY;
   private apiHost?: string;
   private isReady = false;
+  private retryDelay = 1000;
+  private retryTimer?: ReturnType<typeof setTimeout>;
+  private stopped = false;
 
   /**
    * Uploads a batch of events with error-aware handling:
@@ -41,8 +44,8 @@ export class HightouchDestination extends DestinationPlugin {
    *  Error type                     | Action                  | Splits?
    *  -------------------------------|-------------------------|--------
    *  Success (2xx)                  | Return sent             | No
-   *  Retryable (429, 5xx, network)  | Leave in queue          | No
-   *  Request-scoped (401/403/404)   | Drop entire batch       | No
+   *  Retryable (408, 429, 5xx, network)  | Leave in queue          | No
+   *  Request-scoped (401/403/404)   | Pause and retain batch  | No
    *  Event-scoped (400), single     | Drop the event          | No
    *  Event-scoped (400), multi      | Bisect to isolate       | Yes
    */
@@ -58,6 +61,7 @@ export class HightouchDestination extends DestinationPlugin {
     try {
       const res = await uploadEvents({ writeKey, url, events: batch });
       checkResponseForErrors(res);
+      this.retryDelay = 1000;
       return { sent: batch, dropped: [], failed: 0 };
     } catch (e) {
       this.analytics?.reportInternalError(translateHTTPError(e));
@@ -66,15 +70,16 @@ export class HightouchDestination extends DestinationPlugin {
         return { sent: [], dropped: [], failed: batch.length };
       }
 
-      // Request-scoped errors (401/403/404) affect all events equally —
-      // splitting cannot help, so drop the entire batch immediately.
       if (isRequestScopedError(e)) {
-        const status =
-          e instanceof Error ? e.message : 'unknown';
-        this.analytics?.logger.error(
-          `Dropped ${batch.length} event(s) due to request-scoped error: ${status}`
-        );
-        return { sent: [], dropped: batch, failed: batch.length };
+        this.analytics?.logger.error('Check the write key and endpoint. Queued events will be retried.');
+        if (!this.stopped && this.retryTimer === undefined) {
+          this.retryTimer = setTimeout(() => {
+            this.retryTimer = undefined;
+            void this.flush().catch((error) => this.analytics?.reportInternalError(translateHTTPError(error)));
+          }, this.retryDelay);
+          this.retryDelay = Math.min(60000, this.retryDelay * 2);
+        }
+        return { sent: [], dropped: [], failed: batch.length };
       }
 
       if (batch.length === 1) {
@@ -100,7 +105,7 @@ export class HightouchDestination extends DestinationPlugin {
   };
 
   private sendEvents = async (events: HightouchEvent[]): Promise<void> => {
-    if (!this.isReady) {
+    if (!this.isReady || this.stopped || this.retryTimer !== undefined) {
       return Promise.resolve();
     }
 
@@ -118,21 +123,19 @@ export class HightouchDestination extends DestinationPlugin {
       MAX_PAYLOAD_SIZE_IN_KB
     );
 
-    let dequeuedEvents: HightouchEvent[] = [];
     let numSent = 0;
     let numDropped = 0;
     let numFailed = 0;
 
-    await Promise.all(
-      chunkedEvents.map(async (batch: HightouchEvent[]) => {
-        const result = await this.uploadBatch(batch, writeKey, url);
-        numSent += result.sent.length;
-        numDropped += result.dropped.length;
-        numFailed += result.failed;
-        dequeuedEvents = dequeuedEvents.concat(result.sent, result.dropped);
-        await this.queuePlugin.dequeue(dequeuedEvents);
-      })
-    );
+    for (const batch of chunkedEvents) {
+      const result = await this.uploadBatch(batch, writeKey, url);
+      numSent += result.sent.length;
+      numDropped += result.dropped.length;
+      numFailed += result.failed;
+      const dequeuedEvents = [...result.sent, ...result.dropped];
+      if (dequeuedEvents.length) await this.queuePlugin.dequeue(dequeuedEvents);
+      if (this.retryTimer !== undefined) break;
+    }
 
     if (config.debug === true && numSent > 0) {
       this.analytics?.logger.info(`Sent ${numSent} events`);
@@ -186,6 +189,12 @@ export class HightouchDestination extends DestinationPlugin {
     // Execute the internal timeline here, the queue plugin will pick up the event and add it to the queue automatically
     const enrichedEvent = super.execute(event);
     return enrichedEvent;
+  }
+
+  shutdown() {
+    this.stopped = true;
+    clearTimeout(this.retryTimer);
+    super.shutdown();
   }
 
   async flush() {
