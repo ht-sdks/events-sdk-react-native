@@ -66,12 +66,13 @@ export class HightouchDestination extends DestinationPlugin {
     } catch (e) {
       this.analytics?.reportInternalError(translateHTTPError(e));
 
-      if (isRetryableError(e)) {
-        return { sent: [], dropped: [], failed: batch.length };
-      }
-
-      if (isRequestScopedError(e)) {
-        this.analytics?.logger.error('Check the write key and endpoint. Queued events will be retried.');
+      const rejected = isRequestScopedError(e);
+      if (rejected || isRetryableError(e)) {
+        if (rejected) {
+          this.analytics?.logger.error('Check the write key and endpoint. Queued events will be retried.');
+        } else if (this.retryDelay === 1000) {
+          return { sent: [], dropped: [], failed: batch.length };
+        }
         if (!this.stopped && this.retryTimer === undefined) {
           this.retryTimer = setTimeout(() => {
             this.retryTimer = undefined;
@@ -91,10 +92,11 @@ export class HightouchDestination extends DestinationPlugin {
 
       // Split in half to isolate the bad event(s) — only for 400 (validation)
       const mid = Math.ceil(batch.length / 2);
-      const [left, right] = await Promise.all([
-        this.uploadBatch(batch.slice(0, mid), writeKey, url),
-        this.uploadBatch(batch.slice(mid), writeKey, url),
-      ]);
+      const left = await this.uploadBatch(batch.slice(0, mid), writeKey, url);
+      if (this.retryTimer !== undefined) {
+        return { ...left, failed: left.failed + batch.length - mid };
+      }
+      const right = await this.uploadBatch(batch.slice(mid), writeKey, url);
 
       return {
         sent: [...left.sent, ...right.sent],
