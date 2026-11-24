@@ -80,6 +80,9 @@ export class JSONError extends HightouchError {
   }
 }
 
+/**
+ * Determines whether a failed request should be retried based on the error.
+ */
 export const isRetryableError = (error: unknown): boolean => {
   if (error instanceof NetworkError) {
     const { statusCode } = error;
