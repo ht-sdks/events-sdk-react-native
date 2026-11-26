@@ -524,6 +524,32 @@ describe('HightouchDestination', () => {
       expect(sendEventsSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('lets fresh events flush while a failed event waits between attempts', async () => {
+      const a = { messageId: 'a' } as HightouchEvent;
+      const b = { messageId: 'b' } as HightouchEvent;
+      const events = [a];
+      const { plugin, sendEventsSpy } = createTestWith({ events });
+      const clock = jest.spyOn(Date, 'now').mockReturnValue(1000);
+      try {
+        sendEventsSpy
+          .mockRejectedValueOnce(new NetworkError(503, 'Unavailable'))
+          .mockRejectedValueOnce(new Error('offline'));
+        await plugin.flush();
+        clock.mockReturnValue(31000);
+        await plugin.flush();
+        events.push(b);
+        await plugin.flush();
+        events.pop(); // The mock store returns this array on each flush.
+        clock.mockReturnValue(61000);
+        await plugin.flush();
+        expect(sendEventsSpy.mock.calls.map(([request]) => request.events)).toEqual([
+          [a], [a], [b], [a],
+        ]);
+      } finally {
+        clock.mockRestore();
+      }
+    });
+
     it('retains events on network timeout (non-NetworkError)', async () => {
       const events = [
         { messageId: 'message-1' },

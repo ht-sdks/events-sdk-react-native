@@ -10,7 +10,7 @@ import { chunk } from '../util';
 import { uploadEvents } from '../api';
 import type { HightouchClient } from '../analytics';
 import { QueueFlushingPlugin } from './QueueFlushingPlugin';
-import { defaultApiHost } from '../constants';
+import { defaultApiHost, defaultFlushInterval } from '../constants';
 import {
   checkResponseForErrors,
   isRequestScopedError,
@@ -34,6 +34,7 @@ export class HightouchDestination extends DestinationPlugin {
   key = HIGHTOUCH_DESTINATION_KEY;
   private apiHost?: string;
   private isReady = false;
+  private retryAt = new WeakMap<HightouchEvent, number>();
 
   /**
    * Uploads a batch of events with error-aware handling:
@@ -63,6 +64,10 @@ export class HightouchDestination extends DestinationPlugin {
       this.analytics?.reportInternalError(translateHTTPError(e));
 
       if (isRetryableError(e)) {
+        const interval = this.analytics?.getConfig().flushInterval ?? 0;
+        const delay = interval > 0 ? interval : defaultFlushInterval;
+        const retryAt = Date.now() + delay * 1000;
+        batch.forEach((event) => this.retryAt.set(event, retryAt));
         return { sent: [], dropped: [], failed: batch.length };
       }
 
@@ -112,8 +117,9 @@ export class HightouchDestination extends DestinationPlugin {
     const writeKey = config.writeKey;
     const url = this.getEndpoint();
 
+    const now = Date.now();
     const chunkedEvents: HightouchEvent[][] = chunk(
-      events,
+      events.filter((event) => (this.retryAt.get(event) ?? 0) <= now),
       config.maxBatchSize ?? MAX_EVENTS_PER_BATCH,
       MAX_PAYLOAD_SIZE_IN_KB
     );
